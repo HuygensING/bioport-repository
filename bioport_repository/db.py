@@ -701,7 +701,7 @@ class DBRepository:
             time_from=time_from,
             time_to=time_to,
         )
-        bios = [Biography(id=r.id, 
+        bios = (Biography(id=r.id, 
                       source_id=r.source_id, 
                       repository=self.repository, 
                       biodes_document =r.biodes_document, 
@@ -709,7 +709,7 @@ class DBRepository:
                       record=r, 
                       version=r.version, 
                       ) 
-            for r in ls]
+            for r in ls)
    
         if bioport_id:
             #        first those biographies that have the present bioport_id in their id - 
@@ -765,7 +765,7 @@ class DBRepository:
         if limit:
             qry = qry.limit(limit)
             
-        return qry.all()
+        return qry
     
     def get_biography(self, **args):
         """get the unique biography that satisfies **args
