@@ -50,7 +50,7 @@ class DBRepositoryTestCase(CommonTestCase):
         #now we have a new version of this biography
         self.assertEqual(len(self.db.get_session().query(BiographyRecord).all()), n_bios + 1)
         #but the number of biographies (with version 0) is still the ssame
-        self.assertEqual(len(self.db.get_biographies()), n_bios)
+        self.assertEqual(len(list(self.db.get_biographies())), n_bios)
         
         self.assertEqual(len(bio1.get_value('auteur', [])), 1, bio1.to_string())
         
@@ -59,7 +59,7 @@ class DBRepositoryTestCase(CommonTestCase):
         self.db.save_biography(bio2, user=self.db.user, comment='test')
         #we added one more biography
         n_bios += 1
-        self.assertEqual(len(self.db.get_biographies()), n_bios)
+        self.assertEqual(len(list(self.db.get_biographies())), n_bios)
     
     def test_update_biographies(self):
         #set up a source
@@ -76,10 +76,10 @@ class DBRepositoryTestCase(CommonTestCase):
     def test_source_updating(self):
         src = self.repo.get_source(id=u'knaw')
         self.db.delete_biographies(src)
-        self.assertEqual(len(self.db.get_biographies(source=src)), 0)
+        self.assertEqual(len(list(self.db.get_biographies(source=src))), 0)
         
         self.repo.download_biographies(src)
-        self.assertEqual(len(self.db.get_biographies(source=src)), 5) 
+        self.assertEqual(len(list(self.db.get_biographies(source=src))), 5) 
         
     def test_update_persons(self):
         self.repo.db.update_persons()

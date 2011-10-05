@@ -39,6 +39,7 @@ class SourceTestCase(CommonTestCase):
         source.download_data()
         
         bios = source.get_biographies()
+        bios = list(bios)
         self.assertEqual(len(bios), 20, bios)
         
         assert source.path()

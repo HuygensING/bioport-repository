@@ -199,7 +199,7 @@ class RepositoryTestCase(CommonTestCase):
         repo.download_biographies(src)
         
         #now the biography of person2 does not exist anymore
-        self.assertEqual(len(repo.get_biographies(local_id='test/002')), 0)
+        self.assertEqual(len(list(repo.get_biographies(local_id='test/002'))), 0)
         #and neither does person2 himself
         assert person2.bioport_id not in [p.bioport_id for p in repo.get_persons()],  [(p.bioport_id, p.get_biographies()) for p in repo.get_persons()]
         
@@ -208,7 +208,7 @@ class RepositoryTestCase(CommonTestCase):
         repo.download_biographies(src)
         #and we have the 5 old biographies again
         self.assertEqual(len(repo.get_persons(source_id=src.id)), 5)
-        self.assertEqual(len(repo.get_biographies(local_id='test/002')), 1)
+        self.assertEqual(len(list(repo.get_biographies(local_id='test/002'))), 1)
         #it is very import that our newly re-donloaed test/002 has the same bioport id as before
         self.assertEqual(repo.get_biography(local_id='test/002').get_person().bioport_id, bioport_id3)
        
@@ -222,7 +222,7 @@ class RepositoryTestCase(CommonTestCase):
         
         src.url = url2
         repo.download_biographies(src)
-        self.assertEqual(len(repo.get_biographies(source_id=src.id)), 5)
+        self.assertEqual(len(list(repo.get_biographies(source_id=src.id))), 5)
         self.assertEqual(len(repo.get_persons(source_id=src.id)), 5, [p.get_biographies() for p in repo.get_persons(source_id=src.id)])
         new_person = repo.get_person(bioport_id=new_person.bioport_id)
         self.assertEqual(len(new_person.get_biographies()), 1)

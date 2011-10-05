@@ -16,7 +16,7 @@ class CategoryTestCase(CommonTestCase):
         
         #get a biography
         self.create_filled_repository()
-        biography = self.db.get_biographies()[0]
+        biography = list(self.db.get_biographies())[0]
         biography.add_or_update_state(type='category', idno=str(some_element.id), text=some_element.name)
         
         #assert 0, biography.to_string()

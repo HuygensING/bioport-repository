@@ -20,7 +20,7 @@ class VersioningTestCase(CommonTestCase):
 
     def test_get_versions(self):
         repo = self.repo
-        bio = repo.get_biographies()[0]
+        bio = list(repo.get_biographies())[0]
         bio.set_category([3])
         self._save_biography(bio, u'test_comment')
         self.assertEqual(len(repo.get_versions(document_id=bio.id)), 2)
@@ -44,7 +44,7 @@ class VersioningTestCase(CommonTestCase):
         
     def test_undo(self):
         repo = self.repo
-        bio = repo.get_biographies()[0]
+        bio = list(repo.get_biographies())[0]
         bioport_id = bio.get_bioport_id()
         date1 = '1111-01-01'
         date2 = '2222-01-01'

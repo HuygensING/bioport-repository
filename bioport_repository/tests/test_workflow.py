@@ -35,7 +35,7 @@ class WorkflowTestCase(CommonTestCase):
         #inspect the sources
         repository.get_sources(order_by='quality', desc=True)
         
-        self.assertEqual(len(repository.get_biographies()), 10)
+        self.assertEqual(len(list(repository.get_biographies())), 10)
         self.assertEqual(len(repository.get_persons()), 10)
         
         source = BioPortSource()

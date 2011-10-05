@@ -322,12 +322,11 @@ class Repository(object):
         if not self.images_cache_local:
             raise Exception('Cannot download illustrations, self.images_cache_local has not been set')
         bios = self.get_biographies(source=source)
-        i = 0
-        total = len(bios)
+        total = 0
         skipped = 0
         for bio in bios:
-            i += 1
-            if limit and i > limit:
+            total += 1
+            if limit and total > limit:
                 break
             for ill in bio.get_illustrations():
                 try:

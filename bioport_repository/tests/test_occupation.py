@@ -16,7 +16,7 @@ class TestOccupation(CommonTestCase):
         
         #get a biography
         self.create_filled_repository()
-        biography = self.db.get_biographies()[0]
+        biography = list(self.db.get_biographies())[0]
         biography.add_or_update_state(type='occupation', idno=str(some_occupation.id), text=some_occupation.name)
         
         #assert 0, biography.to_string()
