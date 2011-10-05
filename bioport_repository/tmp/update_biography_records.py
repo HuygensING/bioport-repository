@@ -12,7 +12,7 @@ ALTER TABLE `bioport`.`biography` ADD INDEX `ix_url_biography`(`url_biography`);
 
 def update_biographies(repo):
 
-    for bio in repo.get_biographies: #(limit=10):
+    for bio in repo.get_biographies(): #(limit=10):
 
         if not bio.record.url_biography:
 	        print 'saving', bio
