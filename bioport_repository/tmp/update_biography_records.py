@@ -1,9 +1,11 @@
 from bioport_repository.repository import *
 
 DB_CONNECTION = 'mysql://root@localhost/bioport'
+DB_CONNECTION = 'mysql://jge:MilanO8@localhost/bioport'
 """
 ALTER TABLE `bioport`.`biography` ADD COLUMN `url_biography` varchar(255)  CHARACTER SET utf8 COLLATE utf8_general_ci AFTER `comment`;
 ALTER TABLE `bioport`.`biography` ADD INDEX `ix_url_biography`(`url_biography`);
+>>>>>>> .r23944
 
 """
 
@@ -14,7 +16,10 @@ def update_biographies(repo):
 
     i = 0
     session = repo.db.get_session()
-    for bio in repo.get_biographies(): #(limit=100):
+    for src in repo.get_sources():
+      src_id = src.id
+      if src_id != 'bioport':
+       for bio in repo.get_biographies(limit=None, source_id=src_id):
         i += 1
         if not bio.record.url_biography:
             print i, '-saving', bio
