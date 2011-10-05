@@ -92,6 +92,8 @@ class Repository(object):
         elif self.ENABLE_SVN:
             raise NotImplementedError()
 
+    def get_bioport_id(self, url_biography):
+        return self.db.get_bioport_id(url_biography=url_biography)
     def get_persons_sequence(self, **args):
         "this method is like get_persons, but defers Person instantiation"
         qry = self.db._get_persons_query(**args)
@@ -259,7 +261,7 @@ class Repository(object):
             ls = biodes.parse_list(source.url)
             if limit:
                 ls = ls[:limit] 
-        except etree.XMLSyntaxError, error:
+        except etree.XMLSyntaxError, error: #@UndefinedVariable
             raise BioPortException('Error parsing data at %s -- check if this is valid XML\n%s' % (source.url, error))
         
         if not ls:

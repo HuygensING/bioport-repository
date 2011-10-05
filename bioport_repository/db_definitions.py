@@ -21,6 +21,7 @@ class BiographyRecord(Base):
     id = Column(MSString(50, binary=True, collation='utf8_bin'), primary_key=True, index=True, ) #the id consist of source_id/local_id
     version = Column(Integer, primary_key=True, default=0, autoincrement=False)
     source_id = Column(MSString(50, collation='utf8_bin'), ForeignKey("source.id"),index=True)
+    url_biography = Column(Unicode(255), index=True) #the url where the biography can be found
     source_url = Column(Unicode(255)) #the url where the biodes_document came from
     biodes_document = Column(Text(64000))
     

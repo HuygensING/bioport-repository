@@ -4,6 +4,8 @@ import os
 from repocommon import Singleton
 from repocommon import  BioPortException
 import time
+
+
 #from svn import repos, core, fs
 #some docs here;
 #http://pysvn.tigris.org/docs/pysvn_prog_guide.html
@@ -159,6 +161,7 @@ class SVNRepository(object):
         #we get the data from the repository
         dirnames = self.svn_repository.ls()
 #        dirnames = [self.svn_repository.absolute_path(d) for d in dirnames]
+        from bioport_repository.source import Source
         ls = [Source(d) for d in dirnames]
         if order_by == 'quality':
             ls = [(s.get_value('quality'), s) for s in ls]

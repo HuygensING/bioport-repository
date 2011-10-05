@@ -21,7 +21,8 @@ from names.similarity import soundexes_nl
 from names.common import TUSSENVOEGSELS, words
 from names.name import TYPE_PREPOSITION,  TYPE_FAMILYNAME,  TYPE_GIVENNAME , TYPE_INTRAPOSITON,  TYPE_POSTFIX,  TYPE_TERRITORIAL 
 
-from bioport_repository.db_definitions import PersonRecord, AntiIdentifyRecord
+from bioport_repository.db_definitions import PersonRecord, AntiIdentifyRecord,\
+    RelBioPortIdBiographyRecord
 from bioport_repository.db_definitions import DeferIdentificationRecord
 from bioport_repository.db_definitions import ChangeLog, Occupation
 from bioport_repository.db_definitions import Category, Base, Location, Comment
@@ -67,7 +68,7 @@ class DBRepository:
         ):       
         self.connection = db_connection 
         self.user = user
-        self.metadata = Base.metadata
+        self.metadata = Base.metadata #@UndefinedVariable
         metadata = self.metadata 
         self._session = None
         
@@ -307,6 +308,7 @@ class DBRepository:
             r_biography.source_id = biography.source_id
             r_biography.biodes_document = biography.to_string()
             r_biography.source_url = unicode(biography.source_url)
+            r_biography.url_biography = biography.get_value('url_biography')
             biography.version = r_biography.version = 0
             r_biography.user = user
             r_biography.comment = comment
@@ -424,7 +426,7 @@ class DBRepository:
                 try:
                     category_id = int(category_id)
                 except ValueError:
-                    msg = '%s- %s: %s' % (category_id, etree.tostring(category), person.bioport_id)
+                    msg = '%s- %s: %s' % (category_id, etree.tostring(category), person.bioport_id) #@UndefinedVariable
                     raise Exception(msg)
                 r = RelPersonCategory(bioport_id=bioport_id, category_id=category_id)
                 session.add(r)
@@ -574,9 +576,9 @@ class DBRepository:
     def fresh_identifier(self):
         session = self.get_session()
         # make a random string of characters from ALPHANUMERIC of lenght LENGTH
-        new_bioportid_1 = ''.join([random.choice('0123456789') for i in range(LENGTH)])
-        new_bioportid_2 = ''.join([random.choice('0123456789') for i in range(LENGTH)])
-        new_bioportid_3 = ''.join([random.choice('0123456789') for i in range(LENGTH)])
+        new_bioportid_1 = ''.join([random.choice('0123456789') for _i in range(LENGTH)])
+        new_bioportid_2 = ''.join([random.choice('0123456789') for _i in range(LENGTH)])
+        new_bioportid_3 = ''.join([random.choice('0123456789') for _i in range(LENGTH)])
         for new_bioportid in (new_bioportid_1, new_bioportid_2, new_bioportid_3):
             try:
                 self.add_bioport_id(new_bioportid)
@@ -779,13 +781,11 @@ class DBRepository:
         return ls[0]
 
     def count_persons(self, **args):        
-        session = self.get_session()
-#        qry = session.query(PersonRecord)
         qry = self._get_persons_query(**args)
         return qry.count()
     
-        # XXX - There seems to be a memory leak when calling session.execute()
     def get_persons(self, **args):
+        # XXX - There seems to be a memory leak when calling session.execute()
         # this is the same problem described here:
         # http://www.mail-archive.com/sqlalchemy@googlegroups.com/msg13511.html
         # We should investigate further.
@@ -850,6 +850,7 @@ class DBRepository:
         where_clause=None,
         has_contradictions=False,
         no_empty_names=True,
+        url_biography=None, #an URL of the source (find the person that refers to this source)
         ):
         """construct a sqlalchemy Query filter accordin to the criteria given
         
@@ -899,13 +900,13 @@ class DBRepository:
                STATUS_ALIVE,
                STATUS_ONLY_VISIBLE_IF_CONNECTED,
                ]
-            qry = qry.filter(not_(sqlalchemy.func.ifnull(PersonRecord.status.in_(to_hide), False)))
+            qry = qry.filter(not_(sqlalchemy.func.ifnull(PersonRecord.status.in_(to_hide), False))) #@UndefinedVariable
             
         if hide_foreigners:
-            qry = qry.filter(not_(sqlalchemy.func.ifnull(PersonRecord.status.in_([STATUS_FOREIGNER]), False)))
+            qry = qry.filter(not_(sqlalchemy.func.ifnull(PersonRecord.status.in_([STATUS_FOREIGNER]), False))) #@UndefinedVariable
 
         if beginletter:
-            qry = qry.filter(PersonRecord.naam.startswith(beginletter))
+            qry = qry.filter(PersonRecord.naam.startswith(beginletter)) #@UndefinedVariable
         
         elif no_empty_names:
             qry = qry.filter(PersonRecord.naam != None)
@@ -935,7 +936,7 @@ class DBRepository:
         
         if geboorteplaats:
             if '*' in geboorteplaats:
-                dafilter = PersonRecord.geboorteplaats.like(
+                dafilter = PersonRecord.geboorteplaats.like( #@UndefinedVariable
                         geboorteplaats.replace('*', '%')
                     )
                 qry = qry.filter(dafilter)
@@ -944,7 +945,7 @@ class DBRepository:
                 
         if sterfplaats:
             if '*' in sterfplaats:
-                dafilter = PersonRecord.sterfplaats.like(
+                dafilter = PersonRecord.sterfplaats.like( #@UndefinedVariable
                         sterfplaats.replace('*', '%')
                     )
                 qry = qry.filter(dafilter)
@@ -958,7 +959,7 @@ class DBRepository:
             qry = qry.filter(PersonRecord.has_illustrations==has_illustrations) 
         
         if match_term:
-            qry = qry.filter(PersonRecord.naam.match(match_term))
+            qry = qry.filter(PersonRecord.naam.match(match_term)) #@UndefinedVariable
             
             
         if search_term:
@@ -976,7 +977,7 @@ class DBRepository:
         
         if any_soundex:
             qry = qry.join(PersonSoundex)
-            qry = qry.filter(PersonSoundex.soundex.in_(any_soundex))
+            qry = qry.filter(PersonSoundex.soundex.in_(any_soundex)) #@UndefinedVariable
             
         qry = qry.join(PersonSource)
         qry = qry.filter(PersonSource.source_id != u'bioport')
@@ -1001,7 +1002,7 @@ class DBRepository:
             if order_by == 'random':
                 #XXX this is perhaps a slow way of doing is; for our purposes it is also enough to pick a random 
                 #id, and do somethin like "where id > randomlypickednumber limit XXX"
-                some_bioportid = ''.join([random.choice('0123456789') for i in range(LENGTH)])
+                some_bioportid = ''.join([random.choice('0123456789') for _i in range(LENGTH)])
                 qry = qry.filter(PersonRecord.bioport_id > some_bioportid)
             else:
                 qry = qry.order_by(order_by)        
@@ -1009,6 +1010,10 @@ class DBRepository:
         if has_contradictions:
             qry = qry.filter(PersonRecord.has_contradictions==True)
             
+        if url_biography:
+            qry = qry.join((RelBioPortIdBiographyRecord, PersonRecord.bioport_id    ==RelBioPortIdBiographyRecord.bioport_id))
+            qry = qry.join((BiographyRecord, BiographyRecord.id==RelBioPortIdBiographyRecord.biography_id))
+            qry = qry.filter(BiographyRecord.url_biography == url_biography)
         if size:
             if int(size) > -1:
                 qry = qry.limit(size)
@@ -1016,9 +1021,23 @@ class DBRepository:
             qry = qry.offset(start) 
         qry = qry.distinct()
 
+            
         return qry
     
-
+    def get_bioport_id(self, url_biography):
+        session=self.get_session() 
+        qry = session.query(RelBioPortIdBiographyRecord.bioport_id )
+  
+#            qry = qry.join((RelBioPortIdBiographyRecord, PersonRecord.bioport_id    ==RelBioPortIdBiographyRecord.bioport_id))
+        qry = qry.join((BiographyRecord, BiographyRecord.id==RelBioPortIdBiographyRecord.biography_id))
+        qry = qry.filter(BiographyRecord.version == 0)
+        qry = qry.filter(BiographyRecord.url_biography == url_biography)
+        result =  qry.first()
+        if result:
+            return result.bioport_id
+        else:
+            return None
+ 
     def _get_date_filter(self, data, datetype):
         """
         This function builds a sqlalchemy filter using data in 'data'.
@@ -1173,7 +1192,7 @@ class DBRepository:
                 qry = qry.join(PersonSoundex)
                 if search_family_name_only:
                     qry = qry.filter(PersonSoundex.is_from_family_name == True)
-                qry = qry.filter(PersonSoundex.soundex.like(s))
+                qry = qry.filter(PersonSoundex.soundex.like(s)) #@UndefinedVariable
             else:
                 for s in soundexes:
                     alias = aliased(PersonSoundex)
@@ -1425,12 +1444,12 @@ class DBRepository:
                    ))
             if len(source_ids) == 1:
                 qry = qry.filter(or_(
-                    BiographyRecord.source_id.in_(source_ids),
+                    BiographyRecord.source_id.in_(source_ids), #@UndefinedVariable
                     BiographyRecord2.source_id.in_(source_ids)
                     ))
             else:
                 qry = qry.filter(and_(
-                    BiographyRecord.source_id.in_(source_ids),
+                    BiographyRecord.source_id.in_(source_ids), #@UndefinedVariable
                     BiographyRecord2.source_id.in_(source_ids)
                     ))
                 
@@ -1713,7 +1732,7 @@ class DBRepository:
         if name:
             qry = qry.filter(Location.full_name == name)
         elif startswith:
-            qry = qry.filter(Location.sort_name.startswith(startswith))
+            qry = qry.filter(Location.sort_name.startswith(startswith)) #@UndefinedVariable
             
         return qry.all() 
     
@@ -1746,8 +1765,8 @@ class DBRepository:
             If place_type is either 'sterf' or 'geboorte' it will only
             return death or birth places.
         """
-        col_geboorte = PersonRecord.geboorteplaats.label('plaats')
-        col_sterf = PersonRecord.sterfplaats.label('plaats')
+        col_geboorte = PersonRecord.geboorteplaats.label('plaats') #@UndefinedVariable
+        col_sterf = PersonRecord.sterfplaats.label('plaats') #@UndefinedVariable
         select = sqlalchemy.sql.expression.select
         geboorte_query = select([col_geboorte]).where(
             col_geboorte != None).distinct()

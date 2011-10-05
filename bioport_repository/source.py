@@ -51,18 +51,18 @@ class Source(object):
             'default_status',
             'last_bios_update'
             ]
-        n = etree.Element('biodes_source')
+        n = etree.Element('biodes_source') #@UndefinedVariable
         for k in keys:
             value = getattr(self, k)
             if value is not None:
                 value = unicode(value)
             else:
                 value = ''
-            etree.SubElement(n, k).text = value
-        return etree.tostring(n, pretty_print=True)
+            etree.SubElement(n, k).text = value #@UndefinedVariable
+        return etree.tostring(n, pretty_print=True) #@UndefinedVariable
 
     def _from_xml(self, xml):
-        t = etree.fromstring(xml)
+        t = etree.fromstring(xml) #@UndefinedVariable
         for n in t: #.getroot():
             setattr(self, n.tag, n.text)
         #hack for the quality attribute

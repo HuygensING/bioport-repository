@@ -172,6 +172,17 @@ class DBRepositoryTestCase(CommonTestCase):
         self.assertEqual(len(repo.get_persons(sterfplaats='*en')), 3)
 
         self.assertEqual(len(repo.get_persons(sterfplaats='Lisse')), 1)
+        self.assertEqual(len(repo.get_persons(url_biography='xxxx')),0 )
+        url_biography= repo.get_persons()[1].get_biographies()[0].get_value('url_biography')
+        self.assertEqual(len(repo.get_persons(url_biography=url_biography)),0 )
+
+    def test_get_bioport_id(self):
+        repo = self.repo
+        some_person = repo.get_persons()[1]
+        url_biography = some_person.get_biographies()[0].get_value('url_biography')
+        self.assertEqual(repo.get_bioport_id(url_biography=url_biography), some_person.bioport_id)
+        
+        
         
     def test_search_soundex(self):
         repo = self.repo

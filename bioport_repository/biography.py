@@ -69,10 +69,10 @@ class Biography(object, BioDesDoc): #, SVNEntry):
         except AttributeError:
             if not self.biodes_document:
                 self._set_up_basic_structure()
-                self.biodes_document = etree.tostring(self.root)
+                self.biodes_document = etree.tostring(self.root) #@UndefinedVariable
                 return self.root
             else:
-                self.root = etree.fromstring(self.biodes_document)
+                self.root = etree.fromstring(self.biodes_document) #@UndefinedVariable
                 return self.root
    
     def get_source(self):
@@ -165,7 +165,7 @@ class Biography(object, BioDesDoc): #, SVNEntry):
         if ls:
             element = ls[0]
         else:
-            element = etree.SubElement(self.get_element_biography(), 'snippet')
+            element = etree.SubElement(self.get_element_biography(), 'snippet') #@UndefinedVariable
             element.set('source_id', source_id)
         if snippet:
             snippet=unicode(snippet) 

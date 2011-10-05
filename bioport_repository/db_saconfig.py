@@ -46,6 +46,7 @@
 #utility makes sure an engine is created and cached for us.
 #
 from z3c.saconfig import EngineFactory
+TEST_DSN = ''
 #  >>> engine_factory = EngineFactory(TEST_DSN)
 engine_factory = EngineFactory(TEST_DSN)
 #

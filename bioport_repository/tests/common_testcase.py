@@ -61,7 +61,7 @@ class CommonTestCase(unittest.TestCase):
         # remove also all data from the database
         self.repo.db.metadata.drop_all()
         if os.path.exists(IMAGES_CACHE_LOCAL):
-	        shutil.rmtree(IMAGES_CACHE_LOCAL)
+            shutil.rmtree(IMAGES_CACHE_LOCAL)
         #self.repo.db.namenindex.db.metadata.drop_all()
         return
    
@@ -151,7 +151,7 @@ class CommonTestCase(unittest.TestCase):
                  )
         
         #save it
-        self._save_biography(bio, comment='added by test')
+        self._save_biography(bio, comment=u'added by test')
         return bio.get_person()
     
     def _create_biography(self, **args):

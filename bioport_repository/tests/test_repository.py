@@ -178,8 +178,12 @@ class RepositoryTestCase(CommonTestCase):
         name = 'Name2'
         bio.set_value('namen', [name])
         self._save_biography(bio)
+        biography_from_repo = self.repo.get_biographies(local_id=bio.id)[0]
+        self.assertEqual(biography_from_repo.naam().volledige_naam(), name)
         
-        self.assertEqual(self.repo.get_biographies(local_id=bio.id)[0].naam().volledige_naam(), name, bio.to_string())
+        biography_record = self.repo.db._get_biography_records(local_id=bio.id)[0]
+        self.assertEqual(biography_record.url_biography , bio.get_value('url_biography'))
+                
         self.assertEqual(len(bio.get_idnos(type=None)), 2, bio.to_string())
     
     def test_number_of_biographies_in_database(self): 

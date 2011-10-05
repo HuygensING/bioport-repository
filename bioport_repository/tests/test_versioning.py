@@ -1,6 +1,6 @@
 # encoding=utf8
 from bioport_repository.tests.common_testcase import CommonTestCase, unittest 
-from bioport_repository.biography import Biography
+#from bioport_repository.biography import Biography
 import datetime
 import time
 class VersioningTestCase(CommonTestCase):

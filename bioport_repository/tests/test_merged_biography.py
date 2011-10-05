@@ -1,11 +1,9 @@
 from bioport_repository.tests.common_testcase import CommonTestCase, unittest 
 from bioport_repository.merged_biography import MergedBiography, BiographyMerger
-from bioport_repository.biography import Biography
-from names.name import Name
+#from bioport_repository.biography import Biography
+#from names.name import Name
 from lxml import etree
 from datetime import datetime
-
-
     
 class TestMergedBiography(CommonTestCase):
         
@@ -40,7 +38,7 @@ class TestMergedBiography(CommonTestCase):
         self.assertEqual(merged.geboortedatum(), '2000-02-01')
         bios[-3].add_or_update_event(type='birth', when='', date_text='ongeveer') #, notBefore=notBefore, notAfter=notAfter, place=place)
         
-        self.assertEqual(merged.geboortedatum(), 'ongeveer', etree.tostring(merged.get_event('birth')))
+        self.assertEqual(merged.geboortedatum(), 'ongeveer', etree.tostring(merged.get_event('birth'))) #@UndefinedVariable
         
         #test if all relevaent information ends up in the "merged biodes" file
         bios[-3].set_value('geboortedatum', '2000-02-01')

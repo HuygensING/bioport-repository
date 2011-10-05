@@ -380,7 +380,7 @@ class BiographyMerger(object):
         merged_bio.from_args(**dct)
         
         #unique states
-        unique_states = []
+#        unique_states = []
         #non-unique states 
         states1 = bio1.get_states()
 #        states1 = [state for state in states1 if state.get('type') not in unique_states]

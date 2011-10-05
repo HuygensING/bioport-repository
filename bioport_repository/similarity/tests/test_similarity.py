@@ -3,7 +3,7 @@ import pickle
 
 from common import CommonTestCase, unittest
 from bioport_repository.similarity.similarity import Similarity
-from bioport_repository.person import Person
+#from bioport_repository.person import Person
 from bioport_repository.db_definition import CacheSimilarityPersons
 
 class SimilarityTestCase(CommonTestCase):
@@ -65,7 +65,7 @@ class SimilarityTestCase(CommonTestCase):
         p2 = self._add_person('Luckie, Pozzo Vladimir Estragon', geboortedatum='1000', sterfdatum='2000')
         p3 = self._add_person('Lucky, Pozzo Vladimir Estragon', geboortedatum='', sterfdatum='')
         p4 = self._add_person('Luckie, Pozzo Vladimir Estragon', geboortedatum='', sterfdatum='')
-        score1 = Similarity.similarity_score(p1, p2) 
+        score1 = Similarity.similarity_score(p1, p2) #@UndefinedVariable
         score2 = Similarity.ratio(p1.get_names()[0], p2.get_names()[0])
         #given the fact that they have the same birth and death dates, the scores of p1 and p2 shoudl imporve wrt the "bare" names
         self.assertTrue(score1 > score2)
@@ -94,17 +94,17 @@ class SimilarityTestCase(CommonTestCase):
         bio = self._create_biography(name='Dongen, Kees van')
         p12.save_biography(bio)
         self.save_biography(bio, comment='test')
-        self.assertTrue(Similarity.are_surely_equal( p0, p1))
-        self.assertFalse(Similarity.are_surely_equal(p0, p2))
-        self.assertTrue(Similarity.are_surely_equal(p0, p3))
-        self.assertFalse(Similarity.are_surely_equal(p0, p4))
-        self.assertFalse(Similarity.are_surely_equal(p0, p5))
-        self.assertFalse(Similarity.are_surely_equal(p0, p6))
-        self.assertTrue(Similarity.are_surely_equal(p7, p8))
-        self.assertTrue(Similarity.are_surely_equal(p9, p10))
-        self.assertTrue(Similarity.are_surely_equal(p9, p11))
-        self.assertTrue(Similarity.are_surely_equal(p9, p12))
-        self.assertTrue(Similarity.are_surely_equal(p10, p12))
+        self.assertTrue(Similarity.are_surely_equal( p0, p1)) #@UndefinedVariable
+        self.assertFalse(Similarity.are_surely_equal(p0, p2)) #@UndefinedVariable)
+        self.assertTrue(Similarity.are_surely_equal(p0, p3)) #@UndefinedVariable)
+        self.assertFalse(Similarity.are_surely_equal(p0, p4) )#@UndefinedVariable)
+        self.assertFalse(Similarity.are_surely_equal(p0, p5) )#@UndefinedVariable)
+        self.assertFalse(Similarity.are_surely_equal(p0, p6) )#@UndefinedVariable)
+        self.assertTrue(Similarity.are_surely_equal(p7, p8) )#@UndefinedVariable)
+        self.assertTrue(Similarity.are_surely_equal(p9, p10)) #@UndefinedVariable)
+        self.assertTrue(Similarity.are_surely_equal(p9, p11)) #@UndefinedVariable)
+        self.assertTrue(Similarity.are_surely_equal(p9, p12)) #@UndefinedVariable)
+        self.assertTrue(Similarity.are_surely_equal(p10, p12)) #@UndefinedVariable)
     
     def test_with_biodes_files(self):
         s1 = """<biodes version="1.0.1">
@@ -146,7 +146,7 @@ class SimilarityTestCase(CommonTestCase):
 </biodes>"""
         p1 = self._add_person(xml_source=s1)
         p2 = self._add_person(xml_source=s2)
-        self.assertTrue(Similarity.are_surely_equal(p1, p2))
+        self.assertTrue(Similarity.are_surely_equal(p1, p2)) #@UndefinedVariable
         
     def _read_testsets(self): 
         fn_identified =  os.path.join(os.path.dirname(__file__), 'data', 'identified_examples.pickle')
@@ -155,23 +155,23 @@ class SimilarityTestCase(CommonTestCase):
             self._identified.append((bio1, bio2))
             
     def test_most_similar_persons(self):
-        repo= self.repo
+        repo = self.repo
         self.assertEqual(len(self.repo.get_persons()) ,10)
         self.repo.db.fill_similarity_cache(minimal_score=0.0, refresh=True)
         for r in self.repo.db.get_session().query(CacheSimilarityPersons).all():
             assert r.bioport_id1 <= r.bioport_id2, (r.bioport_id1, r.bioport_id2)
         
-        ls = repo.get_most_similar_persons(size=3) 
+        ls = self.repo.get_most_similar_persons(size=3) 
         ls = list(ls)
         self.assertEqual(len(ls) ,3)
         score, p1, p2  = ls[0]
         self.assertNotEqual(p1.get_bioport_id(), p2.get_bioport_id())
         
-        ls = repo.get_most_similar_persons(bioport_id=p1.bioport_id)
+        ls = self.repo.get_most_similar_persons(bioport_id=p1.bioport_id)
         for score, pa, pb in ls:
             assert p1.bioport_id in [pa.bioport_id, pb.bioport_id]
-        ls = repo.get_most_similar_persons(source_id=self.repo.get_sources()[0].id)
-        ls = repo.get_most_similar_persons(search_name='jan')
+        ls = self.repo.get_most_similar_persons(source_id=self.repo.get_sources()[0].id)
+        ls = self.repo.get_most_similar_persons(search_name='jan')
 
 def test_suite():
     test_suite = unittest.TestSuite()

@@ -58,7 +58,7 @@ def _add_person( naam,
           )
         
     #save it
-    self.save_biography(bio)
+    repo.save_biography(bio)
     return bio.get_person()
 
 def profile_similarity():
