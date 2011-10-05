@@ -24,7 +24,7 @@ class DBRepositoryTestCase(CommonTestCase):
     
     def test_manipulate_biographies(self): 
         """tests for adding and deleting biographies"""
-        n_bios = n_base = len(self.db.get_biographies())
+        n_bios = n_base = self.db.count_biographies()
         
 #        n_base_naam = self.db.get_session().query(NaamRecord).count()
 #        n_base_soundex = self.db.get_session().query(SoundexRecord).count()
@@ -40,7 +40,7 @@ class DBRepositoryTestCase(CommonTestCase):
     
         #we have added one new biography, with one name that corresponds to one single soundex
         n_bios += 1
-        self.assertEqual(len(self.db.get_biographies()), n_bios)
+        self.assertEqual(self.db.count_biographies(), n_bios)
         self.assertEqual(len(self.db.get_session().query(BiographyRecord).all()), n_bios)
         self.assertEqual(len(self.db.get_session().query(PersonSoundex).all()), n_base_soundex + 1)
         

@@ -21,8 +21,7 @@ from names.similarity import soundexes_nl
 from names.common import TUSSENVOEGSELS, words
 from names.name import TYPE_PREPOSITION,  TYPE_FAMILYNAME,  TYPE_GIVENNAME , TYPE_INTRAPOSITON,  TYPE_POSTFIX,  TYPE_TERRITORIAL 
 
-from bioport_repository.db_definitions import PersonRecord, AntiIdentifyRecord,\
-    RelBioPortIdBiographyRecord
+from bioport_repository.db_definitions import PersonRecord, AntiIdentifyRecord
 from bioport_repository.db_definitions import DeferIdentificationRecord
 from bioport_repository.db_definitions import ChangeLog, Occupation
 from bioport_repository.db_definitions import Category, Base, Location, Comment
@@ -290,7 +289,7 @@ class DBRepository:
             self._register_biography(biography)
             
             #get all biographies with this id, and increment their version number with one
-            ls =  self._get_biography_records(
+            ls =  self._get_biography_query(
 #                source_id=biography.source_id,
 #                bioport_id=biography.get_bioport_id(),
                 local_id=biography.id,
@@ -647,21 +646,24 @@ class DBRepository:
 
             return bioport_id
     
-    def count_biographies(self, source=None):
+    def count_biographies(self, **args):
         """return the number of biographies in the database, 
         excluding those of the source 'bioport'"""
-        qry = self.get_session().query(BiographyRecord)
-        qry = qry.filter(BiographyRecord.version == 0)
-        if source:
-            qry = qry.filter(BiographyRecord.source_id==source.id)
-        else:
-            qry = qry.filter(BiographyRecord.source_id!='bioport')
-        return qry.count()
+        if not args.get('version'):
+            args['version'] = 0
+            
+        return self._get_biography_query(**args).count()
+#        qry = self.get_session().query(BiographyRecord)
+#        qry = qry.filter(BiographyRecord.version == 0)
+#        if source:
+#            qry = qry.filter(BiographyRecord.source_id==source.id)
+#        else:
+#            qry = qry.filter(BiographyRecord.source_id!='bioport')
+#        return qry.count()
     
     def get_biographies(self, 
         source=None,
         source_id=None,
-#        person=None,
         bioport_id=None,
         local_id=None,
         order_by=None,
@@ -679,10 +681,7 @@ class DBRepository:
             local_id - the 'local id' of the biography - somethign fo the form 'vdaa/w0269', 
                 corresponds to the 'id' field in the database
         returns:
-            a list of Biography instances
-        
-        XXX:
-            return a generator
+            a generator of Biography instances
         """
         if source:
             if type(source) in types.StringTypes:
@@ -690,7 +689,7 @@ class DBRepository:
             else:
                 source_id = source.id
     
-        ls = self._get_biography_records(
+        ls = self._get_biography_query(
             source_id=source_id,
             bioport_id=bioport_id,
             local_id=local_id,
@@ -718,11 +717,13 @@ class DBRepository:
             
             bios = [(('bioport/%s' % bioport_id) not in bio.id, -bio.get_quality(), bio.id, bio ) for bio in bios]
             bios.sort()
-            bios = [x[-1] for x in bios]
+            bios = (x[-1] for x in bios)
+            #XXX - returning a generator breaks lots of upstream code, and is not really worth the trouble
+            bios = list(bios)
         return bios
 
 
-    def _get_biography_records(self, 
+    def _get_biography_query(self, 
         source_id = None,
         bioport_id = None,
         local_id = None,

@@ -32,9 +32,10 @@ class RepositoryTestCase(CommonTestCase):
         assert 0<len(b_persons) <  len(persons) #not all person names start with a 'b'
 
     def test_created_repository(self):
-        repo = self.create_filled_repository()
+        repo = self.repo
         
         bios = repo.get_biographies()
+        bios = list(bios)
         self.assertEqual(len(bios), 10)
         bio = bios[3]
         assert bio.get_value('local_id')
@@ -61,7 +62,6 @@ class RepositoryTestCase(CommonTestCase):
         self.assertEqual(bio.repository, self.repo)
         
     def test_get_biographies(self):
-        self.create_filled_repository()
         bios = self.repo.get_biographies()
         bio = list(bios)[2]
         id =bio.get_bioport_id()
@@ -73,7 +73,7 @@ class RepositoryTestCase(CommonTestCase):
         self.assertEqual(self.repo.get_biographies(bioport_id=id, source=bio.get_source()), [bio])
     
         self.assertEqual(self.repo.count_biographies(), len(list(self.repo.get_biographies())))
-        self.assertEqual(self.repo.count_biographies(source=source), 5)
+        self.assertEqual(self.repo.count_biographies(source_id=source.id), 5)
                    
     def test_source_manipulation(self):  
         i = self.repo 
@@ -97,20 +97,20 @@ class RepositoryTestCase(CommonTestCase):
         self.assertEqual(len(list(i.get_biographies(source=src1))), 5)
         
         i.delete_biographies(src1)
-        self.assertEqual(len((i.get_biographies(source=src1))), 0)
+        self.assertEqual(len(list(i.get_biographies(source=src1))), 0)
         
         i.download_biographies(source=src1)
-        self.assertEqual(len((i.get_biographies(source=src1))), 5)
+        self.assertEqual(len(list(i.get_biographies(source=src1))), 5)
         
         i.delete_biographies(src1)
-        self.assertEqual(len((i.get_biographies(source=src1))), 0)
+        self.assertEqual(len(list(i.get_biographies(source=src1))), 0)
         
         #the source is also in the repository         
         #see if we can delete the source
         i.delete_source(Source(u'test'))
         self.assertEqual(len(i.get_sources()), 1 + len(sources))
         
-        self.assertEqual(len((i.get_biographies(source=Source('test')))), 0)
+        self.assertEqual(len(list(i.get_biographies(source=Source('test')))), 0)
         
     def test_refill(self):
         self.create_filled_repository()
@@ -183,7 +183,7 @@ class RepositoryTestCase(CommonTestCase):
         biography_from_repo = list(self.repo.get_biographies(local_id=bio.id))[0]
         self.assertEqual(biography_from_repo.naam().volledige_naam(), name)
         
-        biography_record = list(self.repo.db._get_biography_records(local_id=bio.id))[0]
+        biography_record = list(self.repo.db._get_biography_query(local_id=bio.id))[0]
         self.assertEqual(biography_record.url_biography , bio.get_value('url_biography'))
                 
         self.assertEqual(len(bio.get_idnos(type=None)), 2, bio.to_string())
@@ -197,7 +197,7 @@ class RepositoryTestCase(CommonTestCase):
         self._save_biography(bio)
         
         def get_versions():
-            return list(self.repo.db._get_biography_records(local_id=bio_id))
+            return list(self.repo.db._get_biography_query(local_id=bio_id))
         
         
         self.assertEqual(len(get_versions()), 1)

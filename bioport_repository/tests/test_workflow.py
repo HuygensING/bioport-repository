@@ -79,7 +79,7 @@ class WorkflowTestCase(CommonTestCase):
         self.assertEqual(repository.redirects_to(id2), id1)
         
         #it also means that we (still) have 10 biographies
-        self.assertEqual(len(repository.get_biographies()), 10) 
+        self.assertEqual(len(list(repository.get_biographies())), 10) 
         #but now we have 9 persons
         self.assertEqual(len(repository.get_persons()), 9, repository.get_persons())
         
@@ -89,14 +89,14 @@ class WorkflowTestCase(CommonTestCase):
         ls = [p for p in ls]
         _nr_similarity = len(ls)
         #get the score, and two persons
-        score, p1, p2 = ls[0]
+        _score, p1, p2 = ls[0]
 
         repository.antiidentify(p1, p2)
 #        ls = repository.get_most_similar_persons() 
         ls =  list(ls)
         
 #        self.assertEqual(len(ls), _nr_similarity-1, '%s - %s - %s' % (len(ls), _nr_similarity-1,  ls))
-        score, p1, p2 = ls[0]
+        _score, p1, p2 = ls[0]
         
         #identifiy the persons
         repository.identify(p1, p2)

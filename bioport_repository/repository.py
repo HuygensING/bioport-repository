@@ -425,6 +425,7 @@ class Repository(object):
             src.set_quality(10000)
 
         ls = self.get_biographies(source=source, bioport_id=person.get_bioport_id())
+        ls = list(ls) #turn generator into list
         if not ls:
             if create_if_not_exists:
                 #create a new biography
