@@ -11,7 +11,8 @@ class TestMergedBiography(CommonTestCase):
         self.create_filled_repository()
         repo = self.repo
         #get an existing biography
-        bios = repo.get_biographies()[1:4]
+        bios = repo.get_biographies()
+        bios = list(bios)[1:4]
         merged = MergedBiography(bios)
         bios = merged.get_biographies()
         ls = []
@@ -51,7 +52,8 @@ class TestMergedBiography(CommonTestCase):
         self.create_filled_repository()
         repo = self.repo
         #get an existing biography
-        bios = repo.get_biographies()[1:4]
+        bios = repo.get_biographies()
+        bios = list(bios)[1:4]
         merged = MergedBiography(bios)
         merged.to_dict()
         

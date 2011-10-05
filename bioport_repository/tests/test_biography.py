@@ -12,7 +12,7 @@ class BiographyTestCase(CommonTestCase):
         repo = self.repo
         
         #get an existing biography
-        bio = repo.get_biographies()[5]
+        bio = list(repo.get_biographies())[5]
         
         #get the information of this biography
         #this biography has no identifier yet
@@ -72,10 +72,11 @@ class BiographyTestCase(CommonTestCase):
         
     def test_from_string(self):
         self.create_filled_repository(sources=1)
-        bio = self.repo.get_biographies()[3]
+        bio = list(self.repo.get_biographies())[3]
         bio.set_value('geboortedatum', '2000-11-11')
         self._save_biography(bio)
         ls = self.repo.get_biographies(local_id=bio.id, version=None)
+        ls = list(ls)
         self.assertEqual(len(ls), 2) #there are two versions of this biography
         bio2 = ls[0]
         self.assertEqual(bio2.get_value('geboortedatum'), '2000-11-11')
@@ -96,7 +97,7 @@ class BiographyTestCase(CommonTestCase):
     
     def test_get_set_snippet(self):
         #make a new biography
-        bio = self.repo.get_biographies()[5]
+        bio = list(self.repo.get_biographies())[5]
         
         self._save_biography(bio)
         snippet_molloy = """I took advantage of being at the seaside to lay in a store of
@@ -206,7 +207,7 @@ any more""",
         self.assertEqual(len( bio.get_value('illustraties')), 1)
         
     def test_set_categories(self):
-        bio = self.repo.get_biographies()[3]
+        bio = list(self.repo.get_biographies())[3]
         bio.set_category(1)
         self.assertEqual(len(bio.get_states(type='category')), 1)
         bio.set_category([1])

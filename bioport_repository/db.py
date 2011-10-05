@@ -777,6 +777,7 @@ class DBRepository:
             a Biography instance
         """
         ls = self.get_biographies(**args)
+        ls = list(ls)
         assert len(ls) == 1, 'Expected to find exactly one biography with the following arguments (but found %s): %s' % (len(ls), args)
         return ls[0]
 

@@ -12,13 +12,17 @@ ALTER TABLE `bioport`.`biography` ADD INDEX `ix_url_biography`(`url_biography`);
 
 def update_biographies(repo):
 
-    for bio in repo.get_biographies(): #(limit=10):
-
+    i = 0
+    session = repo.db.get_session()
+    for bio in repo.get_biographies(): #(limit=100):
+        i += 1
         if not bio.record.url_biography:
-	        print 'saving', bio
-	        repo.save_biography(bio, comment=u'update new field url_biography')
+            print i, '-saving', bio
+            bio.record.url_biography = bio.get_value('url_biography')
+            session.commit()
+#            repo.save_biography(bio, comment=u'update new field url_biography')
         else:
-            print 'not saving - field already filled', bio
+            print i, '-not saving - field already filled', bio
 #        if 'bioport' in [s.id for s in person.get_sources()]:
 #            print 'SET'
 #            person.status = 2
