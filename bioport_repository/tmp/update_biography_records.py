@@ -5,12 +5,25 @@ from bioport_repository.repository import *
 #
 DB_CONNECTION = 'mysql://root@localhost/bioport'
 #DB_CONNECTION = 'mysql://jge:MilanO8@localhost/bioport'
+DB_CONNECTIONN =  'mysql://'
 """
 ALTER TABLE `bioport`.`biography` ADD COLUMN `url_biography` varchar(255)  CHARACTER SET utf8 COLLATE utf8_general_ci AFTER `comment`;
 ALTER TABLE `bioport`.`biography` ADD INDEX `ix_url_biography`(`url_biography`);
 
 """
-
+def get_dsn():
+    values = [
+        ('1','localhost jelle','mysql://root@localhost/bioport' ),
+        ('2','dev', 'mysql:jge:MilanO8@dev.inghist.nl/bioport'),
+        ('3','sql (production!)', 'mysql:jelle:MilanO8@sql.inghist.nl/bioport'),
+    ]
+    msg = "\n".join(['%s: %s (%s)' % x for x in values])
+    answer = raw_input('Choose DSN:\n %s\n' % msg)
+    result = [x[2] for x in values if x[0] == answer]
+    if result:
+        return result[0]
+    else:
+        raise Exception('Please choose one of the options')
 
 #UPDATE ONLU THOSE WITHOUT INFO!
 
@@ -32,5 +45,7 @@ def update_biographies(repo):
         
 if __name__ == "__main__":
 
-    repo = Repository(db_connection=DB_CONNECTION) 
+    dsn = get_dsn()
+    print dsn
+    repo = Repository(db_connection=dsn)
     update_biographies(repo)
