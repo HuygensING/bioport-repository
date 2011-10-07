@@ -14,8 +14,8 @@ ALTER TABLE `bioport`.`biography` ADD INDEX `ix_url_biography`(`url_biography`);
 def get_dsn():
     values = [
         ('1','localhost jelle','mysql://root@localhost/bioport' ),
-        ('2','dev', 'mysql:jge:MilanO8@dev.inghist.nl/bioport'),
-        ('3','sql (production!)', 'mysql:jelle:MilanO8@sql.inghist.nl/bioport'),
+        ('2','dev', 'mysql://jge:MilanO8@dev.inghist.nl/bioport'),
+        ('3','sql (production!)', 'mysql://jelle:MilanO8@sql.inghist.nl/bioport'),
     ]
     msg = "\n".join(['%s: %s (%s)' % x for x in values])
     answer = raw_input('Choose DSN:\n %s\n' % msg)
@@ -44,7 +44,7 @@ def update_biographies(repo):
                     print i, '-not saving - field already filled', bio
         
 if __name__ == "__main__":
-
+jkkkkkkkkkkkkkkkkkk
     dsn = get_dsn()
     print dsn
     repo = Repository(db_connection=dsn)
