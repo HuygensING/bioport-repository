@@ -44,7 +44,6 @@ def update_biographies(repo):
                     print i, '-not saving - field already filled', bio
         
 if __name__ == "__main__":
-jkkkkkkkkkkkkkkkkkk
     dsn = get_dsn()
     print dsn
     repo = Repository(db_connection=dsn)
