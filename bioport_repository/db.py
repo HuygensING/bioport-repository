@@ -652,7 +652,7 @@ class DBRepository:
         if not args.get('version'):
             args['version'] = 0
             
-        return self._get_biography_query(**args).count()
+        return self._get_biography_query(no_bioport_biographies=True, **args).count()
 #        qry = self.get_session().query(BiographyRecord)
 #        qry = qry.filter(BiographyRecord.version == 0)
 #        if source:
@@ -733,11 +733,15 @@ class DBRepository:
         user=None,
         time_from=None,
         time_to=None,
+        no_bioport_biographies=False,
         ):
         qry = self.get_session().query(BiographyRecord)
                
         if source_id:
             qry = qry.filter_by(source_id=source_id)
+        
+        if no_bioport_biographies:
+            qry = qry.filter(BiographyRecord.source_id != 'bioport')
             
         if local_id:
             qry = qry.filter_by(id=local_id)
