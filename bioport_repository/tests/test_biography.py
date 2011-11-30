@@ -2,7 +2,7 @@
 from bioport_repository.tests.common_testcase import CommonTestCase, unittest 
 from bioport_repository.biography import Biography
 from bioport_repository.source import Source
-from bioport_repository.db_definitions import *
+from bioport_repository.db_definitions import * #@UnusedWildImport
 
 
 class BiographyTestCase(CommonTestCase):

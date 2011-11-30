@@ -1,5 +1,5 @@
 from vdaa_and_nnbw_doubles import doubles
-from bioport_repository.repository import *
+from bioport_repository.repository import * #@UnusedWildImport
 from bioport_repository.db import DBNLIds
 from sqlalchemy.exceptions import IntegrityError
 

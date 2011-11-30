@@ -1,7 +1,7 @@
 from bioport_repository.tests.common_testcase import CommonTestCase, unittest 
 from bioport_repository.db import Source, BiographyRecord,  PersonRecord, SourceRecord, Biography, RelBioPortIdBiographyRecord
 from bioport_repository.db_definitions import RelPersonCategory, PersonSoundex,\
-    RELIGION_VALUES, SoundexRecord
+    RELIGION_VALUES
 
 
 class DBRepositoryTestCase(CommonTestCase):
@@ -310,7 +310,7 @@ class DBRepositoryTestCase(CommonTestCase):
         #we have 10 biographies in two sources, 5 bios each
         self.assertEqual(session.query(BiographyRecord).count(), 10)
         self.assertEqual(len(self.repo.get_sources()), 3)
-        bioportsource, source1, source2 = self.repo.get_sources()
+        _bioportsource, source1, source2 = self.repo.get_sources()
         self.assertEqual(len(self.repo.get_persons()), 10)
         self.assertEqual(len(self.repo.get_persons(source_id=source1.id)), 5)
         self.assertEqual(len(self.repo.get_persons(source_id=source2.id)), 5)

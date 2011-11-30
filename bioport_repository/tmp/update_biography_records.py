@@ -1,4 +1,4 @@
-from bioport_repository.repository import *
+from bioport_repository.repository import * #@UnusedWildImport
 #
 # run as:
 # bin/python-console src/bioport_repository/bioport_repository/tmp/update_biography_records.py

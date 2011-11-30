@@ -82,7 +82,7 @@ class VersioningTestCase(CommonTestCase):
         old_p = new_p == p1 and p2 or p1
         self.assertEqual(repo.redirects_to(old_p.bioport_id), new_p.bioport_id)
         len2 = len(self.repo.get_persons())
-        bioport_ids2 = [p.bioport_id for p in self.repo.get_persons()]
+        _bioport_ids2 = [p.bioport_id for p in self.repo.get_persons()]
         
         #undo any changes in the biodes documents
         for bio in new_p.get_biographies():

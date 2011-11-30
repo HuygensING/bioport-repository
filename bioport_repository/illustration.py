@@ -205,9 +205,9 @@ class Illustration:
 
         # PIL stuff
         pilfilter = 0  # NEAREST
-        if Image.VERSION >= "1.1.3":
+        if Image.VERSION >= "1.1.3": #@UndefinedVariable
             pilfilter = 1  # ANTIALIAS
-        image = Image.open(self.cached_local)
+        image = Image.open(self.cached_local) #@UndefinedVariable
         image = image.convert('RGB')
         image.thumbnail((width, height), pilfilter)
 

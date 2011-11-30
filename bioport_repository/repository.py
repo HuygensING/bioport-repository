@@ -365,7 +365,7 @@ class Repository(object):
         return self.db.identify(person1, person2)
     
     def identify_persons(self, source_id, min_score):
-        for score, person1, person2 in self.get_most_similar_persons(source_id=source_id, min_score=min_score, size=None):
+        for _score, person1, person2 in self.get_most_similar_persons(source_id=source_id, min_score=min_score, size=None):
             self.identify(person1, person2)
             
     def antiidentify(self, person1, person2):

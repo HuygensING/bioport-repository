@@ -255,7 +255,7 @@ class Person(object):
     @classmethod
     def _are_dates_different(cls, pairs):
         dates = set([x[0] for x in pairs])
-        for tocheck, source in pairs:
+        for tocheck, _source in pairs:
             for d in dates:
                 if not cls._are_dates_equal(tocheck, d):
                     return True

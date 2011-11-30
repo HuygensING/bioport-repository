@@ -1,3 +1,4 @@
+from bioport_repository.repository import * #@UnusedWildImport
 """
 2009114:
 Excute the following querys:
@@ -9,7 +10,7 @@ ALTER TABLE `person` MODIFY COLUMN `search_source` TEXT  CHARACTER SET utf8 COLL
 
 
  """
-from bioport_repository.repository import *
+
 
 DB_CONNECTION = 'mysql://root@localhost/bioport_play'
 repo = Repository(db_connection=DB_CONNECTION) 
