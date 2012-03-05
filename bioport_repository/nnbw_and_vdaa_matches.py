@@ -95,7 +95,7 @@ def insert_list_of_doubles(repository, limit):
             session.rollback()
 if __name__ == "__main__":
     repository = Repository(
-              db_connection='mysql://root@localhost/bioport'
+              dsn='mysql://root@localhost/bioport'
                )
     delete_list_of_doubles(repository)
     insert_list_of_doubles(repository, limit=100000) 

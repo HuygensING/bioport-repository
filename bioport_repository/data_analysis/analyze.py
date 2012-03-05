@@ -86,7 +86,7 @@ class Person():
 CENTURIES = ['total'] +  range(1, 20) + [None] 
 class Analyzer:
     def __init__(self): 
-        self.repo = repository.Repository(db_connection='mysql://root@localhost/bioport')
+        self.repo = repository.Repository(dsn='mysql://root@localhost/bioport')
     @property
     def century_counter(self):
         return dict([(c, 0) for c in CENTURIES]) 

@@ -65,11 +65,11 @@ class DBRepository:
     
     SIMILARITY_TRESHOLD = 0.70 #
     def __init__(self, 
-        db_connection, 
+        dsn, 
         user,
         repository=None,
         ):       
-        self.connection = db_connection 
+        self.connection = dsn, 
         self.user = user
         self.metadata = Base.metadata #@UndefinedVariable
         self._session = None
@@ -794,12 +794,7 @@ class DBRepository:
         return qry.count()
     
     def get_persons(self, **args):
-        # XXX - There seems to be a memory leak when calling session.execute()
-        # this is the same problem described here:
-        # http://www.mail-archive.com/sqlalchemy@googlegroups.com/msg13511.html
-        # We should investigate further.
-        # JG: that thread continues and says "Once I understood that there wasn't really a memory leak, I just... "
-        #
+        #this is the main entry point
         qry = self._get_persons_query(**args)
         #executing the qry.statement is MUCH faster than qry.all()
         ls = self.get_session().execute(qry.statement)

@@ -30,7 +30,7 @@ class Repository(object):
     def __init__(self, 
         svn_repository=None,
         svn_repository_local_copy=None,
-        db_connection=None,
+        dsn=None,
         user='Unknown User',
         images_cache_local=None,
         images_cache_url=None,
@@ -39,11 +39,12 @@ class Repository(object):
         assert user
         #define the database connection
         self.svn_repository = SVNRepository(svn_repository=svn_repository, svn_repository_local_copy=svn_repository_local_copy)
-        self.db = DBRepository(db_connection=db_connection, 
+        self.db = DBRepository(
+            dsn=dsn, 
 #                ZOPE_SESSIONS=ZOPE_SESSIONS, 
-                user=user, 
-                repository=self,
-                )
+            user=user, 
+            repository=self,
+            )
         self.db.repository = self
         if images_cache_local:
             try:
@@ -58,9 +59,8 @@ class Repository(object):
         self.user=user
         
     def commit(self, svn_entry=None):
-        """commmit the local changes to the resository"""
+        """commmit the local changes to the repository"""
         if self.ENABLE_SVN:
-            #XXX put some useful message here
             msg = 'put some useful message here'
             if svn_entry:
                 self.svn_repository.commit(msg, svn_entry.path())
@@ -94,6 +94,7 @@ class Repository(object):
 
     def get_bioport_id(self, url_biography):
         return self.db.get_bioport_id(url_biography=url_biography)
+    
     def get_persons_sequence(self, **args):
         "this method is like get_persons, but defers Person instantiation"
         qry = self.db._get_persons_query(**args)
@@ -172,18 +173,11 @@ class Repository(object):
 
     def get_religion_values(self):
         return RELIGION_VALUES
-#    def get_authors(self, **args):
-#        if self.ENABLE_DB:
-#            return self.db.get_authors(**args)
-#        raise NotImplementedError 
 
     def get_author(self, author_id):
         if self.ENABLE_DB:
             return self.db.get_author(author_id)
         raise NotImplementedError 
-
-#    def get_beroepen(self, **args):
-#        pass
 
     def save(self, x):
         if x.__class__ == Biography:

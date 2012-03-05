@@ -46,5 +46,5 @@ def update_biographies(repo):
 if __name__ == "__main__":
     dsn = get_dsn()
     print dsn
-    repo = Repository(db_connection=dsn)
+    repo = Repository(dsn=dsn)
     update_biographies(repo)

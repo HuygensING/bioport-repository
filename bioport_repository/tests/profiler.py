@@ -31,7 +31,7 @@ def setUp():
     
     global repo #define globally, so that the profile machinery can find it
     repo = Repository(
-          db_connection='mysql://localhost/bioport_test'
+          dsn='mysql://localhost/bioport_test'
            )
     repo.db.get_session().execute(open(SQLDUMP_FILENAME).read().decode('latin1'))
     global source

@@ -59,10 +59,11 @@ ALTER TABLE `person` MODIFY COLUMN `search_source` TEXT  CHARACTER SET utf8 COLL
 
 """
 #
-#from bioport_repository.repository import *
+from bioport_repository.repository import *
+repo = Repository()
 #
 #DSN = 'mysql://root@localhost/bioport_play'
-#repo = Repository(db_connection=DSN) 
+#repo = Repository(dsn=DSN) 
 #
 #def upgrade_persons(repo):
 #    for person in repo.get_persons():

@@ -11,6 +11,8 @@ from sqlalchemy.types import TIMESTAMP
 metadata = MetaData()
 Base = declarative_base()
 
+
+            
 class BiographyRecord(Base):
     """represents a version of  biodes document"""
     __tablename__ = 'biography'
@@ -94,7 +96,35 @@ class SoundexRecord(Base):
     naam_id = Column(Integer, ForeignKey('naam.id'))
     soundex  = Column(Unicode(100))
 
+class PersonView(Base):
+    """this is our 'cache' table - it duplicates all other data, and this is from where the website reads its data
     
+    Base.metadata.create_all(tables=['person_view'])
+    
+    """
+    __tablename__ = 'person_view'
+    bioport_id = Column(MSString(50), primary_key=True)
+    name = Column(Unicode(255))
+    geboortedatum_min = Column(Date, index=True)
+    geboortedatum_max = Column(Date, index=True)
+    sterfdatum_min = Column(Date, index=True)
+    sterfdatum_max = Column(Date, index=True)
+    
+    geboorteplaats = Column(MSString(255), index=True)
+    sterfplaats = Column(MSString(255), index=True)
+    naam = Column(MSString(255), index=True)
+    geslachtsnaam = Column(MSString(255), index=True)
+    names = Column(UnicodeText)
+    sort_key = Column(MSString(50), index=True)
+    sex = Column(Integer, index=True)
+    search_source = Column(UnicodeText)
+    snippet = Column(UnicodeText)
+    thumbnail = Column(MSString(255))
+    status = Column(Integer, index=True)
+    has_illustrations = Column(Boolean)
+    has_contradictions = Column(Boolean)
+    timestamp = Column(TIMESTAMP)
+
 class PersonRecord(Base):
     """This is basically a 'cache' table for searching for persons in the database, together with some meta-data
     

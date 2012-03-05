@@ -10,7 +10,7 @@ from bioport_repository import  helper_scripts
 helper_scripts.update_religion(dsn)
 """
 def update_religion(dsn):
-    repository = Repository(db_connection=dsn)
+    repository = Repository(dsn=dsn)
     session = repository.db.get_session()
     total = repository.count_persons()
     i = 0
@@ -49,7 +49,7 @@ def update_persons(dsn, start=None, size=None):
     reload(logging)
     logging.basicConfig(level=logging.INFO)
     logging.info('start updating')
-    repository = Repository(db_connection=dsn)
+    repository = Repository(dsn=dsn)
     repository.db.update_persons(start=start, size=size)
     
 """Set all status of X to Y
@@ -59,7 +59,7 @@ helper_scripts._change_states(dsn, status_old=helper_scripts.STATUS_NADER_ONDERZ
 
 """
 def _change_states(dsn, status_old, status_new):
-    repository = Repository(db_connection=dsn)
+    repository = Repository(dsn=dsn)
     print 'getting persons'
     persons = repository.get_persons(status=status_old)
     i = 0
@@ -97,7 +97,7 @@ helper_scripts._set_new_dbnlers_to_done(dsn)
 
 """
 def _set_new_persons_to_done(dsn, source_id):
-    repository = Repository(db_connection=dsn)
+    repository = Repository(dsn=dsn)
     print 'getting persons'
     persons = repository.get_persons(source_id=source_id, status=STATUS_NEW)
     print 'found %s persons' % len(persons)
@@ -122,7 +122,7 @@ helper_scripts._set_dbnl_to_letterkunde(dsn)
 """
 
 def _set_dbnl_to_letterkunde(dsn): 
-    repository = Repository(db_connection=dsn)
+    repository = Repository(dsn=dsn)
     print 'getting persons'
     i = 0
     persons = repository.get_persons(source_id='dbnl')
@@ -146,7 +146,7 @@ _set_status_of_persons_in_source(dsn, source_id='dbnl')
 """
 
 def _set_status_of_persons_in_source(dsn, source_id, status=STATUS_DONE):
-    repository = Repository(db_connection=dsn)
+    repository = Repository(dsn=dsn)
     db = repository.db
     bios = db.get_biographies(source_id=source_id)
     i = 0
@@ -168,7 +168,7 @@ _remove_irrelevent_items_from_similarity_table(dsn)
 """
 
 def _remove_irrelevent_items_from_similarity_table(dsn):
-    repository = Repository(db_connection=dsn)
+    repository = Repository(dsn=dsn)
     db = repository.db
     session = db.get_session() 
     qry = session.query(CacheSimilarityPersons)
@@ -208,7 +208,7 @@ helper_scripts.identify_persons(dsn, source_id='pdc', min_score=0.8647)
 """
 
 def identify_persons(dsn, source_id, min_score):
-    repository = Repository(db_connection=dsn)
+    repository = Repository(dsn=dsn)
     i = 0
     for score, person1, person2 in repository.get_most_similar_persons(source_id=source_id, size=200):
         if score > min_score:
@@ -233,7 +233,7 @@ def identify_dbnl_biographies(dsn):
     """search in the database for all biographies that have an idno of type 'dbnl_id'
        and identify all persons that have the same dbnl_id
     """
-    repository = Repository(db_connection=dsn)
+    repository = Repository(dsn=dsn)
     #create a dictionary of all dbnl_ids and corresponding bioport_ids
     dct = {}
     def get_bios():

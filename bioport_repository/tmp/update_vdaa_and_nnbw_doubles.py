@@ -5,7 +5,7 @@ from sqlalchemy.exceptions import IntegrityError
 
 
 DB_CONNECTION = 'mysql://root@localhost/bioport'
-repo = Repository(db_connection=DB_CONNECTION) 
+repo = Repository(dsn=DB_CONNECTION) 
 
 
 def identify_doubles(doubles=doubles, repo=repo):

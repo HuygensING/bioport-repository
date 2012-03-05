@@ -13,7 +13,7 @@ ALTER TABLE `person` MODIFY COLUMN `search_source` TEXT  CHARACTER SET utf8 COLL
 
 
 DB_CONNECTION = 'mysql://root@localhost/bioport_play'
-repo = Repository(db_connection=DB_CONNECTION) 
+repo = Repository(dsn=DB_CONNECTION) 
 
 def upgrade_persons(repo):
     for person in repo.get_persons():
