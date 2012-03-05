@@ -39,11 +39,12 @@ class Repository(object):
         assert user
         #define the database connection
         self.svn_repository = SVNRepository(svn_repository=svn_repository, svn_repository_local_copy=svn_repository_local_copy)
+        
         self.db = DBRepository(
             dsn=dsn, 
-#                ZOPE_SESSIONS=ZOPE_SESSIONS, 
             user=user, 
             repository=self,
+#           ZOPE_SESSIONS=ZOPE_SESSIONS, 
             )
         self.db.repository = self
         if images_cache_local:
@@ -53,7 +54,6 @@ class Repository(object):
             except:
                 print msg
                 
-                #XXXP
         self.images_cache_local = images_cache_local
         self.images_cache_url = images_cache_url
         self.user=user
@@ -98,6 +98,7 @@ class Repository(object):
     def get_persons_sequence(self, **args):
         "this method is like get_persons, but defers Person instantiation"
         qry = self.db._get_persons_query(**args)
+        import ipdb;ipdb.set_trace() 
         return PersonList(qry, self)
 
     def get_persons_iterator(self, **args):

@@ -5,6 +5,7 @@ from plone.memoize import instance
 from bioport_repository.repocommon import is_valid_bioport_id
 from bioport_repository.merged_biography import MergedBiography, BiographyMerger
 from bioport_repository.db_definitions import STATUS_NEW
+from bioport_repository.common import format_date
 
 class Person(object):
     """A Person is an object that is identified with a bioport
@@ -12,14 +13,15 @@ class Person(object):
     objects.
     """
 
-    def __init__(self, bioport_id,
-                       biographies=None,  # XXX - this is not used!
-                       repository=None,
-                       record=None,
-                       status=STATUS_NEW,
-                       remarks=None,
-                       score=None,
-                ):
+    def __init__(self, 
+		bioport_id,
+		biographies=None,  # XXX - this is not used!
+		repository=None,
+		record=None,
+		status=STATUS_NEW,
+		remarks=None,
+		score=None,
+		):
         """
         Arguments:
             bioport_id - a unique identifier for this person
@@ -30,7 +32,7 @@ class Person(object):
             status - an integer
             remarks - a string
         """
-        assert is_valid_bioport_id(bioport_id)
+#      assert is_valid_bioport_id(bioport_id)
         self.id = self.bioport_id = bioport_id
         self.repository = repository
         self.record = record
@@ -51,6 +53,7 @@ class Person(object):
     def refresh(self):
         """empty the cache"""
         # XXX - why is it not implemented?
+        # well, maybe it is, given that is has a clearafter decorator
         pass
 
     def singleton_id(self, id, **args):
@@ -154,7 +157,7 @@ class Person(object):
 
             result.append(bio.get_text_without_markup())
         result = [unicode(s) for s in result]
-        return '\n'.join(result)
+        return u'\n'.join(result)
 
     def snippet(self, term=None):
         """
@@ -163,7 +166,7 @@ class Person(object):
         try:
             return self._snippet
         except AttributeError:
-            self._snippet = ''
+            self._snippet = u''
             for bio in self.get_biographies():
                 s = bio.snippet()
                 if s:
@@ -209,7 +212,6 @@ class Person(object):
             if event is not None:
                 date2 = event.get('when')
         return date1, date2
-            
         
     
     def names(self):
@@ -226,7 +228,6 @@ class Person(object):
 
     def db_name(self):
         return self.record.naam
-
 
     @classmethod
     def _are_dates_equal(cls, date1, date2):
@@ -319,7 +320,64 @@ class Person(object):
             self.repository.delete_biography(bio)
         self.add_biography(merged_bio)
         return merged_bio
-    
+
+    @property
+    def cache(self):
+        """these are the 'cached' values - stored in PersonView table """
+        person = self
+        merged_biography = self.get_merged_biography()
+        name = merged_biography.naam()
+        
+        class Wrapper:
+            def __init__(self, person):
+                self.p = self.person = person
+                birth_min, birth_max, death_min, death_max = self.merged_biography._get_min_max_dates()
+                self.geboortedatum_min = format_date(birth_min)
+                self.geboortedatum_max = format_date(birth_max)
+                self.sterfdatum_min = format_date(death_min)
+                self.sterfdatum_max = format_date(death_max)
+                self.geboorteplaats = self.merged_biography.get_value('geboorteplaats')
+                self.sterfplaats = self.merged_biography.get_value('sterfplaats')
+                self.names = u' '.join([unicode(name) for name in self._names])
+                self.snippet = person.snippet()
+                self.has_contradictions = bool(person.get_biography_contradictions())
+                illustrations =  self.merged_biography.get_illustrations()
+                self.thumbnail = illustrations and illustrations[0].image_small_url or u''
+
+            @property
+            def _name(self):
+                name = self.merged_biography.naam()
+                return name
+            
+            @property 
+            def _names(self):
+	            return self.merged_biography.get_names() 
+            @property
+            def merged_biography(self):
+#	            if not merged_biography.get_biographies():
+#	                logging.warning('NO biographies found for person with bioport id %s' % person.bioport_id)
+                return self.p.get_merged_biography()
+            
+            @property
+            def naam(self):
+                return self._name.guess_normal_form()
+            @property
+            def sort_key(self):
+                return self._name.sort_key()
+            @property
+            def geslachtsnaam(self):
+                return self._name.geslachtsnaam()
+            @property
+            def has_illustrations(self):
+                return bool(self.merged_biography.get_illustrations())
+            @property
+            def search_source(self):
+                return self.p.search_source()
+            @property
+            def sex(self):
+                return self.merged_biography.get_value('geslacht')
+            
+        return Wrapper(self)
         
 class Contradiction(object):
     """An object which represents a person with contradictory

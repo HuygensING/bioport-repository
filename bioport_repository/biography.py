@@ -88,26 +88,26 @@ class Biography(object, BioDesDoc): #, SVNEntry):
         if text_node:
             assert len(text_node) == 1
             text_node = text_node[0]
-            text = '\n'.join([n.text for n in text_node.getiterator() if n.text])
+            text = u'\n'.join([n.text for n in text_node.getiterator() if n.text])
                 
         
             for tagname in ('head', 'style', 'script'):
                 start, end = "<%s>" % tagname, "</%s>" % tagname
-                expr = "%(start)s.*?%(end)s" % locals()
+                expr = u"%(start)s.*?%(end)s" % locals()
                 text = re.compile(expr, re.IGNORECASE|re.DOTALL).sub( '', text)
             text = re.compile('<.*?>',re.DOTALL).sub( '', text) #need to compile for DOTALL to work
             text = html2unicode(text)
             text = text.strip()
             return text
         else:
-            return ''
+            return u''
 
     def get_text_with_highlight(self):
         """
         """
         text = self.get_text_without_markup()
         if not text:
-            return ""
+            return u""
         else:
             # highlight years
             text = re.sub(r'(\d{4})', r'<span class="highlight">\1</span>', text)
@@ -117,7 +117,7 @@ class Biography(object, BioDesDoc): #, SVNEntry):
                 css_id = abs(hash(self.id))
                 extra_text_id = "%s-extra-text" % css_id
                 toggler_id = "%s-extra-text-toggler" % css_id
-                text += """\
+                text += u"""\
 <i id="%(toggler_id)s">
     <b>[<a onclick="jQuery('#%(extra_text_id)s').toggle(150); 
                     jQuery('#%(toggler_id)s').hide();">...</a>]
@@ -135,7 +135,7 @@ class Biography(object, BioDesDoc): #, SVNEntry):
         """
         text = self.get_text_without_markup()
         if not text:
-            return ''
+            return u''
         
         if len(text) < size:
             return text
@@ -143,7 +143,7 @@ class Biography(object, BioDesDoc): #, SVNEntry):
             s = text[:size]
             s = string.rsplit(s, maxsplit=1)[0]
             if len(s) < len(text):
-                s += '...'
+                s += u'...'
             return s
     
     def get_snippet(self, source_id):
@@ -202,13 +202,6 @@ class Biography(object, BioDesDoc): #, SVNEntry):
         """
         pass
    
-
-#    def identify(self, id):
-#        #associate this biography with this identifier
-#        self._set_bioport_id(id)
-        #save the data, so we can find it later (or immediately...)
-        #self.save()
-
     def get_bioport_id(self):
         ls  = self.get_value('bioport_id')
         if ls:

@@ -55,7 +55,7 @@ class BiographyTestCase(CommonTestCase):
         bio.set_value('sterfdatum', '2010-01-02')
         bio.set_value('sterfplaats', 'nog een test')
         self.assertEqual(bio.get_value('sterfdatum'), '2010-01-02')
-        bio.set_value('sterfdatum', '')
+        bio.set_value('sterfdatum', u'')
         self.assertEqual(bio.get_value('sterfdatum'), None)
     
     def test_add_or_update_event(self):

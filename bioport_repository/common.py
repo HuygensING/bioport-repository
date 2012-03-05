@@ -42,6 +42,6 @@ def format_date(d):
     
     (use this because strftime does not like dates before 1900)"""
     if d:
-        return "%04d-%02d-%02d %02d:%02d" % (d.year,d.month,d.day,d.hour,d.minute)
+        return u"%04d-%02d-%02d %02d:%02d" % (d.year,d.month,d.day,d.hour,d.minute)
     
     

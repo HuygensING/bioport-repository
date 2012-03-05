@@ -22,31 +22,32 @@ from names.common import TUSSENVOEGSELS, words
 from names.name import TYPE_PREPOSITION,  TYPE_FAMILYNAME,  TYPE_GIVENNAME , TYPE_INTRAPOSITON,  TYPE_POSTFIX,  TYPE_TERRITORIAL 
 
 from bioport_repository.db_definitions import (
-	DeferIdentificationRecord,
-	ChangeLog, 
-    Occupation,
-	Category,
+    AntiIdentifyRecord,
+    AuthorRecord,
     Base, 
+    BiographyRecord,
+    CacheSimilarityPersons,
+    ChangeLog, 
+    Category,
+    DeferIdentificationRecord,
     Location, 
     Comment,
-	PersonSource, 
+    PersonSource, 
     PersonSoundex, 
-    AuthorRecord,
-	RelPersonCategory, 
+    PersonView,
     PersonName,
-	PersonRecord, 
-    AntiIdentifyRecord,
-	CacheSimilarityPersons,
-	BioPortIdRecord,
-	RelBioPortIdBiographyRecord,
-	BiographyRecord,
-	SourceRecord,
-	RelPersonReligion,
-	STATUS_NEW, STATUS_FOREIGNER, 
-	STATUS_MESSY, STATUS_REFERENCE, STATUS_NOBIOS,
-	STATUS_ONLY_VISIBLE_IF_CONNECTED,
-	STATUS_ALIVE,
-	)
+    PersonRecord, 
+    RelPersonCategory, 
+    BioPortIdRecord,
+    RelBioPortIdBiographyRecord,
+    Occupation,
+    SourceRecord,
+    RelPersonReligion,
+    STATUS_NEW, STATUS_FOREIGNER, 
+    STATUS_MESSY, STATUS_REFERENCE, STATUS_NOBIOS,
+    STATUS_ONLY_VISIBLE_IF_CONNECTED,
+    STATUS_ALIVE,
+    )
 
 from bioport_repository.similarity.similarity import Similarity
 from bioport_repository.person import Person
@@ -57,7 +58,7 @@ from bioport_repository.versioning import Version
 from bioport_repository.merged_biography import BiographyMerger
 
 LENGTH = 8  # the length of a bioport id
-ECHO = False #log all mysql queries.
+ECHO = True #log all mysql queries.
 EXCLUDE_THIS_STATUS_FROM_SIMILARITY = [5,9]
 
 class DBRepository:
@@ -69,14 +70,15 @@ class DBRepository:
         user,
         repository=None,
         ):       
-        self.connection = dsn, 
+#        self.dsn = self.connection = dsn 
+        self.dsn = dsn
         self.user = user
         self.metadata = Base.metadata #@UndefinedVariable
         self._session = None
         
         #get the data from the db
         self.engine = self.metadata.bind = create_engine(
-                self.connection, 
+                dsn, 
                 convert_unicode=True, 
                 encoding='utf8', 
                 echo=ECHO,
@@ -87,7 +89,11 @@ class DBRepository:
         self.Session = sessionmaker(bind=self.engine)
         self.db = self 
         self.repository = repository 
-        
+      
+    @property
+    def session(self): 
+        return self.get_session()
+    
     def get_session(self):
         """Return a session object."""
         if not self._session:
@@ -381,43 +387,23 @@ class DBRepository:
         person = Person(bioport_id=bioport_id, record=r_person, repository=self)
         with self.get_session_context() as session:
             merged_biography = person.get_merged_biography()
-            if not merged_biography.get_biographies():
-                logging.warning('NO biographies found for person with bioport id %s' % person.bioport_id)
             
-            naam = merged_biography.naam()
+            r_person.naam = person.cache.naam
+            r_person.sort_key = person.cache.sort_key
+            r_person.has_illustrations = person.cache.has_illustrations
+            r_person.search_source = person.cache.search_source
+            r_person.sex = person.cache.sex
+            r_person.geboortedatum_min =  person.cache.geboortedatum_min  
+            r_person.geboortedatum_max =  person.cache.geboortedatum_max 
+            r_person.sterfdatum_min = person.cache.sterfdatum_min 
+            r_person.sterfdatum_max  = person.cache.sterfdatum_max
             
-            names = merged_biography.get_names() 
-            if naam:
-                r_person.naam = naam.guess_normal_form()
-                r_person.sort_key = naam.sort_key()
-                r_person.geslachtsnaam = naam.geslachtsnaam()
-            else:
-                msg = 'merged_biography should at least have one name defined! %s' \
-                      ' - biographies: %s'  % (person.bioport_id, person.get_biographies())
-                logging.warning(msg)
-                r_person.naam = ''
-            r_person.has_illustrations = bool(merged_biography.get_illustrations())
-            r_person.search_source = person.search_source()
-            r_person.sex = merged_biography.get_value('geslacht')
-            try:
-                birth_min, birth_max, death_min, death_max = merged_biography._get_min_max_dates()
-                r_person.geboortedatum_min = format_date(birth_min)
-                r_person.geboortedatum_max = format_date(birth_max)
-                r_person.sterfdatum_min = format_date(death_min)
-                r_person.sterfdatum_max = format_date(death_max)
-            except ValueError, error:
-                logging.warning('Error updating %s: %s' % (person.bioport_id, error))
-#            if r_person.sterfdatum_min and r_person.sterfdatum_min == r_person.sterfdatum_max:
-#                r_person.sterfjaar = to_ymd(r_person.sterfdatum_min)[0]
-#            if r_person.geboortedatum_min == r_person.geboortedatum_max and r_person.geboortedatum_min:
-#                r_person.geboortejaar = to_ymd(r_person.geboortedatum_min)[0]
-            r_person.geboorteplaats = merged_biography.get_value('geboorteplaats')
-            r_person.sterfplaats = merged_biography.get_value('sterfplaats')
-            r_person.names = u' '.join([unicode(name) for name in names])
-            r_person.snippet = person.snippet()
-            r_person.has_contradictions = bool(person.get_biography_contradictions())
-            illustrations =  merged_biography.get_illustrations()
-            r_person.thumbnail = illustrations and illustrations[0].image_small_url or u''
+            r_person.geboorteplaats  = person.cache.geboorteplaats 
+            r_person.sterfplaats  = person.cache.sterfplaats 
+            r_person.names  = person.cache.names 
+            r_person.snippet = person.cache.snippet
+            r_person.has_contradictions = person.cache.has_contradictions 
+            r_person.thumbnail =  person.cache.thumbnail
            
             #update categories
             session.query(RelPersonCategory).filter(RelPersonCategory.bioport_id==bioport_id).delete()
@@ -464,7 +450,7 @@ class DBRepository:
                 
             #refresh the names 
             self.delete_names(bioport_id=bioport_id)
-            self.update_name(bioport_id=bioport_id, names=names)
+            self.update_name(bioport_id=bioport_id, names=person.cache._names)
             
             self.update_source(bioport_id, source_ids = [b.source_id for b in person.get_biographies()])
             
@@ -527,27 +513,7 @@ class DBRepository:
             names : a list of Name instances
         """
         return self.update_name(bioport_id, names)
-#        with self.get_session_context() as session:
-#            #delete existing references
-#            session.query(PersonSoundex).filter(PersonSoundex.bioport_id == bioport_id).delete()
-#            for name in names:
-#                full_name = name.guess_normal_form()
-#                family_name = name.guess_geslachtsnaam()
-#                full_name_parts =  words(full_name)
-#                family_name_parts =  words(family_name)
-#                for s in full_name_parts:
-#                    is_from_family_name = (s in family_name_parts or s in TUSSENVOEGSELS)
-#                    r = PersonSoundex(bioport_id=bioport_id, name=s, is_from_family_name=is_from_family_name) 
-#                    session.add(r)
-#
-#                soundexes_full_name = self._soundex_for_search(full_name)
-#                soundexes_family_name = self._soundex_for_search(family_name)
-#                for soundex in soundexes_full_name:
-#                    is_family_name = soundex in soundexes_family_name 
-##                    r = PersonSoundex(bioport_id=bioport_id, soundex=soundex) 
-#                    r = PersonSoundex(bioport_id=bioport_id, soundex=soundex, is_from_family_name=is_family_name) 
-#                    session.add(r)   
- 
+
     def update_source(self, bioport_id, source_ids):   
         """update the table person_source"""
         with self.get_session_context() as session:
@@ -578,9 +544,9 @@ class DBRepository:
     def fresh_identifier(self):
         session = self.get_session()
         # make a random string of characters from ALPHANUMERIC of lenght LENGTH
-        new_bioportid_1 = ''.join([random.choice('0123456789') for _i in range(LENGTH)])
-        new_bioportid_2 = ''.join([random.choice('0123456789') for _i in range(LENGTH)])
-        new_bioportid_3 = ''.join([random.choice('0123456789') for _i in range(LENGTH)])
+        new_bioportid_1 = u''.join([random.choice('0123456789') for _i in range(LENGTH)])
+        new_bioportid_2 = u''.join([random.choice('0123456789') for _i in range(LENGTH)])
+        new_bioportid_3 = u''.join([random.choice('0123456789') for _i in range(LENGTH)])
         for new_bioportid in (new_bioportid_1, new_bioportid_2, new_bioportid_3):
             try:
                 self.add_bioport_id(new_bioportid)
@@ -1016,7 +982,7 @@ class DBRepository:
             
         if url_biography:
             qry = qry.join((RelBioPortIdBiographyRecord, PersonRecord.bioport_id    ==RelBioPortIdBiographyRecord.bioport_id))
-            qry = qry.join((BiographyRecord, BiographyRecord.id==RelBioPortIdBiographyRecord.biography_id))
+            qry = qry.join((BiographyRecord, BiographyRecord.id == RelBioPortIdBiographyRecord.biography_id))
             qry = qry.filter(BiographyRecord.url_biography == url_biography)
         if size:
             if int(size) > -1:
@@ -1024,10 +990,27 @@ class DBRepository:
         if start:
             qry = qry.offset(start) 
         qry = qry.distinct()
-
             
         return qry
     
+    def _update_persons_view(self):
+        #delete all records from persons_view
+#        import ipdb;ipdb.set_trace() 
+        ls = self.get_persons(size=10)
+        for p in ls:
+            try:
+                r = self.session.query(PersonView).filter(PersonView.bioport_id == p.bioport_id).one()
+                #record exists
+            except:
+                #need to add record
+                r = PersonView()
+                r.bioport_id = p.bioport_id
+                self.session.add(r)
+            r.naam = p.cache.naam
+            r.sort_key = p.cache.sort_key
+            r.geslachtsnaam = p.cache.geslachtsnaam
+            self.session.commit()
+            
     def get_bioport_id(self, url_biography):
         session=self.get_session() 
         qry = session.query(RelBioPortIdBiographyRecord.bioport_id )

@@ -40,7 +40,7 @@ class Illustration:
     def __init__(self, url, 
                        images_cache_local,
                        images_cache_url,
-                       prefix = '',
+                       prefix = u'',
                        caption=None,
                        link_url=None): 
         """
@@ -54,11 +54,11 @@ class Illustration:
          - prefix : will be prefixed to the local cached filename 
         """
         self._url = url
-        self._images_cache_local = images_cache_local  or ''  # XXX it should be renamed in _images_directory
+        self._images_cache_local = images_cache_local  or u''  # XXX it should be renamed in _images_directory
         self._thumbnails_directory = os.path.join(self._images_cache_local, 'thumbnails')
         if not os.path.isdir(self._thumbnails_directory):
             os.mkdir(self._thumbnails_directory)
-        self._images_cache_url = images_cache_url  or ''
+        self._images_cache_url = images_cache_url  or u''
         self._prefix = prefix
         self._link_url = link_url
         self._caption = caption

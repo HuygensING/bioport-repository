@@ -60,8 +60,13 @@ ALTER TABLE `person` MODIFY COLUMN `search_source` TEXT  CHARACTER SET utf8 COLL
 """
 #
 from bioport_repository.repository import *
-repo = Repository()
+from bioport_repository.db_definitions import PersonView
+repo = Repository(dsn='mysql://localhost/bioport')
+repo.db.metadata.create_all() #repo.db.engine, tables=[PersonView.__tablename__])
+repo.db._update_persons_view()
+import ipdb;ipdb.set_trace() 
 #
+
 #DSN = 'mysql://root@localhost/bioport_play'
 #repo = Repository(dsn=DSN) 
 #
