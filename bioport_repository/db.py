@@ -21,28 +21,32 @@ from names.similarity import soundexes_nl
 from names.common import TUSSENVOEGSELS, words
 from names.name import TYPE_PREPOSITION,  TYPE_FAMILYNAME,  TYPE_GIVENNAME , TYPE_INTRAPOSITON,  TYPE_POSTFIX,  TYPE_TERRITORIAL 
 
-from bioport_repository.db_definitions import PersonRecord, AntiIdentifyRecord
-from bioport_repository.db_definitions import DeferIdentificationRecord
-from bioport_repository.db_definitions import ChangeLog, Occupation
-from bioport_repository.db_definitions import Category, Base, Location, Comment
-from bioport_repository.db_definitions import PersonSource, PersonSoundex, AuthorRecord
-from bioport_repository.db_definitions import RelPersonCategory, PersonName
-#from bioport_repository.db_definitions import NaamRecord 
-#from bioport_repository.db_definitions import SoundexRecord
 from bioport_repository.db_definitions import (
-   CacheSimilarityPersons,
-   BioPortIdRecord,
-   RelBioPortIdBiographyRecord,
-   BiographyRecord,
-   SourceRecord,
-   RelPersonReligion,
-   STATUS_NEW, STATUS_FOREIGNER, 
-   STATUS_MESSY, STATUS_REFERENCE, STATUS_NOBIOS,
-   STATUS_ONLY_VISIBLE_IF_CONNECTED,
-   STATUS_ALIVE,
-   )
-
-
+	DeferIdentificationRecord,
+	ChangeLog, 
+    Occupation,
+	Category,
+    Base, 
+    Location, 
+    Comment,
+	PersonSource, 
+    PersonSoundex, 
+    AuthorRecord,
+	RelPersonCategory, 
+    PersonName,
+	PersonRecord, 
+    AntiIdentifyRecord,
+	CacheSimilarityPersons,
+	BioPortIdRecord,
+	RelBioPortIdBiographyRecord,
+	BiographyRecord,
+	SourceRecord,
+	RelPersonReligion,
+	STATUS_NEW, STATUS_FOREIGNER, 
+	STATUS_MESSY, STATUS_REFERENCE, STATUS_NOBIOS,
+	STATUS_ONLY_VISIBLE_IF_CONNECTED,
+	STATUS_ALIVE,
+	)
 
 from bioport_repository.similarity.similarity import Similarity
 from bioport_repository.person import Person
@@ -53,7 +57,7 @@ from bioport_repository.versioning import Version
 from bioport_repository.merged_biography import BiographyMerger
 
 LENGTH = 8  # the length of a bioport id
-ECHO = False
+ECHO = False #log all mysql queries.
 EXCLUDE_THIS_STATUS_FROM_SIMILARITY = [5,9]
 
 class DBRepository:
@@ -68,11 +72,10 @@ class DBRepository:
         self.connection = db_connection 
         self.user = user
         self.metadata = Base.metadata #@UndefinedVariable
-        metadata = self.metadata 
         self._session = None
         
         #get the data from the db
-        self.engine = Base.metadata.bind = metadata.bind = create_engine(
+        self.engine = self.metadata.bind = create_engine(
                 self.connection, 
                 convert_unicode=True, 
                 encoding='utf8', 
@@ -80,8 +83,8 @@ class DBRepository:
                 pool_recycle=3600, #set pool_recycle to one hour to avoig sql server has gone away errors
                 strategy="threadlocal",
                 )
+        
         self.Session = sessionmaker(bind=self.engine)
-            
         self.db = self 
         self.repository = repository 
         

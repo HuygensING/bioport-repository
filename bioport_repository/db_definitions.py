@@ -2,8 +2,7 @@ from sqlalchemy import Column, Integer, Unicode,String, ForeignKey,  Boolean, Un
 from sqlalchemy import create_engine, MetaData, Text, desc, and_, or_, not_, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.databases.mysql import MSString
-from sqlalchemy.orm import relation #, backref, eagerload, aliased
-#from sqlalchemy.orm.query import Query
+from sqlalchemy.orm import relation 
 
 from sqlalchemy.types import TIMESTAMP
 
@@ -12,12 +11,10 @@ from sqlalchemy.types import TIMESTAMP
 metadata = MetaData()
 Base = declarative_base()
 
-
 class BiographyRecord(Base):
     """represents a version of  biodes document"""
     __tablename__ = 'biography'
 
-    #db_id = Column(Integer, primary_key=True, autoincrement=True)
     id = Column(MSString(50, binary=True, collation='utf8_bin'), primary_key=True, index=True, ) #the id consist of source_id/local_id
     version = Column(Integer, primary_key=True, default=0, autoincrement=False)
     source_id = Column(MSString(50, collation='utf8_bin'), ForeignKey("source.id"),index=True)
@@ -31,25 +28,19 @@ class BiographyRecord(Base):
     bioportid = relation('RelBioPortIdBiographyRecord')
     hide = Column(Boolean)
     timestamp = Column(TIMESTAMP)
-    
-#    local_id = Column(MSString(50), index=True,  nullable=False)
-#    sqlalchemy.schema.ForeignKeyConstraint(['id'], ['naam.biography_id'], ondelete="CASCADE") 
-#    authors = relation( 'RelBiographyAuthorRecord') #, cascade="all, delete, delete-orphan", backref='biography')
-#    bioport_id_records = relation('BioPortIdRecord')
 
     def get_bioport_id(self):
         return self.bioportid[0].bioport_id
     
 class SourceRecord(Base):
     __tablename__ = 'source'
-#    db_id = Column(Integer,primary_key=True, autoincrement=True)
+    
     id = Column(MSString(50), index=True,primary_key=True)
     url = Column(MSString(255))
     description = Column(MSString(255), nullable=True)
     quality = Column(Integer)
     xml = Column(Text(64000))
     timestamp = Column(TIMESTAMP)
-#    sqlalchemy.schema.ForeignKeyConstraint(['id'], ['biography.source_id'], ondelete="CASCADE")
     
     def __init__(self, id, url, description, quality=None, xml=None):
         self.id = id
@@ -96,10 +87,6 @@ class RelBiographyAuthorRecord(Base):
     biography_id = Column(MSString(50, collation='utf8_bin' ),  ForeignKey('biography.id'), primary_key=True)
     author_id = Column(Integer, ForeignKey('author.id'), primary_key=True) 
     author = relation(AuthorRecord,cascade='all') 
-#    biography = relation(BiographyRecord, cascade='all,delete')
-#    sqlalchemy.schema.ForeignKeyConstraint(['author_id'], ['author.id'], ondelete="CASCADE, ALL") 
-#    sqlalchemy.schema.ForeignKeyConstraint(['biograpy_id'], ['biography.biography_id'], ondelete="CASCADE")
-    
 
 class SoundexRecord(Base):
     __tablename__ = 'soundex'
@@ -123,10 +110,7 @@ class PersonRecord(Base):
         index=True, 
         unique=True,
         )
-#    geboortedatum_min = Column(MSString(10), index=True)
-#    geboortedatum_max = Column(MSString(10), index=True)
-#    sterfdatum_min = Column(MSString(10), index=True)
-#    sterfdatum_max = Column(MSString(10), index=True)
+    
     geboortedatum_min = Column(Date, index=True)
     geboortedatum_max = Column(Date, index=True)
     sterfdatum_min = Column(Date, index=True)
@@ -141,8 +125,6 @@ class PersonRecord(Base):
     sex = Column(Integer, index=True)
     bioport_id_record = relation(BioPortIdRecord)
     
-    
-#    sqlalchemy.schema.ForeignKeyConstraint(['bioport_id'], ['bioportid.bioport_id'])
     search_source = Column(UnicodeText)
     snippet = Column(UnicodeText)
     remarks = Column(UnicodeText)
@@ -153,14 +135,6 @@ class PersonRecord(Base):
     has_contradictions = Column(Boolean)
     
     timestamp = Column(TIMESTAMP)
-#    categories = relation('RelPersonCategory') #this propertie is already defined by backref on RelPresonCategory
-#    def geboortedatum(self):
-#        if self.geboortedatum_min == self.geboortedatum_max:
-#            return self.geboortedatum_min 
-#        
-#    def sterfdatum(self):
-#        if self.sterfdatum_min == self.sterfdatum_max:
-#            return self.sterfdatum_max 
         
 class PersonSoundex(Base): 
     __tablename__ = 'person_soundex'
