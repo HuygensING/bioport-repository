@@ -342,7 +342,7 @@ class Person(object):
             @property
             def snippet(self):
                 self._snippet = u''
-                for bio in self.get_biographies():
+                for bio in self.p.get_biographies():
                     s = bio.snippet()
                     if s:
                         return s
