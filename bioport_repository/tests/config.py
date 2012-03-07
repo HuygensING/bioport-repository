@@ -1,4 +1,4 @@
-from sqlalchemy.exceptions import OperationalError
+from sqlalchemy.exc import OperationalError
 from sqlalchemy import create_engine
 
 DB_NAME = 'bioport_test'

@@ -39,7 +39,7 @@ def update_biographies(repo):
                 if not bio.record.url_biography:
                     print i, '-saving', bio
                     bio.record.url_biography = bio.get_value('url_biography')
-                    session.commit()
+                    transaction.commit()
                 else:
                     print i, '-not saving - field already filled', bio
         

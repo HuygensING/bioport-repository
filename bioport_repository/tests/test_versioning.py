@@ -38,9 +38,12 @@ class VersioningTestCase(CommonTestCase):
         time1 = datetime.datetime.today().isoformat()
         time.sleep(1)
         self._save_biography(bio, u'test_comment')
+        #we have one version after time1
         self.assertEqual(len(repo.get_versions(time_from=time1)), 1)
+        #we have one version between time0 and time1
         self.assertEqual(len(repo.get_versions(time_from=time0, time_to=time1)), 1)
-        self.assertEqual(len(repo.get_versions(time_to=time0)), len(repo.get_versions()) - 1)
+        #and the other versions are before time0
+        self.assertEqual(len(repo.get_versions(time_to=time0)), len(repo.get_versions()) - 2)
         
     def test_undo(self):
         repo = self.repo
@@ -71,8 +74,8 @@ class VersioningTestCase(CommonTestCase):
     
     def test_undo_identification(self):
         repo = self.repo
-        persons = self.repo.get_persons()
-        len1 = len(self.repo.get_persons())
+        persons = repo.get_persons()
+        len1 = len(repo.get_persons())
         bioport_ids1 = [p.bioport_id for p in self.repo.get_persons()]
         bioport_ids2numberofbios1 = dict([(p.bioport_id, p.get_biographies()) for p in self.repo.get_persons()])
         for id1 in bioport_ids1:

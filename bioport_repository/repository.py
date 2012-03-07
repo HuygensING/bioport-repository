@@ -7,15 +7,13 @@ import time
 import logging
 import shutil
 
-from plone.memoize import instance
 from lxml import etree
-from sqlalchemy.exceptions import InvalidRequestError
 import biodes
 
 from bioport_repository.db_definitions import STATUS_VALUES, RELIGION_VALUES
 from bioport_repository.biography import Biography
 from bioport_repository.db import DBRepository
-from bioport_repository.person import Person
+#from bioport_repository.person import Person
 from bioport_repository.repocommon import BioPortException
 from bioport_repository.source import BioPortSource, Source
 from bioport_repository.svn_repository import SVNRepository
@@ -97,15 +95,20 @@ class Repository(object):
     
     def get_persons_sequence(self, **args):
         "this method is like get_persons, but defers Person instantiation"
-        qry = self.db._get_persons_query(**args)
-        import ipdb;ipdb.set_trace() 
-        return PersonList(qry, self)
-
-    def get_persons_iterator(self, **args):
-        qry = self.db._get_persons_query(**args)
-        for r in qry:
-            yield Person(bioport_id=r.bioport_id,
-                      repository=self, record=r)
+        if args.get('full_records'):
+            del args['full_records']
+        query = self.db._get_persons_query(**args)
+#        ls = query.session.execute(query._compile_context().statement,
+#                                  query._params).fetchall() 
+        ls = query.session.execute(query).fetchall()
+        ls = [r[0] for r in ls] 
+        return PersonList(self, ls)
+# 
+#    def get_persons_iterator(self, **args):
+#        qry = self.db._get_persons_query(**args)
+#        for r in qry:
+#            yield Person(bioport_id=r.bioport_id,
+#                      repository=self, record=r)
             
     def delete_person(self, person):
         if self.ENABLE_DB:
@@ -128,7 +131,6 @@ class Repository(object):
     def redirects_to(self, bioport_id):
         return self.db.redirects_to(bioport_id)
         
-    @instance.clearafter
     def add_source(self, source):
         """add a source of data to the db"""
         if source.id in [src.id for src in self.get_sources()]:
@@ -137,33 +139,28 @@ class Repository(object):
             self.db.add_source(source)
         if self.ENABLE_SVN:
             self.svn_repository.add_source(source)
-        self.invalidate_cache('_sources')
         return source        
     
-    @instance.clearafter
     def delete_source(self, source):
         if self.ENABLE_DB:
             self.db.delete_source(source)
         if self.ENABLE_SVN:
             self.svn_repository.delete_source(source)
   
-    @instance.memoize
     def get_source(self, id):
         ls = [src for src in self.get_sources() if src.id == id]
         if not ls:
             raise ValueError('No source found with id %s\nAvailabe sources are %s' % (id, [s.id for s in self.get_sources()]))
         return ls[0]
      
-    @instance.memoize
     def get_sources(self, order_by='quality', desc=True):
         """
         return: a list of Source instances
         """
         if self.ENABLE_DB:
-            self._sources = self.db.get_sources(order_by=order_by, desc=desc)
+            return self.db.get_sources(order_by=order_by, desc=desc)
         elif self.ENABLE_SVN:
-            self._sources = self.svn_repository.get_sources(order_by=order_by, desc=desc)
-        return self._sources
+            return self.svn_repository.get_sources(order_by=order_by, desc=desc)
     
     def get_status_value(self, k, default=None):
         items = STATUS_VALUES
@@ -189,23 +186,19 @@ class Repository(object):
             raise TypeError('Cannot save a object %s in the repository: unknown type' % x)
 
    
-    @instance.clearafter 
     def save_source(self, source):
         source.repository = self
-        self.invalidate_cache('_sources')
         if self.ENABLE_DB:
             self.db.save_source(source)
         if self.ENABLE_SVN:
             raise NotImplementedError()
     
-    @instance.clearafter
     def save_person(self, person):
         if self.ENABLE_DB:
             self.db.save_person(person)
         if self.ENABLE_SVN:
             raise NotImplementedError()
         
-    @instance.clearafter
     def save_biography(self, biography, comment):
         biography.repository = self
         if self.ENABLE_DB:
@@ -216,7 +209,6 @@ class Repository(object):
 
         return
 
-    @instance.clearafter
     def detach_biography(self, biography):
         return self.db.detach_biography(biography)
     
@@ -449,7 +441,6 @@ class Repository(object):
 #                ls = [b for (x, b) in ls]
                 return ls[0]
 
-    @instance.clearafter
     def _create_bioport_biography(self, person):
         source = BioPortSource(id='dummy')
         bio = Biography(id='%s/%s'  % (source.id, person.get_bioport_id()), source_id=source.id)
@@ -457,7 +448,6 @@ class Repository(object):
         bio.set_value(local_id=person.get_bioport_id())
         bio.set_value(bioport_id=person.get_bioport_id())
         self.save_biography(bio, u'created Bioport biography')
-        person._instance_clearafter()
         return bio
  
     def get_identifier(self, bioport_id):
@@ -465,15 +455,6 @@ class Repository(object):
             self.db.get_identifier()
         if self.ENABLE_SVN:
             raise NotImplementedError
-
-    def invalidate_cache(self, attr):
-        """
-        arguments:
-            attr - a string
-        """
-        assert attr in ['_sources']
-        if hasattr(self, attr):
-            delattr(self, attr)
 
     def get_occupations(self):
         return self.db.get_occupations()
@@ -485,9 +466,11 @@ class Repository(object):
         return self.db.get_category(id)
 
     def get_categories(self):
+        #we wrap the category objects, so that when the session closes, sqlalchemy does noet complain about the memoized objects
         return self.db.get_categories()
-
+    
     def get_places(self, *args, **kwargs):
+        logging.info('call get_places(%s, %s)' % (args, kwargs))
         return self.db.get_places(*args, **kwargs)
 
     def get_log_messages(self, **args):
@@ -506,16 +489,44 @@ class Repository(object):
         return self.db.undo_version(document_id, version)
 
 class PersonList(object):
-    "This object provides a (possibly long) list of lazy-loaded Person objects"
-
-    _records = []
-
-    def __init__(self, query, repository):
+    """This object is initiated with a list of bioport_ids, and tries to behave like a list of Person objects as efficiently as possible
+    """
+    def __init__(self, repository, bioport_ids):
         """
         arguments:
             query : either a list of a sqlalchemy query object
             
         """
+        #this query will return bioport ids
+        
+        self.repository = repository
+        self._bioport_ids = bioport_ids
+            
+    def __len__(self):
+        return len(self._bioport_ids)
+    
+    def __getitem__(self, key):
+        if isinstance(key, slice):
+            new_list = PersonList(self.repository, self._bioport_ids[key])
+            return new_list
+        
+        i = int(key)
+        return self.repository.db.all_persons.get(self._bioport_ids[i])
+   
+"""OLD PERSONLIST IMPLEMENTATION
+(kept here for documentation, feel free to delete if needed)
+
+class PersonList(object):
+    "This object provides a (possibly long) list of lazy-loaded Person objects"
+
+    _records = []
+
+    def __init__(self, query, repository):
+        ""
+        arguments:
+            query : either a list of a sqlalchemy query object
+            
+        ""
         self.query = query
         self.repository = repository
         self._persons = {}
@@ -528,7 +539,7 @@ class PersonList(object):
                 self._records = query.session.execute(query._compile_context().statement,
                                   query._params).fetchall() 
             except InvalidRequestError:
-                query.session.rollback() 
+                query.transaction.abort() 
                 self._records = query.session.execute(query._compile_context().statement,
                                   query._params).fetchall()
  
@@ -536,7 +547,6 @@ class PersonList(object):
         else:
             self._records = query 
             
-    @instance.memoize
     def __len__(self):
         if type(self.query) is list:
             return len(self.query)
@@ -566,8 +576,8 @@ class PersonList(object):
                       repository=self.repository, record=r)
         self._persons[i] = person
         return person
-   
 
+"""
 class AttributeDict(dict):
 
     def __init__(self, *args, **kwargs):

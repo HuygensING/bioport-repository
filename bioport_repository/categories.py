@@ -2,6 +2,7 @@
 ##encoding=utf-8
 
 from bioport_repository.db_definitions import Category 
+import transaction
 
 
 def fill_table(session):    
@@ -35,5 +36,4 @@ def fill_table(session):
 #        assert 0, 'The table %s already contains information -- please empty it first' % Category.__tablename__
     for nr, name in ls:
         session.add(Category(id=nr, name=name))
-    session.commit()
     

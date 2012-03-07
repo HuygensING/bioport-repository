@@ -2,6 +2,7 @@ import os
 #import sys
 import unittest
 import shutil
+import transaction
 #import atexit
 #import subprocess
 from plone.memoize import instance
@@ -14,13 +15,15 @@ from bioport_repository.source import Source
 from gerbrandyutils import sh
 
 from names.name import Name
+from sqlalchemy import create_engine
 
 THIS_DIR = os.path.split(os.path.abspath(__file__))[0]
 SVN_REPOSITORY  = os.path.abspath(os.path.join(THIS_DIR, 'data/bioport_repository'))
 SVN_REPOSITORY_LOCAL_COPY = os.path.abspath(os.path.join(THIS_DIR, 'data/bioport_repository_local_copy'))
 IMAGES_CACHE_LOCAL = os.path.join(THIS_DIR, 'tmp')
 SQLDUMP_FILENAME = os.path.join(THIS_DIR, 'data/bioport_mysqldump.sql')
-
+CREATE_NEW_DUMPFILE = False #very expesnive if True
+#CREATE_NEW_DUMPFILE = True #very ex/pesnive if True
 
 class CommonTestCase(unittest.TestCase):
     
@@ -41,10 +44,9 @@ class CommonTestCase(unittest.TestCase):
               images_cache_local=IMAGES_CACHE_LOCAL,
               )
               
-         
         self.repo.db.metadata.drop_all()
         if self._fill_repository:
-            if not os.path.isfile(SQLDUMP_FILENAME):
+            if CREATE_NEW_DUMPFILE or not os.path.isfile(SQLDUMP_FILENAME):
                 self.create_filled_repository_from_scratch()
             self.create_filled_repository()
         else:
@@ -74,8 +76,24 @@ class CommonTestCase(unittest.TestCase):
         testdir = os.path.dirname(bioport_repository.tests.__file__)
         datadir = os.path.join(testdir, 'data')
         sql_string = sql_string.replace('{{{test_data_dir}}}', testdir)
-        self.repo.db.get_session().execute(sql_string)
-        self.repo.db.get_session().flush()
+        
+        def parse_dsn(s):
+            return sqlalchemy.engine.url._parse_rfc1738_args(s)
+
+        dsn = parse_dsn(DSN)
+        username = dsn.username or ""
+        passwd = dsn.password or ""
+        if not passwd:
+            sh('mysql -u %s bioport_test -e "source %s"' % (username, SQLDUMP_FILENAME))
+        else:
+            sh('mysqldump -u %s -p%s bioport_test -"source %s"' % (username, passwd, SQLDUMP_FILENAME))
+        self._is_filled = True
+        return self.repo
+
+#        create_engine(DSN).connect().execute(sql_string)
+#        self.repo.db.get_session().execute(sql_string)
+#        self.repo.db.get_session().flush()
+        transaction.commit()
         self._fill_repository = False #dont fill the repository again
         return self.repo
         

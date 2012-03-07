@@ -14,14 +14,14 @@ class Person(object):
     """
 
     def __init__(self, 
-		bioport_id,
-		biographies=None,  # XXX - this is not used!
-		repository=None,
-		record=None,
-		status=STATUS_NEW,
-		remarks=None,
-		score=None,
-		):
+        bioport_id,
+        biographies=None,  # XXX - this is not used!
+        repository=None,
+        record=None,
+        status=STATUS_NEW,
+        remarks=None,
+        score=None,
+        ):
         """
         Arguments:
             bioport_id - a unique identifier for this person
@@ -41,7 +41,6 @@ class Person(object):
         if record is not None:
             self.status = record.status
             self.remarks = record.remarks
-            self.has_illustrations = record.has_illustrations
         self.score = score
 
     def __eq__(self, other):
@@ -80,11 +79,11 @@ class Person(object):
            comment = comment,
            )
         
-    @instance.clearafter
-    def _instance_clearafter(self):
-        pass
+#    @instance.clearafter
+#    def _instance_clearafter(self):
+#        pass
     
-    @instance.memoize
+#    @instance.memoize
     def get_biographies(self, source_id=None):
         """Return all Biographies instances that are known to be
         of this person. 
@@ -100,21 +99,28 @@ class Person(object):
         
         return ls
 
+    @property
+    def has_illustrations(self):
+        if self.record:
+            return self.record.has_illustrations
+        else:
+            return self.computed_values.has_illustrations
+            
     def get_bioport_id(self):
-        return self.id
+        return self.bioport_id
 
-    @instance.memoize
+#    @instance.memoize
     def get_sources(self):
         return [bio.get_source() for bio in self.get_biographies()]
 
     def get_quality(self):
         return max([bio.get_quality() for bio in self.get_biographies()])
 
-    @instance.memoize
+#    @instance.memoize
     def get_value(self, k, default=None):
         return self.get_merged_biography().get_value(k, default)
 
-    @instance.memoize
+#    @instance.memoize
     def get_merged_biography(self):
         """
         Return a Biography that represents the 'cascaded information'
@@ -130,11 +136,15 @@ class Person(object):
         return self.get_merged_biography().get_names()
 
     def title(self):
+        if self.record:
+            return self.record.naam
         return self.get_merged_biography().title()
 
-    @instance.memoize
     def name(self):
-        return self.get_merged_biography().naam()
+        if self.record:
+            return self.record.naam
+        else:
+            return self.get_merged_biography().naam()
 
     naam = name
 
@@ -145,33 +155,20 @@ class Person(object):
         """
         return self.repository.redirects_to(self.get_bioport_id())
 
-    def invalidate_cache(self, k):
-        if hasattr(self, k):
-            delattr(self, k)
-
     def search_source(self):
-        result =[]
-        for name in self.get_names():
-            result.append(name.volledige_naam())
-        for bio in self.get_biographies():
-
-            result.append(bio.get_text_without_markup())
-        result = [unicode(s) for s in result]
-        return u'\n'.join(result)
+        if self.record:
+            return self.record.search_source
+        else:
+            return self.computed_values.search_source
 
     def snippet(self, term=None):
         """
         Ask a snippet to each biography, and return the first we can find.
         """
-        try:
-            return self._snippet
-        except AttributeError:
-            self._snippet = u''
-            for bio in self.get_biographies():
-                s = bio.snippet()
-                if s:
-                    self._snippet = s
-                    return self._snippet
+        if self.record:
+            return self.record.snippet
+        else:
+            return self.computed_values.snippet
 
     def get_comments(self):
         return self.repository.db.get_comments(bioport_id=self.id)
@@ -181,16 +178,23 @@ class Person(object):
         return self.repository.db.add_comment(bioport_id=self.id, values=kwargs)
 
     def geboortedatum(self):
-        event = self.get_merged_biography().get_event('birth')
-        if event is not None:
-            return event.get('when')
-#        if self.record.geboortedatum_min == self.record.geboortedatum_max:
-#            return self.record.geboortedatum_min
+        if self.record:
+            return self.record.geboortedatum
+        else:
+            return self.computed_values.geboortedatum
+#        event = self.get_merged_biography().get_event('birth')
+#        if event is not None:
+#            return event.get('when')
 
     def sterfdatum(self):
-        event = self.get_merged_biography().get_event('death')
-        if event is not None:
-            return event.get('when')
+        if self.record:
+            return self.record.sterfdatum
+        else:
+            return self.computed_values.sterfdatum
+        
+#        event = self.get_merged_biography().get_event('death')
+#        if event is not None:
+#            return event.get('when')
 #        if self.record.sterfdatum_min == self.record.sterfdatum_max:
 #            return self.record.sterfdatum_max
 
@@ -201,16 +205,17 @@ class Person(object):
         the second date is the date of death, or, if that does not exist, date of burial
         """
         date1 = self.geboortedatum() 
-        if not date1:
-            event = self.get_merged_biography().get_event('baptism')
-            if event is not None:
-                date1 = event.get('when')
-        
+#        if not date1:
+#            event = self.get_merged_biography().get_event('baptism')
+#            if event is not None:
+#                date1 = event.get('when')
+#        
         date2 = self.sterfdatum()
-        if not date2:
-            event = self.get_merged_biography().get_event('burial')
-            if event is not None:
-                date2 = event.get('when')
+        #XXX remove the 'False'part!
+#        if not date2:
+#            event = self.get_merged_biography().get_event('burial')
+#            if event is not None:
+#                date2 = event.get('when')
         return date1, date2
         
     
@@ -220,14 +225,8 @@ class Person(object):
     def thumbnail(self):
         return self.record.thumbnail
 
-    def db_snippet(self):
-        return self.record.snippet
-
     def geslachtsnaam(self):
         return self.record.geslachtsnaam
-
-    def db_name(self):
-        return self.record.naam
 
     @classmethod
     def _are_dates_equal(cls, date1, date2):
@@ -322,11 +321,8 @@ class Person(object):
         return merged_bio
 
     @property
-    def cache(self):
-        """these are the 'cached' values - stored in PersonView table """
-        person = self
-        merged_biography = self.get_merged_biography()
-        name = merged_biography.naam()
+    def computed_values(self):
+        """these are the computed values, that go back as much as possible to the source data """
         
         class Wrapper:
             def __init__(self, person):
@@ -339,10 +335,17 @@ class Person(object):
                 self.geboorteplaats = self.merged_biography.get_value('geboorteplaats')
                 self.sterfplaats = self.merged_biography.get_value('sterfplaats')
                 self.names = u' '.join([unicode(name) for name in self._names])
-                self.snippet = person.snippet()
+                
                 self.has_contradictions = bool(person.get_biography_contradictions())
                 illustrations =  self.merged_biography.get_illustrations()
-                self.thumbnail = illustrations and illustrations[0].image_small_url or u''
+                self.thumbnail = illustrations and illustrations[0].has_image() and illustrations[0].image_small_url or u''
+            @property
+            def snippet(self):
+                self._snippet = u''
+                for bio in self.get_biographies():
+                    s = bio.snippet()
+                    if s:
+                        return s
 
             @property
             def _name(self):
@@ -351,19 +354,23 @@ class Person(object):
             
             @property 
             def _names(self):
-	            return self.merged_biography.get_names() 
+                return self.merged_biography.get_names() 
             @property
             def merged_biography(self):
-#	            if not merged_biography.get_biographies():
-#	                logging.warning('NO biographies found for person with bioport id %s' % person.bioport_id)
-                return self.p.get_merged_biography()
+#                if not merged_biography.get_biographies():
+#                    logging.warning('NO biographies found for person with bioport id %s' % person.bioport_id)
+                try:
+                    return self._merged_biography
+                except AttributeError:
+                    self._merged_biography =  self.p.get_merged_biography()
+                    return self._merged_biography
             
             @property
             def naam(self):
-                return self._name.guess_normal_form()
+                return self._name and self._name.guess_normal_form()
             @property
             def sort_key(self):
-                return self._name.sort_key()
+                return self._name and self._name.sort_key()
             @property
             def geslachtsnaam(self):
                 return self._name.geslachtsnaam()
@@ -372,10 +379,38 @@ class Person(object):
                 return bool(self.merged_biography.get_illustrations())
             @property
             def search_source(self):
-                return self.p.search_source()
+                result =[]
+                for name in self._names:
+                    result.append(name.volledige_naam())
+                for bio in self.p.get_biographies():
+                    result.append(bio.get_text_without_markup())
+                result = [unicode(s) for s in result]
+                return u'\n'.join(result)
             @property
             def sex(self):
                 return self.merged_biography.get_value('geslacht')
+            
+            @property
+            def geboortedatum(self):
+                date1 =  self.merged_biography.get_value('geboortedatum')
+                #XXX remove the 'False'part!
+                if not date1:
+                    event = self.merged_biography.get_event('baptism')
+                    if event is not None:
+                        date1 = event.get('when')
+                return date1
+            
+            @property
+            def sterfdatum(self):
+                
+                date2 = self.merged_biography.sterfdatum()
+                #XXX remove the 'False'part!
+                if not date2:
+                    event = self.merged_biography.get_event('burial')
+                    if event is not None:
+                        date2 = event.get('when')
+                return date2
+         
             
         return Wrapper(self)
         

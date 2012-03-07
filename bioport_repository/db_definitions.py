@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, Unicode,String, ForeignKey,  Boolean, UnicodeText, Float, BLOB, Date
-from sqlalchemy import create_engine, MetaData, Text, desc, and_, or_, not_, DateTime
+from sqlalchemy import MetaData, Text, desc, and_, or_, not_, DateTime
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.databases.mysql import MSString
+from sqlalchemy.dialects.mysql import VARCHAR as MSString
 from sqlalchemy.orm import relation 
 
 from sqlalchemy.types import TIMESTAMP
@@ -95,35 +95,35 @@ class SoundexRecord(Base):
     id = Column(Integer,primary_key=True)
     naam_id = Column(Integer, ForeignKey('naam.id'))
     soundex  = Column(Unicode(100))
-
-class PersonView(Base):
-    """this is our 'cache' table - it duplicates all other data, and this is from where the website reads its data
-    
-    Base.metadata.create_all(tables=['person_view'])
-    
-    """
-    __tablename__ = 'person_view'
-    bioport_id = Column(MSString(50), primary_key=True)
-    name = Column(Unicode(255))
-    geboortedatum_min = Column(Date, index=True)
-    geboortedatum_max = Column(Date, index=True)
-    sterfdatum_min = Column(Date, index=True)
-    sterfdatum_max = Column(Date, index=True)
-    
-    geboorteplaats = Column(MSString(255), index=True)
-    sterfplaats = Column(MSString(255), index=True)
-    naam = Column(MSString(255), index=True)
-    geslachtsnaam = Column(MSString(255), index=True)
-    names = Column(UnicodeText)
-    sort_key = Column(MSString(50), index=True)
-    sex = Column(Integer, index=True)
-    search_source = Column(UnicodeText)
-    snippet = Column(UnicodeText)
-    thumbnail = Column(MSString(255))
-    status = Column(Integer, index=True)
-    has_illustrations = Column(Boolean)
-    has_contradictions = Column(Boolean)
-    timestamp = Column(TIMESTAMP)
+#
+#class PersonView(Base):
+#    """this is our 'cache' table - it duplicates all other data, and this is from where the website reads its data
+#    
+#    Base.metadata.create_all(tables=['person_view'])
+#    
+#    """
+#    __tablename__ = 'person_view'
+#    bioport_id = Column(MSString(50), primary_key=True)
+#    name = Column(Unicode(255))
+#    geboortedatum_min = Column(Date, index=True)
+#    geboortedatum_max = Column(Date, index=True)
+#    sterfdatum_min = Column(Date, index=True)
+#    sterfdatum_max = Column(Date, index=True)
+#    
+#    geboorteplaats = Column(MSString(255), index=True)
+#    sterfplaats = Column(MSString(255), index=True)
+#    naam = Column(MSString(255), index=True)
+#    geslachtsnaam = Column(MSString(255), index=True)
+#    names = Column(UnicodeText)
+#    sort_key = Column(MSString(50), index=True)
+#    sex = Column(Integer, index=True)
+#    search_source = Column(UnicodeText)
+#    snippet = Column(UnicodeText)
+#    thumbnail = Column(MSString(255))
+#    status = Column(Integer, index=True)
+#    has_illustrations = Column(Boolean)
+#    has_contradictions = Column(Boolean)
+#    timestamp = Column(TIMESTAMP)
 
 class PersonRecord(Base):
     """This is basically a 'cache' table for searching for persons in the database, together with some meta-data
@@ -146,7 +146,9 @@ class PersonRecord(Base):
     sterfdatum_min = Column(Date, index=True)
     sterfdatum_max = Column(Date, index=True)
     
+    geboortedatum = Column(MSString(12), index=True)
     geboorteplaats = Column(MSString(255), index=True)
+    sterfdatum = Column(MSString(12), index=True)
     sterfplaats = Column(MSString(255), index=True)
     naam = Column(MSString(255), index=True)
     geslachtsnaam = Column(MSString(255), index=True)

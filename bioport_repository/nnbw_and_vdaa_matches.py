@@ -74,7 +74,7 @@ def create_list_of_doubles(repository, limit):
 def delete_list_of_doubles(repository):
     session = repository.db.get_session()
     session.query(DBNLIds).delete()
-    session.commit()
+    transaction.commit()
     
 def insert_list_of_doubles(repository, limit):    
     session = repository.db.get_session()
@@ -87,12 +87,12 @@ def insert_list_of_doubles(repository, limit):
         id1, id2 = min(id1, id2), max(id1,id2)
         session.add(DBNLIds(bioport_id1 = id1, bioport_id2=id2, source1=local_id1.split('/')[0], source2=local_id2.split('/')[0], dbnl_id=dbnl_id))
         try:
-            session.commit()
+            transaction.commit()
             i += 1
             print i, 'added', id1, id2, '(local ids:', local_id1, local_id2, ')'
         except sqlalchemy.exc.IntegrityError:
             print 'this is strange, these ids alreay seem to have been added', id1, id2, local_id1, local_id2
-            session.rollback()
+            transaction.abort()
 if __name__ == "__main__":
     repository = Repository(
               dsn='mysql://root@localhost/bioport'

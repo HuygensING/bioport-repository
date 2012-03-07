@@ -1,7 +1,26 @@
 from bioport_repository.repository import Repository
-from bioport_repository.db_definitions import  CacheSimilarityPersons, STATUS_DONE, STATUS_NEW, CATEGORY_LETTERKUNDE, STATUS_NADER_ONDERZOEK, STATUS_DIFFICULT, RelPersonReligion
+from bioport_repository.db_definitions import  CacheSimilarityPersons, STATUS_DONE, STATUS_NEW, CATEGORY_LETTERKUNDE, STATUS_NADER_ONDERZOEK, STATUS_DIFFICULT, RelPersonReligion, PersonRecord
 from sqlalchemy.orm.exc import NoResultFound
 LIMIT = 0
+"""
+dsn = 'mysql://localhost/bioport'
+from bioport_repository import  helper_scripts
+helper_scripts.upgrade_march2012(dsn)
+"""
+def upgrade_march2012(dsn):
+    
+    repository = Repository(dsn=dsn)
+    print 'upgrading!'
+    persons = repository.get_persons()
+    for i, person in enumerate(persons):
+        print '[%s/%s]' % (i, len(persons))
+        r_person = repository.db.get_session().query(PersonRecord).filter_by(bioport_id=person.bioport_id).one()
+#        r_person = person.record
+        computed_values = person.computed_values
+        r_person.geboortedatum =  computed_values.geboortedatum 
+        r_person.sterfdaum = computed_values.sterfdatum 
+
+
 """a set of helper scripts to run in bin/bioport-debug"""
 """
 
@@ -185,11 +204,11 @@ def _remove_irrelevent_items_from_similarity_table(dsn):
                 j += 1
                 k += 1
                 session.delete(r)
-                session.commit()
+                transaction.commit()
         except Exception, error:
             print error
-            session.rollback()
-    session.commit()
+            transaction.abort()
+    transaction.commit()
     print 'deleted %s items' % j 
     print 'committing...'
     print 'done.'

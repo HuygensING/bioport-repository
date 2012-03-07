@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+def upgrade_march2012():
+    sql = """ALTER TABLE `person` MODIFY COLUMN `geboortedatum` CHAR(12)  DEFAULT NULL,
+ MODIFY COLUMN `sterfdatum` char(12)  DEFAULT NULL;
+"""
+    
 """
 
 ALTER TABLE `bioport`.`biography` ADD COLUMN `user` varchar(50)  AFTER `timestamp`;
@@ -58,13 +63,13 @@ ALTER TABLE `person` MODIFY COLUMN `search_source` TEXT  CHARACTER SET utf8 COLL
 
 
 """
+
 #
 from bioport_repository.repository import *
-from bioport_repository.db_definitions import PersonView
-repo = Repository(dsn='mysql://localhost/bioport')
-repo.db.metadata.create_all() #repo.db.engine, tables=[PersonView.__tablename__])
-repo.db._update_persons_view()
-import ipdb;ipdb.set_trace() 
+#from bioport_repository.db_definitions import PersonView
+#repo = Repository(dsn='mysql://localhost/bioport')
+#repo.db.metadata.create_all() #repo.db.engine, tables=[PersonView.__tablename__])
+#repo.db._update_persons_view()
 #
 
 #DSN = 'mysql://root@localhost/bioport_play'

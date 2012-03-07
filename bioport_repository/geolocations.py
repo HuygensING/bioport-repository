@@ -78,5 +78,5 @@ def refill_geolocations_table(source_fn, session, limit=-1):
             j += 1
             if limit > -1 and j >= limit:
                 break
-    session.commit()
+#    transaction.commit()
 

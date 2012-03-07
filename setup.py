@@ -12,5 +12,6 @@ setup(name = 'bioport_repository',
                         'sqlalchemy',
                         'names',
                         'simplejson',
+                        'zope.sqlalchemy',
                        ],
       )

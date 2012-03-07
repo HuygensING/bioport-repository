@@ -54,5 +54,5 @@ def fill_occupations_table(session):
         assert 0, 'The table %s already contains information -- please empty it first' % Occupation.__tablename__
     for nr, name in ls:
         session.add(Occupation(id=nr, name=name))
-    session.commit()
+#    transaction.commit()
     

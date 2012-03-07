@@ -146,8 +146,14 @@ class MergedBiography:
                     date_min =  event.get('notBefore')
                 if not date_max:
                     date_max = event.get('notAfter')
-                date_min = to_date(date_min)
-                date_max = to_date(date_max, round='up')
+                try:
+                    date_min = to_date(date_min)
+                except ValueError:
+                    date_min = None
+                try:
+                    date_max = to_date(date_max, round='up')
+                except ValueError:
+                    date_max = None
                 return (date_min, date_max)
             else:
                 return (None, None)
@@ -200,6 +206,7 @@ class MergedBiography:
         if not death_date_max:
             if birth_date_max:
                 death_date_max = birth_date_max.replace(year = birth_date_max.year + DELTA_BIRTH_DEATH_MAX) 
+                
         return birth_date_min, birth_date_max, death_date_min, death_date_max
     
     def get_geboortedatum_max(self):
@@ -387,7 +394,7 @@ class BiographyMerger(object):
         states2 = bio2.get_states()
 #        states2 = [state for state in states2 if state.get('type') not in unique_states]
         for state in states2:
-            if etree.tostring(state).strip() not in [etree.tostring(s).strip() for s in states1]:
+            if etree.tostring(state).strip() not in [etree.tostring(s).strip() for s in states1]: #@UndefinedVariable
                 #copy the state (instead of moving it, which will change bio2 as well)
                 state = copy.deepcopy(state)
                 merged_bio._add_state_element(state)
@@ -399,7 +406,7 @@ class BiographyMerger(object):
         events2 = bio2.get_events()
         events = events1
         for bio2_event in events2:
-            if etree.tostring(bio2_event).strip() not in [etree.tostring(e).strip() for e in events]:
+            if etree.tostring(bio2_event).strip() not in [etree.tostring(e).strip() for e in events]: #@UndefinedVariable
                 if bio2_event.get('type') in unique_events:
                     #if this event can occur only once, we check for consistency with an eventual existing event
                     #and if they are consistent, update accordingly
