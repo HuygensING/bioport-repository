@@ -5,7 +5,6 @@ import shutil
 import transaction
 #import atexit
 #import subprocess
-from plone.memoize import instance
 import sqlalchemy
 
 from bioport_repository.repository import Repository
@@ -29,7 +28,6 @@ class CommonTestCase(unittest.TestCase):
     
     _fill_repository = True
 
-    @instance.clearafter
     def setUp(self):     
         if os.path.isdir(SVN_REPOSITORY):
             shutil.rmtree(SVN_REPOSITORY)

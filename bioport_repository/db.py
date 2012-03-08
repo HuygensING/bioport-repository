@@ -216,6 +216,8 @@ class DBRepository:
         rs = session.query(BioPortIdRecord.bioport_id).distinct().all()
         return map(lambda x: x[0], rs)
 
+    
+    @instance.clearafter
     def delete_biographies(self, source): #, biography=None): 
         with self.get_session_context() as session:
             # delete also all biographies associated with this source
@@ -244,6 +246,7 @@ class DBRepository:
             
 #            session.expunge_all()
 
+    @instance.clearafter
     def delete_biography(self, biography):
         with self.get_session_context() as session:
             # delete also all biographies associated with this source
@@ -282,6 +285,7 @@ class DBRepository:
 #                item.soundex.append(soundex)
 #            return item.id 
    
+    @instance.clearafter
     def delete_names(self, bioport_id):
         session  = self.get_session()
 #        session.execute('delete c FROM cache_similarity c join naam n1 on c.naam1_id = n1.id where n1.biography_id="%s"' % biography_id)
@@ -484,6 +488,7 @@ class DBRepository:
         if compute_similarities:
             self.fill_similarity_cache(person=person, refresh=True)
         
+    @instance.clearafter
     def update_persons(self, start=None, size=None):
         """Update the information of all the persons in the database.
         Return the number of processed persons.
@@ -506,6 +511,7 @@ class DBRepository:
             wildcards=True,
             ) #create long phonetic soundexes
 
+    @instance.clearafter
     def update_name(self, bioport_id, names):
         """update the table person_name
         
@@ -527,6 +533,7 @@ class DBRepository:
                         r = PersonSoundex(bioport_id=bioport_id, soundex=soundex, is_from_family_name=is_from_family_name) 
                         session.add(r)
                     
+    @instance.clearafter
     def update_soundex(self, bioport_id, names):
         """update the table person_soundex
         
@@ -535,6 +542,7 @@ class DBRepository:
         """
         return self.update_name(bioport_id, names)
 
+    @instance.clearafter
     def update_source(self, bioport_id, source_ids):   
         """update the table person_source"""
         with self.get_session_context() as session:
@@ -544,6 +552,7 @@ class DBRepository:
                 r = PersonSource(bioport_id=bioport_id, source_id=source_id) 
                 session.add(r)
 
+    @instance.clearafter
     def update_soundexes(self):
         """update the person_soundex table in the database 
         
@@ -1249,6 +1258,7 @@ class DBRepository:
 #        person = Person(bioport_id=bioport_id, record=r, repository=repository)
 #        return person
 
+    @instance.clearafter
     def delete_person(self, person):
         with self.get_session_context() as session:
             try:
@@ -1315,6 +1325,7 @@ class DBRepository:
                 break
         return chain[-1]
     
+    @instance.clearafter
     def fill_similarity_cache(self, 
         person=None, 
         k=20, 
@@ -1601,6 +1612,7 @@ class DBRepository:
         return new_person 
 
               
+    @instance.clearafter
     def find_biography_contradictions(self):
         """Populate person.has_contradictions column of the db.
         Return the number of persons which have contradictory biographies.
@@ -1621,6 +1633,7 @@ class DBRepository:
                     obj.has_contradictions = False
             return n
                    
+    @instance.clearafter
     def antiidentify(self, person1, person2):
         """register the fact that the user thinks that these two persons are not the same"""
         id1, id2 = person1.get_bioport_id(), person2.get_bioport_id()       
@@ -1771,15 +1784,18 @@ class DBRepository:
         self.metadata.create_all()
         fill_occupations_table(self.get_session())
       
+    @instance.memoize
     def get_occupations(self):
         qry = self.get_session().query(Occupation)
         return qry.all()
     
+    @instance.memoize
     def get_occupation(self,id):
         qry = self.get_session().query(Occupation).filter(Occupation.id==id)
         return qry.one()
         
     #### RUBRIEKEN ####
+    @instance.clearafter
     def _update_category_table(self):
         from categories import fill_table
         self.metadata.create_all()
@@ -1882,6 +1898,7 @@ class DBRepository:
     def get_comments(self, bioport_id):
         return self.get_session().query(Comment).filter(Comment.bioport_id==bioport_id)
 
+    @instance.clearafter
     def add_comment(self, bioport_id, values):
         comment = Comment(**values)
         comment.created = datetime.now()
@@ -1991,6 +2008,7 @@ and b2.redirect_to is null
         assert versions
         self.repository.save_biography(versions[0].biography, comment='restored version of  %s' % versions[0].time or '[before versioning]')
         
+    @instance.clearafter
     def unidentify(self, person):
         """Create a new person for each biography associated with person.
        

@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import copy
 #import simplejson
-#from plone.memoize import instance
 from biodes import BioDesDoc
 #from bioport_repositorydata_extraction import BioDataExtractor
 from bioport_repository.biography import Biography
@@ -22,7 +21,6 @@ class MergedBiography:
         """return a BioDes file that represents all information that we want to share"""
         return self.to_xml().to_string()
     
-#    @instance.memoize
     def to_xml(self): 
         doc = BioDesDoc()
         bioport_id = self.get_biographies()[0].get_bioport_id()
@@ -264,15 +262,11 @@ class MergedBiography:
             if bio.get_religion() is not None:
                 return bio.get_religion()
             
-#    @instance.memoize   
-#    remove memoize declaration, because the cache of this instance does not get cleared when we save new data
     def title(self):
         for b in self.get_biographies():
             if b.title():
                 return b.title()
             
-#    @instance.memoize   
-#    remove memoize declaration, because the cache of this instance does not get cleared when we save new data
     def get_names(self): 
         result = []
         for bio in self.get_biographies():
@@ -290,8 +284,6 @@ class MergedBiography:
             ls += bio.get_illustrations() 
         return ls or default
     
-#    @instance.memoize   
-#    remove memoize declaration, because the cache of this instance does not get cleared when we save new data
     def naam(self):
         """return the first name that you can find in the associated biographies"""
         for b in self.get_biographies():

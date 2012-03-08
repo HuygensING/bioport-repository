@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-from plone.memoize import instance
 
 from bioport_repository.repocommon import is_valid_bioport_id
 from bioport_repository.merged_biography import MergedBiography, BiographyMerger
@@ -48,13 +47,6 @@ class Person(object):
             return True
         return False
 
-    @instance.clearafter
-    def refresh(self):
-        """empty the cache"""
-        # XXX - why is it not implemented?
-        # well, maybe it is, given that is has a clearafter decorator
-        pass
-
     def singleton_id(self, id, **args):
         # XXX - what is this?
         return self.id
@@ -68,7 +60,6 @@ class Person(object):
     __repr__ = __str__
 
 
-    @instance.clearafter
     def add_biography(self, biography, comment=None):
         biography.set_value('bioport_id',self.get_bioport_id())
         if not comment:
@@ -83,7 +74,6 @@ class Person(object):
 #    def _instance_clearafter(self):
 #        pass
     
-#    @instance.memoize
     def get_biographies(self, source_id=None):
         """Return all Biographies instances that are known to be
         of this person. 
@@ -109,18 +99,15 @@ class Person(object):
     def get_bioport_id(self):
         return self.bioport_id
 
-#    @instance.memoize
     def get_sources(self):
         return [bio.get_source() for bio in self.get_biographies()]
 
     def get_quality(self):
         return max([bio.get_quality() for bio in self.get_biographies()])
 
-#    @instance.memoize
     def get_value(self, k, default=None):
         return self.get_merged_biography().get_value(k, default)
 
-#    @instance.memoize
     def get_merged_biography(self):
         """
         Return a Biography that represents the 'cascaded information'
