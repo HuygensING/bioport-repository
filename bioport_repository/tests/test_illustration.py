@@ -19,10 +19,10 @@ from bioport_repository.illustration import Illustration, CantDownloadImage
 
 THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 url_root = 'file://%s/data/images' % THIS_DIR
-images = '%s/data/images' % THIS_DIR
+images = u'%s/data/images' % THIS_DIR
 images_cache_local = IMAGES_CACHE_LOCAL 
 images_cache_url = 'file://%s' % IMAGES_CACHE_LOCAL 
-fn = 'image1.jpg'
+fn = u'image1.jpg'
 fn2 = u'im\xebge.jpg'
 
 
