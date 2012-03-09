@@ -812,7 +812,7 @@ class DBRepository:
         this is cached, takes up some memory, and the query should called once for every instance"""
         logging.debug('** FILLING ALL_PERSONS CACHE (should happen only once)')
         time0 = time.time()
-        qry = self._get_persons_query(full_records=True)
+        qry = self._get_persons_query(full_records=True, hide_invisible=False)
         #executing the qry.statement is MUCH faster than qry.all()
         ls = self.get_session().execute(qry.statement)
         #but - do we want to make Person objects for each of these things 

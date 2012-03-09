@@ -1,7 +1,7 @@
 from bioport_repository.tests.common_testcase import CommonTestCase, unittest 
 from bioport_repository.db import Source, BiographyRecord,  PersonRecord, SourceRecord, Biography, RelBioPortIdBiographyRecord
 from bioport_repository.db_definitions import RelPersonCategory, PersonSoundex,\
-    RELIGION_VALUES
+    RELIGION_VALUES, STATUS_NOBIOS
 
 
 class DBRepositoryTestCase(CommonTestCase):
@@ -279,12 +279,12 @@ class DBRepositoryTestCase(CommonTestCase):
             "UPDATE person set sterfdatum_min ='1882-01-01', sterfdatum_max='1882-12-31'"
             " WHERE sterfdatum_min ='1882-01-15'")
         self.assertEqual(len(repo.get_persons(**qry)), 2)
-
     def test_hide_invisible(self):
         self.create_filled_repository()
         repo = self.repo
         person = repo.get_persons()[1]
-        person.status = 5 
+        self.assertEqual(len(repo.get_persons()), 10)
+        person.status = STATUS_NOBIOS 
         repo.save_person(person)
         self.assertEqual(len(repo.get_persons(hide_invisible=True)), 9)
         self.assertEqual(len(repo.get_persons(hide_invisible=False)), 10)

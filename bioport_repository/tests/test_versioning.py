@@ -43,7 +43,7 @@ class VersioningTestCase(CommonTestCase):
         #we have one version between time0 and time1
         self.assertEqual(len(repo.get_versions(time_from=time0, time_to=time1)), 1)
         #and the other versions are before time0
-        self.assertEqual(len(repo.get_versions(time_to=time0)), len(repo.get_versions()) - 2)
+        self.assertEqual(len(repo.get_versions(time_to=time0)), len(repo.get_versions()) - 1)
         
     def test_undo(self):
         repo = self.repo
