@@ -77,7 +77,6 @@ class DBRepository:
         repository=None,
         echo=ECHO,
         ):       
-#        self.dsn = self.connection = dsn 
         self.dsn = dsn
         self.user = user
         self.metadata = Base.metadata #@UndefinedVariable
@@ -121,23 +120,24 @@ class DBRepository:
             yield session
         except:
             transaction.abort()
-            session.rollback()
+#            session.rollback()
             raise
         else:
             try:
-                session.flush()
+#                session.flush()
+                transaction.commit()
             except:
-                session.rollback()
+#                session.rollback()
                 transaction.abort()
                 raise
 
     def query(self):
         return self.get_session().query
         
-    def close_session(self):
-        if self._session:
-            self._session.close()
-            self._session = None
+#    def close_session(self):
+#        if self._session:
+#            self._session.close()
+#            self._session = None
 
     @instance.clearafter
     def add_source(self, src):

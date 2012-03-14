@@ -19,7 +19,6 @@ import os
 this_dir = os.path.dirname(__file__)
 from bioport_repository.db_definitions import Location
 
-#connection = 'mysql://root@localhost/bioport_play'
 
 
 """

@@ -35,7 +35,6 @@ class Repository(object):
         ):
     
         assert user
-        #define the database connection
         self.svn_repository = SVNRepository(svn_repository=svn_repository, svn_repository_local_copy=svn_repository_local_copy)
         
         self.db = DBRepository(

@@ -6,8 +6,8 @@ from bioport_repository.db import DBNLIds
 from sqlalchemy.exc import IntegrityError
 
 
-DB_CONNECTION = 'mysql://root@localhost/bioport'
-repo = Repository(dsn=DB_CONNECTION) 
+DSN = 'mysql://root@localhost/bioport'
+repo = Repository(dsn=DSN) 
 
 
 def identify_doubles(doubles=doubles, repo=repo):
