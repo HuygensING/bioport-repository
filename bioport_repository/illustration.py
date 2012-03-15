@@ -216,6 +216,7 @@ class Illustration:
         basename = "%sx%s_%s" % (width, height, basename)
         file = os.path.join(self.thumbnails_directory, basename)
         image.save(file, "JPEG", quality=88) 
+        return file
    
     def _create_id(self):
         # XXX - IMPORTANT

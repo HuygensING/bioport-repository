@@ -1,6 +1,9 @@
 from bioport_repository.repository import Repository
 from bioport_repository.db_definitions import  CacheSimilarityPersons, STATUS_DONE, STATUS_NEW, CATEGORY_LETTERKUNDE, STATUS_NADER_ONDERZOEK, STATUS_DIFFICULT, RelPersonReligion, PersonRecord
+from bioport_repository.illustration import SMALL_THUMB_SIZE
 from sqlalchemy.orm.exc import NoResultFound
+import os
+
 LIMIT = 0
 """
 dsn = 'mysql://localhost/bioport'
@@ -14,7 +17,7 @@ def upgrade_march2012(dsn, bioport_id=None):
     if bioport_id:
         persons = repository.get_persons(bioport_id=bioport_id)
     else:
-	    persons = repository.get_persons()
+        persons = repository.get_persons()
         
     for i, person in enumerate(persons):
         r_person = repository.db.get_session().query(PersonRecord).filter_by(bioport_id=person.bioport_id).one()
@@ -23,6 +26,13 @@ def upgrade_march2012(dsn, bioport_id=None):
         r_person.geboortedatum =  computed_values.geboortedatum 
         r_person.sterfdatum = computed_values.sterfdatum 
         r_person.thumbnail = computed_values.thumbnail
+        if r_person.thumbnail and not os.path.exists(r_person.thumbnail):
+            illustrations =  person.merged_biography.get_illustrations()
+            if illustrations:
+                fn = illustrations[0]._create_thumbnail(*SMALL_THUMB_SIZE)
+                print 'did not find %s' % r_person.thumbnail
+                print 'created %s' % fn 
+            print 'creating'
         print '[%s/%s] %s (%s-%s)' % (i, len(persons), person, r_person.geboortedatum, r_person.sterfdatum)
 
 
