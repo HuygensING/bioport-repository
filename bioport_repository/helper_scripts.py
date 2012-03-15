@@ -36,7 +36,7 @@ def upgrade_march2012(dsn, bioport_id=None):
                 print 'created %s' % fn 
             else:
                 r_person.thumbnail = None
-        session.commit()
+        transaction.commit()
                 
         print '[%s/%s] %s (%s-%s) - %s' % (i, len(persons), person, r_person.geboortedatum, r_person.sterfdatum, r_person.thumbnail)
 
