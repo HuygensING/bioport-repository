@@ -380,7 +380,6 @@ class Person(object):
             @property
             def geboortedatum(self):
                 date1 =  self.merged_biography.get_value('geboortedatum')
-                #XXX remove the 'False'part!
                 if not date1:
                     event = self.merged_biography.get_event('baptism')
                     if event is not None:
@@ -389,9 +388,7 @@ class Person(object):
             
             @property
             def sterfdatum(self):
-                
                 date2 = self.merged_biography.sterfdatum()
-                #XXX remove the 'False'part!
                 if not date2:
                     event = self.merged_biography.get_event('burial')
                     if event is not None:
