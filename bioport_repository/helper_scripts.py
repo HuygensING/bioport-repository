@@ -13,7 +13,7 @@ helper_scripts.upgrade_march2012(dsn)
 """
 def upgrade_march2012(dsn, bioport_id=None):
     
-    repository = Repository(dsn=dsn)
+    repository = Repository(dsn=dsn, images_cache_url='http://www.inghist.nl/media/bioport/images/')
     print 'upgrading!'
     if bioport_id:
         persons = repository.get_persons(bioport_id=bioport_id)

@@ -38,11 +38,11 @@ class Illustration:
     """XXX - needs docstring"""
 
     def __init__(self, url, 
-                       images_cache_local,
-                       images_cache_url,
-                       prefix = u'',
-                       caption=None,
-                       link_url=None): 
+           images_cache_local,
+           images_cache_url,
+           prefix = u'',
+           caption=None,
+           link_url=None): 
         """
         arguments:
          - url  : the original url of the image
