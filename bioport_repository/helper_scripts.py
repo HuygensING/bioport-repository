@@ -13,7 +13,7 @@ def upgrade_march2012(dsn):
     print 'upgrading!'
     persons = repository.get_persons()
     for i, person in enumerate(persons):
-        print '[%s/%s]' % (i, len(persons))
+        print '[%s/%s] %s' % (i, len(persons), person)
         r_person = repository.db.get_session().query(PersonRecord).filter_by(bioport_id=person.bioport_id).one()
 #        r_person = person.record
         computed_values = person.computed_values
