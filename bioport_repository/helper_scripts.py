@@ -3,6 +3,7 @@ from bioport_repository.db_definitions import  CacheSimilarityPersons, STATUS_DO
 from bioport_repository.illustration import SMALL_THUMB_SIZE
 from sqlalchemy.orm.exc import NoResultFound
 import os
+import transaction
 
 LIMIT = 0
 """
@@ -34,6 +35,7 @@ def upgrade_march2012(dsn, bioport_id=None):
                 print 'created %s' % fn 
             else:
                 r_person.thumbnail = None
+        transaction.commit()
                 
         print '[%s/%s] %s (%s-%s) - %s' % (i, len(persons), person, r_person.geboortedatum, r_person.sterfdatum, r_person.thumbnail)
 
