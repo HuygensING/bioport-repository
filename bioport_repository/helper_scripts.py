@@ -7,11 +7,15 @@ dsn = 'mysql://localhost/bioport'
 from bioport_repository import  helper_scripts
 helper_scripts.upgrade_march2012(dsn)
 """
-def upgrade_march2012(dsn):
+def upgrade_march2012(dsn, bioport_id=None):
     
     repository = Repository(dsn=dsn)
     print 'upgrading!'
-    persons = repository.get_persons()
+    if bioport_id:
+        persons = repository.get_persons(bioport_id=bioport_id)
+    else:
+	    persons = repository.get_persons()
+        
     for i, person in enumerate(persons):
         print '[%s/%s] %s' % (i, len(persons), person)
         r_person = repository.db.get_session().query(PersonRecord).filter_by(bioport_id=person.bioport_id).one()
