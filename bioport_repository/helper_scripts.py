@@ -36,9 +36,10 @@ def upgrade_march2012(dsn, bioport_id=None):
                 print 'created %s' % fn 
             else:
                 r_person.thumbnail = None
-        transaction.commit()
                 
         print '[%s/%s] %s (%s-%s) - %s' % (i, len(persons), person, r_person.geboortedatum, r_person.sterfdatum, r_person.thumbnail)
+        session.flush()
+        transaction.commit()
 
 
 """a set of helper scripts to run in bin/bioport-debug"""
