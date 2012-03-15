@@ -28,14 +28,14 @@ def upgrade_march2012(dsn, bioport_id=None):
         r_person.geboortedatum =  computed_values.geboortedatum 
         r_person.sterfdatum = computed_values.sterfdatum 
         r_person.thumbnail = computed_values.thumbnail
-        if r_person.thumbnail and not os.path.exists(r_person.thumbnail):
-            illustrations =  person.merged_biography.get_illustrations()
-            if illustrations:
-                fn = illustrations[0]._create_thumbnail(*SMALL_THUMB_SIZE)
-                print 'did not find %s' % r_person.thumbnail
-                print 'created %s' % fn 
-            else:
-                r_person.thumbnail = None
+#        if r_person.thumbnail and not os.path.exists(r_person.thumbnail):
+#            illustrations =  person.merged_biography.get_illustrations()
+#            if illustrations:
+#                fn = illustrations[0]._create_thumbnail(*SMALL_THUMB_SIZE)
+#                print 'did not find %s' % r_person.thumbnail
+#                print 'created %s' % fn 
+#            else:
+#                r_person.thumbnail = None
                 
         print '[%s/%s] %s (%s-%s) - %s' % (i, len(persons), person, r_person.geboortedatum, r_person.sterfdatum, r_person.thumbnail)
         session.flush()
