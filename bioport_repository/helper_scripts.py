@@ -21,7 +21,8 @@ def upgrade_march2012(dsn, bioport_id=None):
         persons = repository.get_persons()
         
     for i, person in enumerate(persons):
-        r_person = repository.db.get_session().query(PersonRecord).filter_by(bioport_id=person.bioport_id).one()
+        session = repository.db.get_session()
+        r_person =  session.query(PersonRecord).filter_by(bioport_id=person.bioport_id).one()
 #        r_person = person.record
         computed_values = person.computed_values
         r_person.geboortedatum =  computed_values.geboortedatum 
@@ -35,7 +36,7 @@ def upgrade_march2012(dsn, bioport_id=None):
                 print 'created %s' % fn 
             else:
                 r_person.thumbnail = None
-        transaction.commit()
+        session.commit()
                 
         print '[%s/%s] %s (%s-%s) - %s' % (i, len(persons), person, r_person.geboortedatum, r_person.sterfdatum, r_person.thumbnail)
 
