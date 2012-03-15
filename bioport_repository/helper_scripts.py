@@ -32,8 +32,7 @@ def upgrade_march2012(dsn, bioport_id=None):
                 fn = illustrations[0]._create_thumbnail(*SMALL_THUMB_SIZE)
                 print 'did not find %s' % r_person.thumbnail
                 print 'created %s' % fn 
-            print 'creating'
-        print '[%s/%s] %s (%s-%s)' % (i, len(persons), person, r_person.geboortedatum, r_person.sterfdatum)
+        print '[%s/%s] %s (%s-%s) - %s' % (i, len(persons), person, r_person.geboortedatum, r_person.sterfdatum, r_person.thumbnail)
 
 
 """a set of helper scripts to run in bin/bioport-debug"""
