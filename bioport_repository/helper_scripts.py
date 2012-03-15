@@ -21,8 +21,7 @@ def upgrade_march2012(dsn, bioport_id=None):
 #        r_person = person.record
         computed_values = person.computed_values
         r_person.geboortedatum =  computed_values.geboortedatum 
-        import ipdb;ipdb.set_trace() 
-        r_person.sterfdaum = computed_values.sterfdatum 
+        r_person.sterfdatum = computed_values.sterfdatum 
         r_person.thumbnail = computed_values.thumbnail
         print '[%s/%s] %s (%s-%s)' % (i, len(persons), person, r_person.geboortedatum, r_person.sterfdatum)
 
