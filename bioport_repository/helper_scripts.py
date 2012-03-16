@@ -11,7 +11,7 @@ dsn = 'mysql://localhost/bioport'
 from bioport_repository import  helper_scripts
 helper_scripts.upgrade_march2012(dsn)
 """
-def upgrade_march2012(dsn, bioport_id=None):
+def upgrade_march2012(dsn, bioport_id=None, min=None, max=None):
     
     repository = Repository(dsn=dsn, images_cache_url='http://www.inghist.nl/media/bioport/images/')
     print 'upgrading!'
@@ -21,6 +21,10 @@ def upgrade_march2012(dsn, bioport_id=None):
         persons = repository.get_persons()
         
     for i, person in enumerate(persons):
+        if min and i < min:
+            continue
+        if max and i > max:
+            continue
         session = repository.db.get_session()
         r_person =  session.query(PersonRecord).filter_by(bioport_id=person.bioport_id).one()
 #        r_person = person.record
