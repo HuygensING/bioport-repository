@@ -89,7 +89,7 @@ class DBRepository:
             encoding='utf8', 
             echo=echo,
             pool_recycle=3600, #set pool_recycle to one hour to avoig sql server has gone away errors
-            strategy="threadlocal",
+#            strategy="threadlocal",
             )
         
         self.Session = scoped_session(sessionmaker(bind=self.engine, extension=ZopeTransactionExtension()))
