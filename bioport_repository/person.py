@@ -4,7 +4,7 @@ from sqlalchemy.orm.exc import NoResultFound
 from bioport_repository.merged_biography import MergedBiography, BiographyMerger
 from bioport_repository.db_definitions import STATUS_NEW
 from bioport_repository.common import format_date
-from bioport_repository.db_definitions import RelPersonCategory, RelPersonReligion, PersonRecord
+from bioport_repository.db_definitions import RelPersonCategory, RelPersonReligion, PersonRecord, PersonSource
 
 class Person(object):
     """A Person is an object that is identified with a bioport
@@ -302,7 +302,7 @@ class Person(object):
                     return True
         return False
 
-    def update(self):
+    def _update(self):
         """update the information in the database to reflect changes"""
         repository = self.repository
         db = repository.db
@@ -389,13 +389,23 @@ class Person(object):
             db.delete_names(bioport_id=bioport_id)
             db.update_name(bioport_id=bioport_id, names=computed_values._names)
             
-            db.update_source(bioport_id, source_ids = [b.source_id for b in self.get_biographies()])
+            self._update_source()
             
             if self.get_biography_contradictions():
                 r_person.has_contradictions = True
             else:
                 r_person.has_contradictions = False
-  
+ 
+    def _update_source(self):
+        """update the table person_source and replace the source_ids to the bioport_id"""
+        bioport_id = self.bioport_id 
+        source_ids = [b.source_id for b in self.get_biographies()]
+        with self.get_session_context() as session:
+            #delete existing references
+            session.query(PersonSource).filter(PersonSource.bioport_id == bioport_id).delete()
+            for source_id in source_ids:
+                r = PersonSource(bioport_id=bioport_id, source_id=source_id) 
+                session.add(r)
     def get_biography_contradictions(self):
         """Iterates over all biographies and checks birth dates and
         places for contradictions (e.g. one bio states "x" while

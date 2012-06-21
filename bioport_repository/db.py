@@ -411,11 +411,11 @@ class DBRepository:
             #XXX next 2 lines for debugging
 #            qry = session.query(PersonRecord).filter(PersonRecord.bioport_id==bioport_id)
 #            assert not qry.all()
-            
-            r_person = PersonRecord(bioport_id=bioport_id) 
-            session.flush()
-            session.add(r_person)
-            session.flush()
+            try:
+                r_person = session.query(PersonRecord).filter(PersonRecord.bioport_id == bioport_id).one()
+            except NoResultFound:
+                r_person = PersonRecord(bioport_id=bioport_id) 
+                session.add(r_person)
             r_person.status = default_status
             person = Person(bioport_id=bioport_id, record=r_person, repository=self.repository) #, record=r_person) 
             return self.update_person(person=person, compute_similarities=compute_similarities)
@@ -595,15 +595,6 @@ class DBRepository:
         """
         return self.update_name(bioport_id, names)
 
-    @instance.clearafter
-    def update_source(self, bioport_id, source_ids):   
-        """update the table person_source"""
-        with self.get_session_context() as session:
-            #delete existing references
-            session.query(PersonSource).filter(PersonSource.bioport_id == bioport_id).delete()
-            for source_id in source_ids:
-                r = PersonSource(bioport_id=bioport_id, source_id=source_id) 
-                session.add(r)
 
     @instance.clearafter
     def update_soundexes(self):

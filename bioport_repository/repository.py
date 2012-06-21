@@ -461,7 +461,7 @@ class Repository(object):
         return self.db.get_categories()
     
     def get_places(self, *args, **kwargs):
-        logging.info('call get_places(%s, %s)' % (args, kwargs))
+#        logging.info('call get_places(%s, %s)' % (args, kwargs))
         return self.db.get_places(*args, **kwargs)
 
     def get_log_messages(self, **args):
