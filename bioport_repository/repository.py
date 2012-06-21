@@ -46,7 +46,7 @@ class Repository(object):
         self.db.repository = self
         if images_cache_local:
             try:
-                msg = 'this path (for "images_local_cache") does not exist; %s' % images_cache_local
+                msg = 'this path (for "images_cache_local") does not exist; %s' % images_cache_local
                 assert os.path.exists(images_cache_local), msg
             except:
                 print msg

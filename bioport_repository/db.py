@@ -62,7 +62,7 @@ from bioport_repository.merged_biography import BiographyMerger
 
 LENGTH = 8  # the length of a bioport id
 ECHO = True #log all mysql queries.
-ECHO = False #log all mysql queries.
+#ECHO = False #log all mysql queries.
 EXCLUDE_THIS_STATUS_FROM_SIMILARITY = [5,9]
 
 class DBRepository:
@@ -859,23 +859,27 @@ class DBRepository:
     def all_persons(self):
         """return a dictionary with *all* bioport_ids as keys and Person instances as values
         
-        this is cached, takes up some memory, and the query should called once for every instance"""
+        this is cached, takes up some memory, and the query should called once for every instance
+        
+        returns a lazy dictionary, initialized with all person IDs"""
         try:
             return self._all_persons
         except AttributeError:
-            pass
+            #initialize
+	        qry = self._get_persons_query(full_records=False, hide_invisible=False)
         logging.info('** fill_all_persons_cache - should happen only @ restart')
-        
+        self._filling_cache = True
         time0 = time.time()
         qry = self._get_persons_query(full_records=True, hide_invisible=False)
         #executing the qry.statement is MUCH faster than qry.all()
-#        ls = self.get_session().execute(qry.statement)
-        ls = qry.all()
+        ls = self.get_session().execute(qry.statement)
+#        ls = qry.all()
         #but - do we want to make Person objects for each of these things 
         #(yes, because we use lots of information later - for example for navigation)
         #XXX (but is is very expensive)
-        self._all_persons = dict((r.bioport_id, Person(bioport_id=r.bioport_id, repository=self.repository, record=r)) for r in ls)
+        self._all_persons = dict((r.bioport_id, Person(bioport_id=r.bioport_id, repository=self.repository)) for r in ls)
         logging.info('done (filling all_persons cache): %s seconds' % (time.time() - time0))
+        self._filling_cache = False
         return self._all_persons
     
     def _get_persons_query(self,
