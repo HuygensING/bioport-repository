@@ -61,16 +61,20 @@ class Person(object):
 
     @property
     def record(self):
+        
         try:
-            return self._record
+            if self._record:
+                return self._record
+            else:
+                raise AttributeError
         except AttributeError:
-            session = self.repository.db.get_session()
-            try:
-                r = session.query(PersonRecord).filter(PersonRecord.bioport_id==self.get_bioport_id()).one()
-            except NoResultFound:
-                r = PersonRecord(bioport_id=self.get_bioport_id())
-                session.add(r)
-            self._record = r
+            with self.repository.db.get_session_context() as session:
+                try:
+                    r = session.query(PersonRecord).filter(PersonRecord.bioport_id==self.get_bioport_id()).one()
+                except NoResultFound:
+                    r = PersonRecord(bioport_id=self.get_bioport_id())
+                    session.add(r)
+                self._record = r
             
         return self._record
 #        try:
