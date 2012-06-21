@@ -229,8 +229,8 @@ class Biography(object, BioDesDoc): #, SVNEntry):
         try:
             return self._person
         except:
-	        bioport_id = self.get_bioport_id()
-	        self._person = self.repository.get_person(bioport_id=bioport_id)
+            bioport_id = self.get_bioport_id()
+            self._person = self.repository.get_person(bioport_id=bioport_id)
         return self._person
     
     def save(self, user, comment=''):
@@ -244,7 +244,7 @@ class Biography(object, BioDesDoc): #, SVNEntry):
                 bioport_id = self.get_bioport_id()
                 person = db.get_person(bioport_id)
                 if not bioport_id:
-	                bioport_id = db.fresh_identifier()
+                    bioport_id = db.fresh_identifier()
                 
                 person = db.add_person(bioport_id=bioport_id, default_status=default_status, checkforprexistingsbio=False) 
                 self.set_value('bioport_id',bioport_id)
