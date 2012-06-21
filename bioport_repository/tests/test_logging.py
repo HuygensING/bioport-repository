@@ -1,6 +1,7 @@
-from bioport_repository.tests.common_testcase import CommonTestCase, unittest , THIS_DIR
-from bioport_repository.db import *
+import os
 
+from bioport_repository.tests.common_testcase import CommonTestCase, unittest , THIS_DIR
+from bioport_repository.db import ChangeLog, Source
 
 class LoggingTestCase(CommonTestCase):
     

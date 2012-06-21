@@ -215,11 +215,11 @@ class RepositoryTestCase(CommonTestCase):
         
     def test_antiidentify(self):
         repo = self.create_filled_repository()
-        persons = repo.get_persons()
+#        persons = repo.get_persons()
         self.repo.db.SIMILARITY_TRESHOLD = 0.0
         self.repo.db.fill_similarity_cache(minimal_score=0.0)
         ls = self.repo.get_most_similar_persons()
-        score, p1, p2 = ls[1]
+        _score, p1, p2 = ls[1]
 #        assert 0, [(p.get_bioport_id(), p2.get_bioport_id()) for score, p, p2 in ls]
         #we have n candidates
         n = len(ls)
@@ -383,9 +383,9 @@ class RepositoryTestCase(CommonTestCase):
         self.assertEqual(len(self.repo.get_deferred()), 2)
         assert len(self.repo.get_most_similar_persons()) <=  original_length-4
        
-        id1 = min(p1.bioport_id, p2.bioport_id)
-        id2 = max(p1.bioport_id, p2.bioport_id)
-        qry = repo.db.get_session().query(CacheSimilarityPersons)
+#        id1 = min(p1.bioport_id, p2.bioport_id)
+#        id2 = max(p1.bioport_id, p2.bioport_id)
+#        qry = repo.db.get_session().query(CacheSimilarityPersons)
         
         #(p1,p2) were deferred, but now we identify them after all
         repo.identify(p1, p2)
@@ -429,7 +429,6 @@ class RepositoryTestCase(CommonTestCase):
         #set up the environmenet
         self.repo.db.SIMILARITY_TRESHOLD = 0.0
         self.repo.db.fill_similarity_cache(refresh=True)
-        persons = self.repo.get_persons()
         similar_persons = self.repo.get_most_similar_persons()
         
         #We need at least 5  'most similar persons' for the tests below to work
@@ -437,10 +436,10 @@ class RepositoryTestCase(CommonTestCase):
         assert original_length >= 5, 'We need at least 5 "most similar persons" for the tests to work'
             
         #now identify two persons 
-        score, p1, p2 = similar_persons[0] 
+        _score, p1, p2 = similar_persons[0] 
         new_p = repo.identify(p1, p2)
         old_bioport_id = p1.bioport_id == new_p.bioport_id and p2.bioport_id or p1.bioport_id
-        new_bioport_id = new_p.bioport_id
+        _new_bioport_id = new_p.bioport_id
         
         new_len = len(self.repo.get_most_similar_persons()) 
         
@@ -461,7 +460,7 @@ class RepositoryTestCase(CommonTestCase):
         self.assertEqual(len(self.repo.get_most_similar_persons(bioport_id=old_bioport_id)), 0)
         self.assertEqual(len(self.repo.get_most_similar_persons()), new_len)
 
-        score, p1, p2 = self.repo.get_most_similar_persons()[1]
+        _score, p1, p2 = self.repo.get_most_similar_persons()[1]
 #        p1, p2 = persons[2], persons[3]
         repo.antiidentify(p1, p2)
         #self.debug_info()
@@ -479,7 +478,7 @@ class RepositoryTestCase(CommonTestCase):
         
         repo.db.fill_similarity_cache(refresh=True)
         new_len = len(self.repo.get_most_similar_persons())
-        score, p1, p2 = self.repo.get_most_similar_persons()[1] 
+        _score, p1, p2 = self.repo.get_most_similar_persons()[1] 
         self.assertEqual(len(self.repo.get_deferred()), 0)
         id1 = p1.bioport_id
         id2 = p2.bioport_id
@@ -496,7 +495,7 @@ class RepositoryTestCase(CommonTestCase):
         
         self.assertEqual(len(self.repo.get_most_similar_persons()), new_len-1)        
         
-        for score, p1, p2 in self.repo.get_most_similar_persons()[3:]:
+        for _score, p1, p2 in self.repo.get_most_similar_persons()[3:]:
             #sanity check if we have not identified one of these people before (if so, it messes up the tests below)
             if (p1 not in self.repo.get_identified() and p2 not in self.repo.get_identified()):
                 break

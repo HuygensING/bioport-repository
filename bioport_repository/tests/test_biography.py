@@ -227,7 +227,7 @@ any more""",
     def test_get_person(self):
         #make a new biography
         source_id = u'bioport_test'
-        source = self._add_source(source_id)
+        self._add_source(source_id)
         name = 'Name Namius'
         
         bio = self._create_biography(

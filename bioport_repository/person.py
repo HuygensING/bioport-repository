@@ -1,13 +1,11 @@
 #!/usr/bin/env python
+from sqlalchemy.orm.exc import NoResultFound
 
-
-from bioport_repository.repocommon import is_valid_bioport_id
 from bioport_repository.merged_biography import MergedBiography, BiographyMerger
 from bioport_repository.db_definitions import STATUS_NEW
 from bioport_repository.common import format_date
 from bioport_repository.db_definitions import RelPersonCategory, RelPersonReligion, PersonRecord
-from sqlalchemy.orm.exc import NoResultFound
-from sqlalchemy.orm.exc import DetachedInstanceError
+
 class Person(object):
     """A Person is an object that is identified with a bioport
     identifier.  It is usually associated with one or more Biography
@@ -322,7 +320,6 @@ class Person(object):
 #                raise BioPortException('There is no person with bioport_id %s' % bioport_id)
                
 #            person = Person(bioport_id=bioport_id, record=r_person, repository=db)
-            person = self
             session.merge(self._fresh_record())
 #        with self.get_session_context() as session:
             merged_biography = self.get_merged_biography()

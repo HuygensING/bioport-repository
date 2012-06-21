@@ -1,4 +1,3 @@
-from sqlalchemy.event import listen
 from sqlalchemy import event
 from sqlalchemy.engine import Engine
 import time

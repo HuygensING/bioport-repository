@@ -2,7 +2,7 @@ import os
 #import sys
 import unittest
 import shutil
-import transaction
+#import transaction
 #import atexit
 #import subprocess
 import sqlalchemy
@@ -142,8 +142,6 @@ class CommonTestCase(unittest.TestCase):
         """
         #make a new biography
         
-        source_id = u'bioport_test'
-        source = self._add_source(source_id)
         if name:
             name = Name(name)
         if names:

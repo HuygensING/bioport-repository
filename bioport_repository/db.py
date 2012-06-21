@@ -11,8 +11,6 @@ import time
 import transaction
 from plone.memoize import instance
 
-from lxml import etree
-
 import sqlalchemy
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import aliased
@@ -23,7 +21,7 @@ from zope.sqlalchemy import ZopeTransactionExtension
 
 from names.similarity import soundexes_nl
 from names.common import TUSSENVOEGSELS, words
-from names.name import TYPE_PREPOSITION,  TYPE_FAMILYNAME,  TYPE_GIVENNAME , TYPE_INTRAPOSITON,  TYPE_POSTFIX,  TYPE_TERRITORIAL 
+from names.name import TYPE_FAMILYNAME,  TYPE_INTRAPOSITON,  TYPE_TERRITORIAL 
 
 
 from bioport_repository.db_definitions import (
@@ -628,7 +626,7 @@ class DBRepository:
         
     def fresh_identifier(self):
         #XXX why is this done so clumsily??
-        session = self.get_session()
+#        session = self.get_session()
         # make a random string of characters from ALPHANUMERIC of lenght LENGTH
         new_bioportid_1 = u''.join([random.choice('0123456789') for _i in range(LENGTH)])
         new_bioportid_2 = u''.join([random.choice('0123456789') for _i in range(LENGTH)])
@@ -875,7 +873,7 @@ class DBRepository:
             return self._all_persons
         except AttributeError:
             pass
-        logging.debug('** FILLING ALL_PERSONS CACHE (should happen only once - if sources are not updated)')
+        logging.info('** fill_all_persons_cache - should happen only @ restart')
         
         time0 = time.time()
         qry = self._get_persons_query(full_records=True, hide_invisible=False)
@@ -886,7 +884,7 @@ class DBRepository:
         #(yes, because we use lots of information later - for example for navigation)
         #XXX (but is is very expensive)
         self._all_persons = dict((r.bioport_id, Person(bioport_id=r.bioport_id, repository=self.repository, record=r)) for r in ls)
-        logging.debug('DONE (filling all_persons cache): %s seconds' % (time.time() - time0))
+        logging.info('done (filling all_persons cache): %s seconds' % (time.time() - time0))
         return self._all_persons
     
     def _get_persons_query(self,
@@ -1472,7 +1470,7 @@ class DBRepository:
                 similarity_computer = Similarity(person, persons_to_compare)
                 similarity_computer.compute()
                 similarity_computer.sort()
-                similar_persons =  similarity_computer._persons
+#                similar_persons =  similarity_computer._persons
                 for p in similarity_computer._persons[:k]:
                     if p.score > minimal_score and self._should_be_in_similarity_cache(person.bioport_id, p.bioport_id, ignore_status=True):
                         self.add_to_similarity_cache(person.bioport_id, p.bioport_id, p.score)
@@ -1796,7 +1794,6 @@ class DBRepository:
     def defer_identification(self, person1, person2): 
         """register the fact that the user puts this pair at the "deferred  list """
         id1, id2 = person1.get_bioport_id(), person2.get_bioport_id()
-        session = self.get_session()
         
         with self.get_session_context() as session:
             r_defer = DeferIdentificationRecord(bioport_id1 = min(id1, id2),bioport_id2= max(id1, id2)) 

@@ -242,8 +242,10 @@ class Biography(object, BioDesDoc): #, SVNEntry):
             person = self.get_person()
             if not person:
                 bioport_id = self.get_bioport_id()
+                person = db.get_person(bioport_id)
                 if not bioport_id:
 	                bioport_id = db.fresh_identifier()
+                
                 person = db.add_person(bioport_id=bioport_id, default_status=default_status, checkforprexistingsbio=False) 
                 self.set_value('bioport_id',bioport_id)
                 self._person = person

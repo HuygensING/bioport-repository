@@ -124,7 +124,7 @@ class SVNRepository(object):
             self.client.remove([p])
                 
         except:
-            statuses = self.client.status(p, recurse=False)
+#            statuses = self.client.status(p, recurse=False)
             #assert 0, [s['is_versioned'] for s in statuses]
             #status = [s for s in statuses if s['path'] == p][0]
             #assert 0, status['is_versioned']

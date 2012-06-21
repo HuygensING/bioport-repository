@@ -65,15 +65,11 @@ class IllustrationTestCase(CommonTestCase):
         image_path = ill.images_directory
         self.failUnless(os.path.exists(image_path))
         self.failUnless(os.listdir(images_cache_local))
-        image_url = ill.image_url
-#        image_contents = urllib2.urlopen(image_url).read()   # XXX failing because it's a fs pathname
-#        self.failUnless(image_contents)
         
     def test_illustration_in_repository(self):
         repo = self.repo
         repo.images_cache_local = images_cache_local
         repo.images_cache_url = images_cache_url
-        source = repo.get_sources()[0]
         
         [repo.download_illustrations(s) for s in repo.get_sources()]
         for person in [p for p in repo.get_persons() if p.has_illustrations]:
@@ -85,8 +81,6 @@ class IllustrationTestCase(CommonTestCase):
                     except CantDownloadImage:
                         continue
                     self.failUnless(os.path.exists(illustration.images_directory))
-                    url = illustration.image_url
-#                    self.failUnless(urllib2.urlopen(url).read())  # XXX failing because it's a fs pathname
                     path = illustration.images_directory
                     self.failUnless(os.path.exists(path))
 
@@ -101,7 +95,7 @@ class IllustrationTestCase(CommonTestCase):
             for biography  in person.get_biographies():
                 for illustration in biography.get_illustrations():
                     illustrations.append(illustration)
-        illustration_paths = [a.images_directory for a in illustrations]
+#        illustration_paths = [a.images_directory for a in illustrations]
 
 
 class ThumbnailTestCase(unittest.TestCase):
@@ -121,7 +115,7 @@ class ThumbnailTestCase(unittest.TestCase):
         ill = self.ill
         ill.download()
         data = urllib2.urlopen(ill.image_small_url).read()
-        img = Image.open(StringIO(data))
+        _img = Image.open(StringIO(data))
 
 
 def test_suite():
