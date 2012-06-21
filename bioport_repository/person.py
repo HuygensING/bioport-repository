@@ -103,7 +103,7 @@ class Person(object):
             if getattr(self, 'status', None):
                 r.status = self.status
 #            computed_values = self.computed_values
-            self.update()
+            self._update()
             msg = 'Changed person'
             self.repository.db.log(msg, r)
         
@@ -301,6 +301,9 @@ class Person(object):
                 if not cls._are_dates_equal(tocheck, d):
                     return True
         return False
+    def update(self):
+        #XXX you should call "save" and not "update"
+        return self.save()
 
     def _update(self):
         """update the information in the database to reflect changes"""
@@ -400,7 +403,7 @@ class Person(object):
         """update the table person_source and replace the source_ids to the bioport_id"""
         bioport_id = self.bioport_id 
         source_ids = [b.source_id for b in self.get_biographies()]
-        with self.get_session_context() as session:
+        with self.repository.db.get_session_context() as session:
             #delete existing references
             session.query(PersonSource).filter(PersonSource.bioport_id == bioport_id).delete()
             for source_id in source_ids:
