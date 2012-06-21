@@ -123,7 +123,7 @@ class Illustration:
     @property
     def cached_local(self):
         """path on the local file system to a copy of the image"""      
-        return os.path.join(self._images_cache_local,  self.id)
+        return os.path.join(self._images_cache_local,  self.id).encode('utf8')
 
     @property
     def images_directory(self):

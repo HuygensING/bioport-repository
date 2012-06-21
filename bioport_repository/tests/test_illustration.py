@@ -16,13 +16,18 @@ from bioport_repository.tests.common_testcase import CommonTestCase, IMAGES_CACH
 #from bioport_repository.illustration import MEDIUM_THUMB_SIZE
 from bioport_repository.illustration import Illustration, CantDownloadImage
 
+#(all the encode(ENC) loops are for getting text
+
 ENC = 'utf8'
 THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 url_root = 'file://%s/data/images/' % THIS_DIR
 images = u'%s/data/images/'.encode(ENC) % THIS_DIR
 images_cache_local = IMAGES_CACHE_LOCAL 
+images_cache_local = images_cache_local.encode(ENC)
 images_cache_url = 'file://%s' % IMAGES_CACHE_LOCAL 
 fn = u'image1.jpg'.encode(ENC)
+fn2 = u'im\xebge.jpg'.encode(ENC) #.decode('utf8')
+#this unicode stuff gives problems
 fn2 = u'im\xebge.jpg'.encode(ENC) #.decode('utf8')
 
 
@@ -53,7 +58,6 @@ class IllustrationTestCase(CommonTestCase):
         local_fn =  ill.images_directory
         self.failUnless(os.path.exists(local_fn))
 #        self.failUnless(urllib2.urlopen(ill.image_url).read()) # XXX failing because it's a fs pathname
-        
         
         ill = Illustration(
             url=os.path.join(url_root ,fn2), 
