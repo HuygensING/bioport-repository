@@ -23,7 +23,7 @@ images = u'%s/data/images' % THIS_DIR
 images_cache_local = IMAGES_CACHE_LOCAL 
 images_cache_url = 'file://%s' % IMAGES_CACHE_LOCAL 
 fn = u'image1.jpg'
-fn2 = u'im\xebge.jpg'
+fn2 = u'im\xebge.jpg'.encode('utf8').decode('utf8')
 
 
 class IllustrationTestCase(CommonTestCase):
@@ -31,6 +31,7 @@ class IllustrationTestCase(CommonTestCase):
     def setUp(self): 
         CommonTestCase.setUp(self)
         #fn2 has a unicode name, which trips up svn, so we copy it and later remove it
+#        fn2 = fn2.decode('utf8')
         shutil.copyfile(os.path.join(images, fn), os.path.join(images, fn2))
 
     def test_create_id(self):

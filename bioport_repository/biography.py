@@ -284,14 +284,14 @@ class Biography(object, BioDesDoc): #, SVNEntry):
         
         # update the information of the associated person (or add a person 
         # if the biography is new)
+        person = self._person
+        person.save()
            
         msg  = 'saved biography with id %s' % (self.id)
         if comment:
             msg += '; %s' % comment
             
         db.log(msg=msg, record = r_biography)
-        person = self._person
-        person.save()
         
     def naam(self):
         """

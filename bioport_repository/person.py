@@ -344,9 +344,7 @@ class Person(object):
             r_person.snippet = computed_values.snippet
             r_person.has_contradictions = computed_values.has_contradictions 
             r_person.thumbnail = computed_values.thumbnail
-#            import transaction
-#            session.flush()
-#            transaction.commit()
+            
             #update categories
             session.query(RelPersonCategory).filter(RelPersonCategory.bioport_id==bioport_id).delete()
             

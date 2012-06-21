@@ -136,7 +136,7 @@ class DBRepository:
     @instance.clearafter
     def clear_cache(self):
         if hasattr(self.db, '_all_persons'):
-	        del self.db._all_persons
+            del self.db._all_persons
     def query(self):
         return self.get_session().query
         
@@ -330,9 +330,9 @@ class DBRepository:
 ##                if person:
 ###                r = qry.all()[0]
 ###                person = Person(bioport_id=r.bioport_id, repository=self.repository, record=r)
-##	                self.update_person(person=person)
+##                    self.update_person(person=person)
 ##                else:
-##	                self.add_person(bioport_id=bioport_id, default_status=default_status, dontcheckforprexistingsbio=True)
+##                    self.add_person(bioport_id=bioport_id, default_status=default_status, dontcheckforprexistingsbio=True)
 #            else:
 #                bioport_id = self.fresh_identifier()
 #                person = self.add_person(bioport_id=bioport_id, default_status=default_status, dontcheckforprexistingsbio=True) 
@@ -448,7 +448,7 @@ class DBRepository:
             qry = self.get_session().query(PersonRecord).filter(PersonRecord.bioport_id==bioport_id)
             assert not qry.all()
             raise BioPortNotFoundError('Could not find a person with bioport_id %s' % bioport_id)
-        person.update()
+        person.save()
 ##        , compute_similaries=compute_similarities)
 #        with self.get_session_context() as session:
 #            
@@ -1129,11 +1129,11 @@ class DBRepository:
 #            qry = qry.join((RelBioPortIdBiographyRecord, PersonRecord.bioport_id    ==RelBioPortIdBiographyRecord.bioport_id))
 
         if url_biography:
-	        qry = qry.join((BiographyRecord, BiographyRecord.id==RelBioPortIdBiographyRecord.biography_id))
-	        qry = qry.filter(BiographyRecord.version == 0)
-	        qry = qry.filter(BiographyRecord.url_biography == url_biography)
+            qry = qry.join((BiographyRecord, BiographyRecord.id==RelBioPortIdBiographyRecord.biography_id))
+            qry = qry.filter(BiographyRecord.version == 0)
+            qry = qry.filter(BiographyRecord.url_biography == url_biography)
         elif biography_id:
-	        qry = qry.filter(RelBioPortIdBiographyRecord.biography_id == biography_id)
+            qry = qry.filter(RelBioPortIdBiographyRecord.biography_id == biography_id)
         else:
             raise Exception() 
         result =  qry.first()
@@ -1319,6 +1319,7 @@ class DBRepository:
 
     @instance.clearafter
     def delete_person(self, person):
+        bioport_id = person.bioport_id
         with self.get_session_context() as session:
             try:
                 r = session.query(PersonRecord).filter(PersonRecord.bioport_id==person.get_bioport_id()).one()
@@ -1337,6 +1338,9 @@ class DBRepository:
                          CacheSimilarityPersons.bioport_id2==person.get_bioport_id()
                          ))
             qry.delete()   
+        
+        #update the cache by deleteing the person from there as well
+        del self._all_persons[bioport_id]
                     
     def get_author(self, author_id):
         session = self.get_session()
@@ -1478,18 +1482,13 @@ class DBRepository:
         with self.get_session_context() as session:
             id1 = min(bioport_id1, bioport_id2)
             id2 = max(bioport_id1, bioport_id2)
-            r = CacheSimilarityPersons(bioport_id1=id1, bioport_id2=id2, score=score)
-            session.add(r)
             try:
-                session.flush()
-            except IntegrityError: 
-                # this is (probably) a 'duplicate entry', 
-                # caused by having already added the relation when we processed item
-                # we update the record to reflect the highest score
-                session.transaction.rollback()
-                r_duplicate = session.query(CacheSimilarityPersons).filter_by(bioport_id1=id1, bioport_id2=id2).one()
-                if score > r_duplicate.score:
-                    r_duplicate.score = score
+                r = session.query(CacheSimilarityPersons).filter_by(bioport_id1=id1, bioport_id2=id2).one() 
+                if score > r.score:
+                    r.score = score
+            except NoResultFound:
+                r = CacheSimilarityPersons(bioport_id1=id1, bioport_id2=id2, score=score)
+                session.add(r)
         
     def get_most_similar_persons(self, 
         start=0, 
@@ -1666,7 +1665,8 @@ class DBRepository:
         #now delete the old person from the Person table
         self.delete_person(old_person)
         
-        self.update_person(new_person.get_bioport_id() )
+        new_person.save()
+#        self.update_person(new_person.get_bioport_id() )
        
         return new_person 
 

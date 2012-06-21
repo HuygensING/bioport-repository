@@ -71,7 +71,7 @@ class CommonTestCase(unittest.TestCase):
         sql_string = open(SQLDUMP_FILENAME).read().decode('latin1')
         import bioport_repository.tests
         testdir = os.path.dirname(bioport_repository.tests.__file__)
-        datadir = os.path.join(testdir, 'data')
+#        datadir = os.path.join(testdir, 'data')
         sql_string = sql_string.replace('{{{test_data_dir}}}', testdir)
         
         def parse_dsn(s):
@@ -87,9 +87,6 @@ class CommonTestCase(unittest.TestCase):
         self._is_filled = True
         return self.repo
 
-#        transaction.commit()
-#        self._fill_repository = False #dont fill the repository again
-#        return self.repo
         
     def create_filled_repository_from_scratch(self, sources=2):
         #create a repo filled with some data
