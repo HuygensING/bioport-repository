@@ -74,26 +74,25 @@ class Repository(object):
         return self.db.count_persons(**args)
 
     def get_persons(self, **args): 
-        """Get for all persons (as opposed to biographies)
+        """Get persons satisfying the given arguments
+        
         
         arguments:
             order_by - a string - default is 'sort_key'
-            XXX: arguments for selecting persons
         
-        returns: a list of Person instances
+        returns: a PersonList instance - a list of Person instances
         """
-        #XXX of course, we need to get this from the cache
-        #and if we do, we can move this code to svn_repository
-        if self.ENABLE_DB:
-            return self.db.get_persons(**args)
-        elif self.ENABLE_SVN:
-            raise NotImplementedError()
+        return self.get_persons_sequence(**args)
+#        if self.ENABLE_DB:
+#            return self.db.get_persons(**args)
+#        elif self.ENABLE_SVN:
+#            raise NotImplementedError()
 
     def get_bioport_id(self, url_biography):
         return self.db.get_bioport_id(url_biography=url_biography)
     
     def get_persons_sequence(self, **args):
-        "this method is like get_persons, but defers Person instantiation"
+        """return a PersonList instance"""
         if args.get('full_records'):
             del args['full_records']
         query = self.db._get_persons_query(**args)
@@ -102,12 +101,6 @@ class Repository(object):
         ls = query.session.execute(query).fetchall()
         ls = [r[0] for r in ls] 
         return PersonList(self, ls)
-# 
-#    def get_persons_iterator(self, **args):
-#        qry = self.db._get_persons_query(**args)
-#        for r in qry:
-#            yield Person(bioport_id=r.bioport_id,
-#                      repository=self, record=r)
             
     def delete_person(self, person):
         if self.ENABLE_DB:
@@ -201,12 +194,12 @@ class Repository(object):
     def save_biography(self, biography, comment):
         biography.repository = self
         if self.ENABLE_DB:
-            self.db.save_biography(biography, user=self.user, comment=comment)
+            biography = self.db.save_biography(biography, user=self.user, comment=comment)
             
         if self.ENABLE_SVN:
             raise NotImplementedError()
 
-        return
+        return biography
 
     def detach_biography(self, biography):
         return self.db.detach_biography(biography)
@@ -234,7 +227,6 @@ class Repository(object):
         
         returns:
              a list of biography instances
-             XXX: this should perhaps be in iteraor?
         """
         
         #at the URL given we find a list of links to biodes files
@@ -488,7 +480,11 @@ class Repository(object):
         return self.db.undo_version(document_id, version)
 
 class PersonList(object):
-    """This object is initiated with a list of bioport_ids, and tries to behave like a list of Person objects as efficiently as possible
+    """This object tries to behave like a list of Person objects as efficiently as possible
+    
+    A personlist is initiated with:
+        a repository instance 
+        a list of bioport_ids
     """
     def __init__(self, repository, bioport_ids):
         """
@@ -510,7 +506,7 @@ class PersonList(object):
             return new_list
         
         i = int(key)
-        return self.repository.db.all_persons.get(self._bioport_ids[i])
+        return self.repository.db.all_persons().get(self._bioport_ids[i])
    
 """OLD PERSONLIST IMPLEMENTATION
 (kept here for documentation, feel free to delete if needed)

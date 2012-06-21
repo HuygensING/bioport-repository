@@ -224,7 +224,19 @@ any more""",
         self.assertEqual(len(bio.get_states(type='category')), 1)
         self.assertEqual(bio.get_states(type='category')[0].get('idno'), '2')
 
- 
+    def test_get_person(self):
+        #make a new biography
+        source_id = u'bioport_test'
+        source = self._add_source(source_id)
+        name = 'Name Namius'
+        
+        bio = self._create_biography(
+                 name=name, 
+                 )
+        
+        #save it
+        self.repo.save_biography(bio, comment='')
+        self.assertTrue(bio.get_person())
 def test_suite():
     return unittest.TestSuite((
         unittest.makeSuite(BiographyTestCase, 'test'),

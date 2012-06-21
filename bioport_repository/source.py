@@ -11,7 +11,14 @@ import time
 class Source(object):
     """A source with biographical data"""
     
-    def __init__(self, id,url=None, description=None, quality=0, default_status=STATUS_NEW, xml=None, repository=None):
+    def __init__(self, 
+        id,
+        url=None, 
+        description=None, 
+        quality=0, 
+        default_status=STATUS_NEW, 
+        xml=None, 
+        repository=None):
         self.xml = xml
         self.id = unicode(id)
         self.url = url
@@ -61,6 +68,8 @@ class Source(object):
             etree.SubElement(n, k).text = value #@UndefinedVariable
         return etree.tostring(n, pretty_print=True) #@UndefinedVariable
 
+    def save(self):
+        self.repository.save_source(self)
     def _from_xml(self, xml):
         t = etree.fromstring(xml) #@UndefinedVariable
         for n in t: #.getroot():

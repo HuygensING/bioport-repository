@@ -10,7 +10,7 @@ class SearchTestCase(CommonTestCase):
         #add a number of persons
         pius = self._add_person('Pius IX')
         #we do not want to find Pius IX if we search for 'ik'
-        self.assertEqual(repo.get_persons(search_name=u'IX'), [pius])
+        self.assertEqual(list(repo.get_persons(search_name=u'IX')), [pius])
         assert pius not in repo.get_persons(search_name=u'ik')
         
         self.assertEqual(len(repo.get_persons(search_name=u'molloyx')), 1)

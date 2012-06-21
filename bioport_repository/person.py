@@ -5,7 +5,9 @@ from bioport_repository.repocommon import is_valid_bioport_id
 from bioport_repository.merged_biography import MergedBiography, BiographyMerger
 from bioport_repository.db_definitions import STATUS_NEW
 from bioport_repository.common import format_date
-
+from bioport_repository.db_definitions import RelPersonCategory, RelPersonReligion, PersonRecord
+from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.orm.exc import DetachedInstanceError
 class Person(object):
     """A Person is an object that is identified with a bioport
     identifier.  It is usually associated with one or more Biography
@@ -34,7 +36,7 @@ class Person(object):
 #      assert is_valid_bioport_id(bioport_id)
         self.id = self.bioport_id = bioport_id
         self.repository = repository
-        self.record = record
+        self._record = record
         self.status = status
         self.remarks = remarks
         if record is not None:
@@ -59,16 +61,70 @@ class Person(object):
 
     __repr__ = __str__
 
-
+    @property
+    def record(self):
+        try:
+            return self._record
+        except AttributeError:
+            session = self.repository.db.get_session()
+            try:
+                r = session.query(PersonRecord).filter(PersonRecord.bioport_id==self.get_bioport_id()).one()
+            except NoResultFound:
+                r = PersonRecord(bioport_id=self.get_bioport_id())
+                session.add(r)
+            self._record = r
+            
+        return self._record
+#        try:
+#            session = self.repository.db.get_session()
+#            r = session.query(PersonRecord).filter(PersonRecord.bioport_id==self.get_bioport_id()).one()
+#            return r
+#            return self._record
+#        except AttributeError:
+#            session = self.repository.db.get_session()
+#            try:
+#                r = session.query(PersonRecord).filter(PersonRecord.bioport_id==self.get_bioport_id()).one()
+#            except NoResultFound:
+#                r = PersonRecord(bioport_id=self.get_bioport_id())
+#                session.add(r)
+#            self._record = r
+#        return self._record
+    def _fresh_record(self):
+        """return a fresh record from the db"""
+        del self._record
+        return self.record
+    
+    def save(self):
+        with self.repository.db.get_session_context() as session:
+            r = self._fresh_record()
+            
+            session.merge(r)
+            #XXX: is this obsolete?
+            if getattr(self, 'remarks', None) is not None:
+                r.remarks = self.remarks
+            if getattr(self, 'status', None):
+                r.status = self.status
+#            computed_values = self.computed_values
+            self.update()
+            msg = 'Changed person'
+            self.repository.db.log(msg, r)
+        
+        #XXX: these next two lines somehow garantee that something does not break - find out why, what, and remove them
+        with self.repository.db.get_session_context() as session:
+            session.merge(self.record)
+        
+        self.repository.db._all_persons[self.bioport_id] = self
+            
     def add_biography(self, biography, comment=None):
         biography.set_value('bioport_id',self.get_bioport_id())
         if not comment:
             comment='added biography to %s' % self
-            
-        self.repository.save_biography(
-           biography=biography, 
-           comment = comment,
-           )
+
+        biography.save(user=self.repository.user, comment=comment)            
+#        self.repository.save_biography(
+#           biography=biography, 
+#           comment = comment,
+#           )
         
 #    @instance.clearafter
 #    def _instance_clearafter(self):
@@ -248,6 +304,103 @@ class Person(object):
                     return True
         return False
 
+    def update(self):
+        """update the information in the database to reflect changes"""
+        repository = self.repository
+        db = repository.db
+        r_person = self.record
+        
+        
+        bioport_id = self.bioport_id
+        with db.get_session_context() as session:
+            
+            #check if a person with this bioportid alreay exists
+#            try:  
+#                r_person = session.query(PersonRecord).filter_by(bioport_id=bioport_id).one()
+#            except sqlalchemy.orm.exc.NoResultFound:
+#                if not, we add a new one
+#                raise BioPortException('There is no person with bioport_id %s' % bioport_id)
+               
+#            person = Person(bioport_id=bioport_id, record=r_person, repository=db)
+            person = self
+            session.merge(self._fresh_record())
+#        with self.get_session_context() as session:
+            merged_biography = self.get_merged_biography()
+            computed_values = self.computed_values
+            r_person.naam = computed_values.naam
+            r_person.sort_key = computed_values.sort_key
+            r_person.has_illustrations = computed_values.has_illustrations
+            r_person.search_source = computed_values.search_source
+            r_person.sex = computed_values.sex
+            r_person.geboortedatum_min = computed_values.geboortedatum_min  
+            r_person.geboortedatum_max = computed_values.geboortedatum_max 
+            r_person.sterfdatum_min = computed_values.sterfdatum_min 
+            r_person.sterfdatum_max = computed_values.sterfdatum_max
+            r_person.geboortedatum = computed_values.geboortedatum 
+            r_person.sterfdatum = computed_values.sterfdatum 
+            r_person.geboorteplaats = computed_values.geboorteplaats 
+            r_person.sterfplaats = computed_values.sterfplaats 
+            r_person.names  = computed_values.names 
+            r_person.snippet = computed_values.snippet
+            r_person.has_contradictions = computed_values.has_contradictions 
+            r_person.thumbnail = computed_values.thumbnail
+#            import transaction
+#            session.flush()
+#            transaction.commit()
+            #update categories
+            session.query(RelPersonCategory).filter(RelPersonCategory.bioport_id==bioport_id).delete()
+            
+            for category in merged_biography.get_states(type='category'):
+                category_id = category.get('idno')
+                assert type(category_id) in [type(u''), type('')], category_id
+                try:
+                    category_id = int(category_id)
+                except ValueError:
+                    msg = '%s- %s: %s' % (category_id, etree.tostring(category), self.bioport_id) #@UndefinedVariable
+                    raise Exception(msg)
+                r = RelPersonCategory(bioport_id=bioport_id, category_id=category_id)
+                session.add(r)
+                session.flush()
+            
+            
+            #update the religion table
+            religion= merged_biography.get_religion()
+            religion_qry = session.query(RelPersonReligion).filter(RelPersonReligion.bioport_id==bioport_id)
+            if religion is not None:
+                religion_id =  religion.get('idno')
+                if religion_id:
+                    try:    
+                        r = religion_qry.one()
+                        r.religion_id = religion_id
+                    except  NoResultFound:
+                        r = RelPersonReligion(bioport_id=bioport_id, religion_id=religion_id)
+                        session.add(r)
+                    session.flush()
+            else:
+                religion_qry.delete()
+                session.flush()
+                
+            
+            #'the' source -- we take the first non-bioport source as 'the' source
+            #and we use it only for filterling later
+            #XXX what is this used for??? 
+            src = [s for s in merged_biography.get_biographies() if s.source_id != 'bioport']
+            if src:
+                src = src[0].source_id
+            else:
+                src = None
+                
+            #refresh the names 
+            db.delete_names(bioport_id=bioport_id)
+            db.update_name(bioport_id=bioport_id, names=computed_values._names)
+            
+            db.update_source(bioport_id, source_ids = [b.source_id for b in self.get_biographies()])
+            
+            if self.get_biography_contradictions():
+                r_person.has_contradictions = True
+            else:
+                r_person.has_contradictions = False
+  
     def get_biography_contradictions(self):
         """Iterates over all biographies and checks birth dates and
         places for contradictions (e.g. one bio states "x" while

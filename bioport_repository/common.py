@@ -1,6 +1,8 @@
 class BioPortException(Exception):
     pass
 
+class BioPortNotFoundError(Exception):
+    pass
 import datetime
 
 def to_date(s, round='down' ):

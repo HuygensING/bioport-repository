@@ -1,7 +1,8 @@
 from bioport_repository.tests.common_testcase import CommonTestCase, unittest 
-from bioport_repository.db import Source, BiographyRecord,  PersonRecord, SourceRecord, Biography, RelBioPortIdBiographyRecord
+from bioport_repository.db import Source, BiographyRecord,  PersonRecord, SourceRecord, Biography, RelBioPortIdBiographyRecord, Person
 from bioport_repository.db_definitions import RelPersonCategory, PersonSoundex,\
-    RELIGION_VALUES, STATUS_NOBIOS
+    RELIGION_VALUES, STATUS_NOBIOS, PersonSource
+from bioport_repository.common import format_date , to_date, BioPortException, BioPortNotFoundError
 
 
 class DBRepositoryTestCase(CommonTestCase):
@@ -22,6 +23,8 @@ class DBRepositoryTestCase(CommonTestCase):
         self.db.delete_source(src)
         self.assertEqual(len(self.db.get_sources()),nbase) 
     
+   
+    
     def test_manipulate_biographies(self): 
         """tests for adding and deleting biographies"""
         n_bios = n_base = self.db.count_biographies()
@@ -33,7 +36,7 @@ class DBRepositoryTestCase(CommonTestCase):
         src = Source(id='123')
         self.repo.save_source(src)
         
-        bio1 = Biography(id='ladida', source_id=src.id)
+        bio1 = Biography(id='ladida', source_id=src.id, repository=self.repo)
         bio1.from_args(naam_publisher="1", url_biografie="http://www.url.com/1", url_publisher="http:///url2.com", naam="jantje")
         
         self.db.save_biography(bio1, user=self.db.user, comment='test')
@@ -54,23 +57,33 @@ class DBRepositoryTestCase(CommonTestCase):
         
         self.assertEqual(len(bio1.get_value('auteur', [])), 1, bio1.to_string())
         
-        bio2 = Biography(id='ladida2', source_id=src.id)
+        bio2 = Biography(id='ladida2', source_id=src.id, repository=self.repo)
         bio2.from_args(naam_publisher="1", url_biografie="http://www.url.com/1", url_publisher="http:///url2.com", naam="jantje")
         self.db.save_biography(bio2, user=self.db.user, comment='test')
         #we added one more biography
         n_bios += 1
         self.assertEqual(len(list(self.db.get_biographies())), n_bios)
     
-    def test_update_biographies(self):
+    def test_save_biography(self):
         #set up a source
         src = Source(id='123')
         self.repo.save_source(src)
-        bio1 = Biography(id='id1', source_id=src.id)
+        bio1 = Biography(id='id1', source_id=src.id, repository=self.repo)
         bio1.from_args(naam_publisher="1", url_biografie="http://www.url.com/1", url_publisher="http:///url1.com", naam="name1", text='text1')
         self.db.save_biography(bio1, user=self.db.user, comment='test')
         bio1.from_args(naam_publisher="1", url_biografie="http://www.url.com/1", url_publisher="http:///url1.com", naam="name1", text='text2')
         self.db.save_biography(bio1, user=self.db.user, comment='test')
+        
+        bio = self.db.get_biography(local_id = bio1.id)
+        
+        #basic sanity check
+        self.assertEqual(bio.snippet(), 'text2')
+        
         person = self.db.get_person(bio1.get_bioport_id())
+        
+        self.db.update_person(person.bioport_id)
+        person = self.db.get_person(bio1.get_bioport_id())
+        
         self.assertEqual(person.snippet(), 'text2')
         
     def test_source_updating(self):
@@ -83,7 +96,81 @@ class DBRepositoryTestCase(CommonTestCase):
         
     def test_update_persons(self):
         self.repo.db.update_persons()
+    
+    def test_add_person(self):
+
+        #this is what we want to do
         
+        #add a source
+        source_id = u'bioport_test'
+#        bioport_id = self.db.fresh_identifier()
+        name = 'name, test'
+        source = Source(source_id, repository=self.repo)
+        source.save()
+        #add a biography
+        args = {
+            'naam_publisher':'x',
+            'url_biografie': 'http://placeholder.com',
+            'url_publisher': 'http://placeholder.com',
+            'name':name,
+#            'bioport_id':bioport_id,    
+            'local_id':'1'
+            }
+        
+        biography =  Biography(repository=self.repo, source_id=source_id)
+        biography.from_args(**args)
+        #now at this point, the biography does not have a bioport_id yet
+        self.assertEqual(biography.get_bioport_id(), None)
+        biography.save(user='test')
+        person = biography.get_person()
+        #this biography should be connected with the source
+        self.assertEqual(biography.get_source(), source)
+        
+        #the biography has a local_id defined
+        self.assertEqual(biography.create_id(),'bioport_test/1' )
+        #the biography should be in the repository
+        bioport_id = biography.get_bioport_id()
+        assert bioport_id
+        
+        self.assertEqual(self.repo.get_biography(biography.create_id()), biography)
+        self.assertEqual(self.repo.get_biographies(bioport_id=bioport_id), [biography])
+        self.assertTrue(person.bioport_id, bioport_id)
+        self.assertEqual(person.record.naam, name)
+        
+        
+#        qry = self.repo.db.get_session().query(PersonRecord).filter(PersonRecord.bioport_id==bioport_id)
+#        assert qry.all(), qry.statement
+#        self.assertEqual(len(qry.all()), 1)
+#        self.assertEqual(qry.one().naam, name)
+#        qry = self.repo.db.get_session().query(PersonSource).filter(PersonSource.bioport_id==bioport_id)
+#        assert qry.all(), qry.statement
+#        qry = self.repo.db._get_persons_query(full_records=True, hide_invisible=False)
+        
+        person1 = self.db.get_person(bioport_id)
+        self.assertEqual(person1, person)
+        
+        
+#        bioport_id = self.db.fresh_identifier()
+        bioport_id = self.db.fresh_identifier()
+        #we cannot add a person without a biography
+        self.assertRaises(BioPortException, self.db.add_person, bioport_id)
+        
+        #so we first create a biography
+        defaults = {
+            'naam_publisher':'x',
+            'url_biografie': 'http://placeholder.com',
+            'url_publisher': 'http://placeholder.com',
+            'name':name,
+            'bioport_id':bioport_id,
+            }
+
+        
+        other_source_id = 'this does not exist'
+        biography =  Biography(repository=self.repo, source_id=other_source_id)
+        biography.from_args(**defaults)
+        #now, saving this biography should raise an exception, because no source was found
+        self.assertRaises(Exception, biography.save, 'test')
+       
     def test_update_soundexes(self):
         self.repo.db.update_soundexes()
         
@@ -126,6 +213,7 @@ class DBRepositoryTestCase(CommonTestCase):
         bio1.set_religion(rel_id)
         self._save_biography(bio1)
         self.assertEqual(bio1.get_religion().get('idno'), rel_id)
+        self.assertEqual(bio1.get_person().get_merged_biography().get_religion().get('idno'), rel_id)
         self.assertEqual(len(repo.get_persons(religion=rel_id)), 1)
         bio2.set_religion(rel_id)
         self._save_biography(bio2)
@@ -156,7 +244,6 @@ class DBRepositoryTestCase(CommonTestCase):
         self.assertEqual(len(repo.get_persons(search_term='molloy')), 1)
         self.assertEqual(len(repo.get_persons(has_illustrations=True)), 2)
         self.assertEqual(len(repo.get_persons(has_illustrations=False)), 7)
-        
         self.assertEqual(len(repo.get_persons(geboortejaar_min='1778')), 7)
         self.assertEqual(len(repo.get_persons(geboortejaar_max='1777')), 2)
         self.assertEqual(len(repo.get_persons(geboortejaar_min='1778', geboortejaar_max='1778')), 1)
@@ -338,7 +425,7 @@ class DBRepositoryTestCase(CommonTestCase):
         self.assertEqual(len(self.repo.get_persons()), 5)
         
         #and we should have no persons associated with source1 anymore
-        self.assertEqual(self.repo.get_persons(source_id=source1.id), [])
+        self.assertEqual(list(self.repo.get_persons(source_id=source1.id)), [])
         
         #however, we still should remember with which bioport_ids our biogrpahies were associated
         self.assertEqual(session.query(RelBioPortIdBiographyRecord).count(), 10)

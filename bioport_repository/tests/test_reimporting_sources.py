@@ -203,13 +203,17 @@ class RepositoryTestCase(CommonTestCase):
         #and neither does person2 himself
         assert person2.bioport_id not in [p.bioport_id for p in repo.get_persons()],  [(p.bioport_id, p.get_biographies()) for p in repo.get_persons()]
         
+        #we still, however, should have the bioport_id in our repository
+        self.assertEqual(repo.db.get_bioport_id(biography_id='test/002'), person2.bioport_id )
+        
         #now we re-download the old data
         src.url = url1
         repo.download_biographies(src)
         #and we have the 5 old biographies again
         self.assertEqual(len(repo.get_persons(source_id=src.id)), 5)
         self.assertEqual(len(list(repo.get_biographies(local_id='test/002'))), 1)
-        #it is very import that our newly re-donloaed test/002 has the same bioport id as before
+        
+        #it is very important that our newly re-donloaed test/002 has the same bioport id as before
         self.assertEqual(repo.get_biography(local_id='test/002').get_person().bioport_id, bioport_id3)
        
         #now, we do the same exercise of removing and re-adding, but this time we identify test/002 with test/005

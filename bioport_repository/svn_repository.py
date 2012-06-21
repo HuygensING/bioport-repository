@@ -1,3 +1,7 @@
+#
+# THIS CODE IS DEAD, NOT USED, IGNORE
+#
+
 #import pysvn
 #from pysvn import ClientError
 import os
@@ -168,8 +172,8 @@ class SVNRepository(object):
             ls.sort(reverse=True)
             ls = [s[1] for s in ls]
         return ls
+    
     def delete_source(self, source):
-        
         self.svn_repository.client.checkin([source.path()], log_message='Checkin source %s before removing' % source.id)
         self.svn_repository.client.remove([source.path()])
         self.svn_repository.client.checkin([source.path()], log_message='Remove source %s' % source.id)

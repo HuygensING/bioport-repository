@@ -14,12 +14,17 @@ class RepositoryTestCase(CommonTestCase):
 
     def test_download_bios(self):
         url = os.path.abspath(os.path.join(THIS_DIR, 'data/knaw/list.xml'))
+        #there are already N biographies after setUp
+        
+        initial_number= len(list(self.repo.get_biographies()))
         #add some sources source
         src = Source(id=u'test', url=url , description=u'test')
         self.repo.add_source(src)
     
         self.repo.download_biographies(src)
-        assert len(list(self.repo.get_biographies()))
+        new_number = len(list(self.repo.get_biographies(source_id=src.id)))
+        assert new_number > 0 
+        self.assertEqual(len(list(self.repo.get_biographies())), initial_number + new_number)
 
     def test_get_persons(self):
         self.assertEqual(len(self.repo.get_persons()), 10)

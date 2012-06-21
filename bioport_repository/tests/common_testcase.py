@@ -14,7 +14,6 @@ from bioport_repository.source import Source
 from gerbrandyutils import sh
 
 from names.name import Name
-from sqlalchemy import create_engine
 
 THIS_DIR = os.path.split(os.path.abspath(__file__))[0]
 SVN_REPOSITORY  = os.path.abspath(os.path.join(THIS_DIR, 'data/bioport_repository'))
@@ -23,25 +22,26 @@ IMAGES_CACHE_LOCAL = os.path.join(THIS_DIR, 'tmp')
 SQLDUMP_FILENAME = os.path.join(THIS_DIR, 'data/bioport_mysqldump.sql')
 CREATE_NEW_DUMPFILE = False #very expesnive if True
 #CREATE_NEW_DUMPFILE = True #very ex/pesnive if True
+repository = Repository(
+  svn_repository_local_copy = SVN_REPOSITORY_LOCAL_COPY, 
+  svn_repository='file://%s' % SVN_REPOSITORY,
+  dsn=DSN,
+  images_cache_local=IMAGES_CACHE_LOCAL,
+)
+ 
 
 class CommonTestCase(unittest.TestCase):
     
     _fill_repository = True
 
     def setUp(self):     
-        if os.path.isdir(SVN_REPOSITORY):
-            shutil.rmtree(SVN_REPOSITORY)
-        sh('svnadmin create %s --pre-1.4-compatible' % SVN_REPOSITORY)
+#        if os.path.isdir(SVN_REPOSITORY):
+#            shutil.rmtree(SVN_REPOSITORY)
+#        sh('svnadmin create %s --pre-1.4-compatible' % SVN_REPOSITORY)
         if not os.path.isdir(IMAGES_CACHE_LOCAL):
             os.mkdir(IMAGES_CACHE_LOCAL)
-
-        self.repo = Repository(
-              svn_repository_local_copy = SVN_REPOSITORY_LOCAL_COPY, 
-              svn_repository='file://%s' % SVN_REPOSITORY,
-              dsn=DSN,
-              images_cache_local=IMAGES_CACHE_LOCAL,
-              )
-              
+        self.repo = repository
+   
         self.repo.db.metadata.drop_all()
         if self._fill_repository:
             if CREATE_NEW_DUMPFILE or not os.path.isfile(SQLDUMP_FILENAME):
@@ -53,17 +53,16 @@ class CommonTestCase(unittest.TestCase):
         self.db = self.repo.db
         
     def tearDown(self):
-        #clean out the repository
-        #get whatever data there was
-        sh('rm -rf %s' % SVN_REPOSITORY ) 
-        sh('rm -rf %s' % SVN_REPOSITORY_LOCAL_COPY ) 
+#        #clean out the repository
+#        #get whatever data there was
+#        sh('rm -rf %s' % SVN_REPOSITORY ) 
+#        sh('rm -rf %s' % SVN_REPOSITORY_LOCAL_COPY ) 
         
-        # remove also all data from the database
+        # remove all data from the database
         self.repo.db.metadata.drop_all()
+        self.repo.db.clear_cache()
         if os.path.exists(IMAGES_CACHE_LOCAL):
             shutil.rmtree(IMAGES_CACHE_LOCAL)
-        #self.repo.db.namenindex.db.metadata.drop_all()
-        return
    
     def create_filled_repository(self, sources=None):
         """create  a repository filled with example data"""
@@ -88,12 +87,9 @@ class CommonTestCase(unittest.TestCase):
         self._is_filled = True
         return self.repo
 
-#        create_engine(DSN).connect().execute(sql_string)
-#        self.repo.db.get_session().execute(sql_string)
-#        self.repo.db.get_session().flush()
-        transaction.commit()
-        self._fill_repository = False #dont fill the repository again
-        return self.repo
+#        transaction.commit()
+#        self._fill_repository = False #dont fill the repository again
+#        return self.repo
         
     def create_filled_repository_from_scratch(self, sources=2):
         #create a repo filled with some data
@@ -150,7 +146,7 @@ class CommonTestCase(unittest.TestCase):
         #make a new biography
         
         source_id = u'bioport_test'
-        source =self._add_source(source_id)
+        source = self._add_source(source_id)
         if name:
             name = Name(name)
         if names:
@@ -167,7 +163,7 @@ class CommonTestCase(unittest.TestCase):
                  )
         
         #save it
-        self._save_biography(bio, comment=u'added by test')
+        bio = self._save_biography(bio, comment=u'added by test')
         return bio.get_person()
     
     def _create_biography(self, **args):
@@ -187,7 +183,7 @@ class CommonTestCase(unittest.TestCase):
             return Biography(repository=self.repo, source_id=source_id, id=id).from_args(**defaults)
     
     def _save_biography(self,biography, comment=u'saved by test'): 
-        self.repo.save_biography(biography, comment)
+        return self.repo.save_biography(biography, comment)
         
 class CommonTestCaseTest(CommonTestCase):
     

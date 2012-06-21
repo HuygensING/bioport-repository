@@ -5,13 +5,16 @@ import re
 import types
 import logging
 import string
+from datetime import datetime
 
 from lxml import etree
 
 from names.common import html2unicode
+from sqlalchemy.orm.exc import DetachedInstanceError
 from biodes import BioDesDoc
 from bioport_repository.illustration import Illustration
 from bioport_repository.data_extraction import BioDataExtractor
+from bioport_repository.db_definitions import BiographyRecord
 
 
 def create_biography_id(source_id, local_id):        
@@ -41,7 +44,7 @@ class Biography(object, BioDesDoc): #, SVNEntry):
         """
         self.id = id
         self.repository = repository 
-        self.record = record
+        self._record = record
         self.source_id = source_id
         self.biodes_document = biodes_document
         self.source_url = source_url        
@@ -81,6 +84,16 @@ class Biography(object, BioDesDoc): #, SVNEntry):
         except AttributeError:
             self._source = self.repository.get_source(self.source_id) 
             return self._source
+    @property
+    def record(self): 
+        try:
+            self._record.source_id
+        except AttributeError:
+            raise
+        except DetachedInstanceError:
+            self.repository.db.get_session().merge(self._record)
+            
+        return self._record
     
     def get_text_without_markup(self):
         """get the text of the biography, but remove any HTML codes"""
@@ -207,12 +220,79 @@ class Biography(object, BioDesDoc): #, SVNEntry):
         if ls:
             return ls[-1]
         else:
+            #try to find the bioport_id in the repository based on the local_id
+            bioport_id = self.repository.db.get_bioport_id(biography_id=self.create_id())
+            return bioport_id
             return None
     
     def get_person(self):
-        bioport_id = self.get_bioport_id()
-        return self.repository.get_person(bioport_id=bioport_id)
+        try:
+            return self._person
+        except:
+	        bioport_id = self.get_bioport_id()
+	        self._person = self.repository.get_person(bioport_id=bioport_id)
+        return self._person
     
+    def save(self, user, comment=''):
+        db = self.repository.db
+        self.create_id()
+        with db.get_session_context() as session:
+            bioport_id = self.get_bioport_id()
+            default_status = self.get_source().default_status
+            person = self.get_person()
+            if not person:
+                bioport_id = self.get_bioport_id()
+                if not bioport_id:
+	                bioport_id = db.fresh_identifier()
+                person = db.add_person(bioport_id=bioport_id, default_status=default_status, checkforprexistingsbio=False) 
+                self.set_value('bioport_id',bioport_id)
+                self._person = person
+ 
+            #register the biography in the bioportid registry
+            #(note that this changes the XML in the biography object)
+            db._register_biography(self)
+            
+            #get all biographies with this id, and increment their version number with one
+            ls =  db._get_biography_query(
+#                source_id=biography.source_id,
+#                bioport_id=biography.get_bioport_id(),
+                local_id=self.id,
+                order_by='version',
+                )
+            ls = enumerate(ls)
+            ls = list(ls)
+            ls.reverse()
+            for i, r_bio in ls:
+                r_bio.version = i + 1 
+                session.flush()
+                
+            #creata a new versino
+            self._record = r_biography = BiographyRecord(id=self.get_id())
+            session.add(r_biography) 
+            r_biography.source_id = self.source_id
+            r_biography.biodes_document = self.to_string()
+            r_biography.source_url = unicode(self.source_url)
+            r_biography.url_biography = self.get_value('url_biography')
+            self.version = r_biography.version = 0
+            r_biography.user = user
+            r_biography.comment = comment
+            r_biography.time = datetime.today().isoformat()
+            r_biography.source_id       
+            
+#        person = self.get_person(biography.get_bioport_id())
+#        assert person
+        
+        # update the information of the associated person (or add a person 
+        # if the biography is new)
+           
+        msg  = 'saved biography with id %s' % (self.id)
+        if comment:
+            msg += '; %s' % comment
+            
+        db.log(msg=msg, record = r_biography)
+        person = self._person
+        person.save()
+        
     def naam(self):
         """
         get the first Naam of this biography
