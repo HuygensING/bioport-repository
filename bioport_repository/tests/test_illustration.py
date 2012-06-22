@@ -25,7 +25,6 @@ images_cache_local = IMAGES_CACHE_LOCAL
 images_cache_local = images_cache_local
 images_cache_url = 'file://%s' % IMAGES_CACHE_LOCAL 
 fn = u'image1.jpg'
-#fn2 = u'im\xebge.jpg'.encode(ENC) #.decode('utf8')
 #this unicode stuff gives problems
 fn2 = 'imege.jpg'
 
