@@ -18,17 +18,16 @@ from bioport_repository.illustration import Illustration, CantDownloadImage
 
 #(all the encode(ENC) loops are for getting text
 
-ENC = 'utf8'
 THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 url_root = 'file://%s/data/images/' % THIS_DIR
-images = u'%s/data/images/'.encode(ENC) % THIS_DIR
+images = u'%s/data/images/' % THIS_DIR
 images_cache_local = IMAGES_CACHE_LOCAL 
-images_cache_local = images_cache_local.encode(ENC)
+images_cache_local = images_cache_local
 images_cache_url = 'file://%s' % IMAGES_CACHE_LOCAL 
-fn = u'image1.jpg'.encode(ENC)
-fn2 = u'im\xebge.jpg'.encode(ENC) #.decode('utf8')
+fn = u'image1.jpg'
+#fn2 = u'im\xebge.jpg'.encode(ENC) #.decode('utf8')
 #this unicode stuff gives problems
-fn2 = u'im\xebge.jpg'.encode(ENC) #.decode('utf8')
+fn2 = 'imege.jpg'
 
 
 class IllustrationTestCase(CommonTestCase):

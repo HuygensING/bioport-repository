@@ -22,6 +22,11 @@ class RepositoryTestCase(CommonTestCase):
         old_persons = [repo.get_person(bioport_id) for bioport_id in repo.get_bioport_ids()]
         
         #if we download the information at our source, nothing should have changed 
+        repo.download_illustrations(src)
+        self.assertEqual(len(repo.get_persons()),BASE +  5)
+        self.assertEqual(len(repo.get_persons(source_id=SOURCE_ID)),5,)
+        self.assertEqual(set([p.bioport_id for p in old_persons]), set([p.bioport_id for p in repo.get_persons()]))
+        
         repo.download_biographies(src)
         self.assertEqual(len(repo.get_persons()),BASE +  5)
         self.assertEqual(len(repo.get_persons(source_id=SOURCE_ID)),5,)
@@ -63,11 +68,11 @@ class RepositoryTestCase(CommonTestCase):
         
         #person 4 has a changed name
         #XXX we should test this somehow
-        assert 'changed' in persons[4].name().volledige_naam(), persons[4].name().volledige_naam()
+        assert 'changed' in persons[4].name(), persons[4].name()
         #person 5 has changed location
         assert persons[5].knaw_bio.source_url.endswith('005a.xml'), persons[5].knaw_bio.source_url
         #person 7 is a new entry
-        self.assertEqual( persons[7].status, STATUS_NEW) 
+        self.assertEqual( persons[7].status, unicode(STATUS_NEW))
         
     def test_delete_effects(self):
         repo = self.repo
@@ -236,7 +241,7 @@ def test_suite():
     test_suite = unittest.TestSuite()
     tests = [RepositoryTestCase]
     for test in tests:
-        test_suite.addTest(unittest.makeSuite(test, prefix='test_remo'))
+        test_suite.addTest(unittest.makeSuite(test, prefix='test_'))
     return test_suite
 
 if __name__ == "__main__":
