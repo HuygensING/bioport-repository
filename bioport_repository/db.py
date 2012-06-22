@@ -9,7 +9,6 @@ import contextlib
 from datetime import datetime
 import time
 import transaction
-from plone.memoize import instance
 
 import sqlalchemy
 from sqlalchemy.exc import IntegrityError
@@ -17,12 +16,13 @@ from sqlalchemy.orm import aliased
 from sqlalchemy.orm import sessionmaker, scoped_session
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy import create_engine, desc, and_, or_, not_
+
 from zope.sqlalchemy import ZopeTransactionExtension
+from plone.memoize import instance
 
 from names.similarity import soundexes_nl
 from names.common import TUSSENVOEGSELS, words
 from names.name import TYPE_FAMILYNAME,  TYPE_INTRAPOSITON,  TYPE_TERRITORIAL 
-
 
 from bioport_repository.db_definitions import (
     AntiIdentifyRecord,
@@ -62,12 +62,11 @@ from bioport_repository.merged_biography import BiographyMerger
 
 LENGTH = 8  # the length of a bioport id
 ECHO = True #log all mysql queries.
-#ECHO = False #log all mysql queries.
-EXCLUDE_THIS_STATUS_FROM_SIMILARITY = [5,9]
+ECHO = False #log all mysql queries.
+EXCLUDE_THIS_STATUS_FROM_SIMILARITY = [5,9] #if persons have this status, we will not include them in the similiarty cache
 
 class DBRepository:
-    """Interface with the MySQL database"""
-    
+    """Interface with the MySQL database""" 
     SIMILARITY_TRESHOLD = 0.70 #
     def __init__(self, 
         dsn, 
@@ -78,8 +77,6 @@ class DBRepository:
         self.dsn = dsn
         self.user = user
         self.metadata = Base.metadata #@UndefinedVariable
-#        self._session = None
-        
         #get the data from the db
         self.engine = self.metadata.bind = create_engine(
             dsn, 
@@ -87,7 +84,6 @@ class DBRepository:
             encoding='utf8', 
             echo=echo,
             pool_recycle=3600, #set pool_recycle to one hour to avoig sql server has gone away errors
-            
 #            strategy="threadlocal",
             )
         
@@ -100,13 +96,9 @@ class DBRepository:
     def session(self): 
         return self.get_session()
     
-    
     def get_session(self):
         """Return a session object."""
         return self.Session()
-#        if not self._session:
-#            self._session = self.Session()
-#        return self._session
         
     @contextlib.contextmanager
     def get_session_context(self):
@@ -130,19 +122,17 @@ class DBRepository:
 #                session.rollback()
                 transaction.abort()
                 raise
+            
+    def query(self):
+        return self.get_session().query
 
     @instance.clearafter
     def clear_cache(self):
+        """clear any cached data"""
         if hasattr(self.db, '_all_persons'):
             del self.db._all_persons
-    def query(self):
-        return self.get_session().query
+            
         
-#    def close_session(self):
-#        if self._session:
-#            self._session.close()
-#            self._session = None
-
     @instance.clearafter
     def add_source(self, src):
         assert src.id
@@ -215,8 +205,10 @@ class DBRepository:
             session.delete(r_source)
         
     def get_bioport_ids(self):
+#        return self.all_persons().keys()
         session = self.get_session()
-        rs = session.query(BioPortIdRecord.bioport_id).distinct().all()
+        qry = session.query(BioPortIdRecord.bioport_id).distinct()
+        rs = self.get_session().execute(qry)
         return map(lambda x: x[0], rs)
     
     @instance.clearafter
@@ -854,8 +846,6 @@ class DBRepository:
 #        ls = filter(None, ls)
 #        return ls
 
-#    @property
-#    @instance.memoize 
     def all_persons(self):
         """return a dictionary with *all* bioport_ids as keys and Person instances as values
         
@@ -866,26 +856,19 @@ class DBRepository:
             return self._all_persons
         except AttributeError:
             #initialize
-	        qry = self._get_persons_query(full_records=False, hide_invisible=False)
+            pass
         logging.info('** fill_all_persons_cache - should happen only @ restart')
-        self._filling_cache = True
         time0 = time.time()
         qry = self._get_persons_query(full_records=True, hide_invisible=False)
         #executing the qry.statement is MUCH faster than qry.all()
         ls = self.get_session().execute(qry.statement)
-#        ls = qry.all()
-        #but - do we want to make Person objects for each of these things 
-        #(yes, because we use lots of information later - for example for navigation)
-        #XXX (but is is very expensive)
+#        ls = qry.all() #
         self._all_persons = dict((r.bioport_id, Person(bioport_id=r.bioport_id, repository=self.repository)) for r in ls)
         logging.info('done (filling all_persons cache): %s seconds' % (time.time() - time0))
-        self._filling_cache = False
         return self._all_persons
     
     def _get_persons_query(self,
         bioport_id=None,
-        #beroep_id=None,
-        #auteur_id=None,
         beginletter=None,
         category=None,
         geboortejaar_min=None,
@@ -1307,6 +1290,7 @@ class DBRepository:
                 return self.get_person(id)
             else:
                 return None
+#                return DummyPerson(bioport_id)
         else:
             return person
 
@@ -1439,23 +1423,21 @@ class DBRepository:
                     self.add_to_similarity_cache(bioport_id, bioport_id, score=1.0)
                 
                 #now get a list of potential persons
-                #we create a soundex on the basis of the last name of the person
+                #we create a soundex on the basis of the name of the person 
                 combined_name = ' '.join([n.guess_geslachtsnaam() or n.volledige_naam() for n in person.get_names()])
-    #            print combined_name
                 soundexes = soundexes_nl(combined_name, 
-                                         length=-1, 
-                                         group=2,
-                                         filter_initials=True, 
-                                         filter_stop_words=False, #XXX look out withthis: 'koning' and 'heer' are also last names 
-                                         filter_custom=TUSSENVOEGSELS + [w.capitalize() for w in TUSSENVOEGSELS], wildcards=False,
-                                         )
+                     length=-1, 
+                     group=2,
+                     filter_initials=True, 
+                     filter_stop_words=False, #XXX look out withthis: 'koning' and 'heer' are also last names 
+                     filter_custom=TUSSENVOEGSELS + [w.capitalize() for w in TUSSENVOEGSELS], wildcards=False,
+                     )
                 
-#                logging.info('searching for persons matching any of %s' % soundexes)
+                #we compare only to persons in the database that have similar soundexes
                 if not soundexes:
                     persons_to_compare = []
                 else:
                     persons_to_compare = self.get_persons(any_soundex = soundexes)
-                #compute the similarity
                 
                 #filter out any unwanted categories
                 persons_to_compare = [x for x in persons_to_compare if x.status not in [EXCLUDE_THIS_STATUS_FROM_SIMILARITY]]
@@ -1465,7 +1447,6 @@ class DBRepository:
                 similarity_computer = Similarity(person, persons_to_compare)
                 similarity_computer.compute()
                 similarity_computer.sort()
-#                similar_persons =  similarity_computer._persons
                 for p in similarity_computer._persons[:k]:
                     if p.score > minimal_score and self._should_be_in_similarity_cache(person.bioport_id, p.bioport_id, ignore_status=True):
                         self.add_to_similarity_cache(person.bioport_id, p.bioport_id, p.score)
@@ -1486,8 +1467,6 @@ class DBRepository:
     def get_most_similar_persons(self, 
         start=0, 
         size=50, 
-#        refresh=False, 
-        #similar_to=None,
         source_id=None,
         source_id2=None,
         status=None,
@@ -1571,7 +1550,10 @@ class DBRepository:
             qry = qry.slice(start, start + size)
 #        else:
 #            qry = qry.slice(start, start + size)
-        ls = [(r.score, Person(r.bioport_id1, repository=self.repository, score=r.score), Person(r.bioport_id2, repository=self, score=r.score)) for r in qry.all()]
+#        ls = [(r.score, Person(r.bioport_id1, repository=self.repository, score=r.score), Person(r.bioport_id2, repository=self, score=r.score)) for r in qry.all()]
+        ls = self.get_session().execute(qry.statement)
+        ls = [(r.score, self.get_person(r.bioport_id1), self.get_person(r.bioport_id2)) for r in ls]
+        ls = [(x, p1, p2) for x, p1, p2 in ls if p1 and p2]
         return ls
 
     def _should_be_in_similarity_cache(self, bioport_id1, bioport_id2,
@@ -2111,10 +2093,9 @@ and b2.redirect_to is null
         
         if not len(self.get_biographies(bioport_id = biography.get_person().bioport_id)) > 1:
             raise Exception('Cannot detach biography %s form person %s, because this person only has one attached biography' % (biography, biography.get_person()))
-        new_person = Person(bioport_id=self.fresh_identifier())
-        new_person.repository = self.repository
+        new_person = Person(bioport_id=self.fresh_identifier(), repository=self.repository)
         biography.get_person()
         comment = 'Detached biography %s from person %s and create new person %s' % (biography, biography.get_person(), new_person)
         new_person.add_biography(biography, comment=comment)
-        self.repository.save_person(new_person)
+        new_person.save()
         return new_person

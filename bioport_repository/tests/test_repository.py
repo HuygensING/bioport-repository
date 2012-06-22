@@ -7,7 +7,6 @@ from bioport_repository.db_definitions import (
    STATUS_ONLY_VISIBLE_IF_CONNECTED,
    )
                                                
-from bioport_repository.person import Person
 
 
 class RepositoryTestCase(CommonTestCase):
@@ -71,7 +70,6 @@ class RepositoryTestCase(CommonTestCase):
         bio = list(bios)[2]
         id =bio.get_bioport_id()
         assert id, bio.to_string()
-        p = Person(id)
         source = bio.get_source()
         self.assertEqual([b.id for b in self.repo.get_biographies(bioport_id=id)], [bio.id])
         self.assertEqual(len(list(self.repo.get_biographies(source=source))), 5)
@@ -305,7 +303,7 @@ class RepositoryTestCase(CommonTestCase):
         p1 = persons[1]
         p2 = persons[2]
         bio1 = p1.get_biographies()[0]
-        bio2 = p1.get_biographies()[0]
+        _bio2 = p1.get_biographies()[0]
         id1 = p1.bioport_id
         id2 = p2.bioport_id
         
@@ -433,7 +431,7 @@ class RepositoryTestCase(CommonTestCase):
         
         #We need at least 5  'most similar persons' for the tests below to work
         original_length= len(similar_persons)
-        assert original_length >= 5, 'We need at least 5 "most similar persons" for the tests to work'
+        assert original_length >= 5, 'We need at least 5 "most similar persons" for the tests to work, we have only %s' % original_length
             
         #now identify two persons 
         _score, p1, p2 = similar_persons[0] 
@@ -514,7 +512,7 @@ class RepositoryTestCase(CommonTestCase):
         #(p1,p2) were deferred, but now we identify them after all
         identifieds = self.repo.get_identified()
         self.assertEqual(len(identifieds), 1)
-        person = repo.identify(p1, p2)
+        _person = repo.identify(p1, p2)
         self.assertEqual(len(self.repo.get_deferred()), 1)
         self.assertEqual(len(self.repo.get_identified()), 2)
         self.assertEqual(len(self.repo.get_antiidentified()), 1)
@@ -533,26 +531,23 @@ class RepositoryTestCase(CommonTestCase):
 
     def debug_info(self):
         return
-        try:
-            for r in  self.repo.db.get_session().query(CacheSimilarityPersons).all():
-                i = 0
-                if r.bioport_id1 != r.bioport_id2:
-                    i += 1
-            for i in self.repo.get_most_similar_persons():
-                pass
-            for i in self.repo.get_deferred():
-                pass
-            for i in self.repo.get_identified():
-                pass
-            for i in self.repo.get_antiidentified():
-                pass
-        except UnicodeEncodeError, error:
-            raise
+        for r in  self.repo.db.get_session().query(CacheSimilarityPersons).all():
+            i = 0
+            if r.bioport_id1 != r.bioport_id2:
+                i += 1
+        for i in self.repo.get_most_similar_persons():
+            pass
+        for i in self.repo.get_deferred():
+            pass
+        for i in self.repo.get_identified():
+            pass
+        for i in self.repo.get_antiidentified():
+            pass
                
     def test_identify(self):
         
         repo = self.repo
-        #get two persons
+        #get the information of two persons
         persons = repo.get_persons()
         self.assertEqual(len(persons), 10)
         person1 = persons[1]
@@ -562,7 +557,8 @@ class RepositoryTestCase(CommonTestCase):
         id1 = person1.get_bioport_id() 
         id2 = person2.get_bioport_id()  
        
-        assert id1 != id2
+        self.assertNotEqual(id1 , id2)
+        
         #identify the two people
         person = repo.identify(person1, person2)
         

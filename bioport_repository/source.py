@@ -1,24 +1,24 @@
-
 import os
-from svn_repository import SVNRepository, SVNEntry
 from lxml import etree
 from biography import Biography
 from repocommon import BioPortException
 from db_definitions import STATUS_NEW
-import urllib
-import time
     
 class Source(object):
-    """A source with biographical data"""
-    
+    """A source of biographical data"""
     def __init__(self, 
-        id,
-        url=None, 
-        description=None, 
-        quality=0, 
-        default_status=STATUS_NEW, 
-        xml=None, 
-        repository=None):
+	        id,
+	        url=None, 
+	        description=None, 
+	        quality=0, 
+	        default_status=STATUS_NEW, 
+	        xml=None, 
+	        repository=None,
+	        ):
+        """
+        arguments:
+            - default_status : new biographies will get this status
+        """
         self.xml = xml
         self.id = unicode(id)
         self.url = url
@@ -70,6 +70,7 @@ class Source(object):
 
     def save(self):
         self.repository.save_source(self)
+        
     def _from_xml(self, xml):
         t = etree.fromstring(xml) #@UndefinedVariable
         for n in t: #.getroot():
@@ -77,26 +78,6 @@ class Source(object):
         #hack for the quality attribute
         self.quality = int(self.quality)
         return self
-    
-## DISABLED - sources are stored in the DB    
-#    def from_repository(self):
-#        
-#        xml_fn =  os.path.join(self.path(), '_source_information.xml')
-#        print xml_fn
-#        if not os.path.exists(xml_fn):
-#            self._to_repository()
-#        try:
-#            parser = etree.XMLParser(no_network=False)
-#            t = etree.parse(xml_fn, parser)
-#        except:
-#            print open(xml_fn).read()
-#            raise
-#        for n in t.getroot():
-#            setattr(self, n.tag, n.text)
-#        #hack for the quality attribute
-#        self.quality = int(self.quality)
-#        return self
-# 
         
     def set_value(self,**args):
         for k in args:
@@ -129,7 +110,9 @@ class Source(object):
         return self.quality
 
 class BioPortSource(Source):
-    #this is the 'bioport source' : the biographical descriptions added and edited by the bioport editors
+    """The 'bioport source' is a special Source that contains the biographical descriptions 
+	    added and edited by the bioport editors
+	"""
     def __init__(self, id='bioport'):
         self.id = 'bioport'
         Source.__init__(self, self.id, quality=99999)
@@ -146,6 +129,5 @@ class BioPortSource(Source):
         return bio
            
     def download_data(self):
+        #this should just not be called
         raise BioPortException("No data to download: these are the biographies edited by the BioPort editors")
-        pass
-    

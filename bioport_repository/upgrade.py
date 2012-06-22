@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+june21_2012 = """
+ALTER TABLE `biography` ADD INDEX `ix_source_version`(`source_id`, `version`);
+
+"""
 def upgrade_march2012():
     sql = """ALTER TABLE `person` MODIFY COLUMN `geboortedatum` CHAR(12)  DEFAULT NULL,
  MODIFY COLUMN `sterfdatum` char(12)  DEFAULT NULL;

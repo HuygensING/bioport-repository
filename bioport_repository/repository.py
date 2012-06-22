@@ -65,6 +65,7 @@ class Repository(object):
                 self.svn_repository.commit(msg)
         
     def get_bioport_ids(self):
+        """return _all_ bioport_ids in the system"""
         return self.db.get_bioport_ids()
             
     def get_person(self, bioport_id):

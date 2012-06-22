@@ -115,7 +115,6 @@ class Illustration:
                             '%ix%i_%s' % (width, height, self.id))
 
     # --- public API used *internally* (not by the view) 
-    
     @property
     def id(self):
         return self._id
@@ -242,6 +241,10 @@ class Illustration:
         filename = filename.replace(' ', '-').lower()
         # this is gonna look like this:
         # "dvn_e46ebab5370e48685269f8b511762d3a_louise-van.oranjenassau.jpg"
+        try:
+            filename = unicode(filename)
+        except:
+            filename = filename.decode('utf8')
         return filename
 
     # --- deprecated attrs
@@ -260,5 +263,3 @@ class Illustration:
 #       return os.path.join(self._images_cache_local,  'thumbnails', '%ix%i_%s'
 #                            % (width, height, self.create_id()))
         raise ValueError("deprecated; not supposed to be used")        
-
-

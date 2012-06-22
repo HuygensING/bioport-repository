@@ -35,7 +35,7 @@ class Similarity(Similarity):
         """ """
         if s:
             ymd= to_ymd(s)  
-            y, m, d = ymd
+            y, _m, _d = ymd
             return y
     
     @classmethod

@@ -122,7 +122,7 @@ class DBRepositoryTestCase(CommonTestCase):
         #now at this point, the biography does not have a bioport_id yet
         self.assertEqual(biography.get_bioport_id(), None)
         biography.save(user='test')
-        person = biography.get_person()
+        
         #this biography should be connected with the source
         self.assertEqual(biography.get_source(), source)
         
@@ -132,20 +132,23 @@ class DBRepositoryTestCase(CommonTestCase):
         bioport_id = biography.get_bioport_id()
         assert bioport_id
         
+        #is our biography available in the repository?
         self.assertEqual(self.repo.get_biography(biography.create_id()), biography)
         self.assertEqual(self.repo.get_biographies(bioport_id=bioport_id), [biography])
-        self.assertTrue(person.bioport_id, bioport_id)
-        self.assertEqual(person.record.naam, name)
         
         
+#        #now we check if we have added a corresponding person
 #        qry = self.repo.db.get_session().query(PersonRecord).filter(PersonRecord.bioport_id==bioport_id)
 #        assert qry.all(), qry.statement
 #        self.assertEqual(len(qry.all()), 1)
 #        self.assertEqual(qry.one().naam, name)
 #        qry = self.repo.db.get_session().query(PersonSource).filter(PersonSource.bioport_id==bioport_id)
 #        assert qry.all(), qry.statement
-#        qry = self.repo.db._get_persons_query(full_records=True, hide_invisible=False)
+##        qry = self.repo.db._get_persons_query(full_records=True, hide_invisible=False)
         
+        person = biography.get_person()
+        self.assertTrue(person.bioport_id, bioport_id)
+        self.assertEqual(person.record.naam, name)
         person1 = self.db.get_person(bioport_id)
         self.assertEqual(person1, person)
         
