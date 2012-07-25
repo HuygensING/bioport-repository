@@ -8,19 +8,12 @@ import shutil
 import sqlalchemy
 
 from bioport_repository.repository import Repository
-from bioport_repository.tests.config import DSN
+from bioport_repository.tests.config import DSN, THIS_DIR, SVN_REPOSITORY, SVN_REPOSITORY_LOCAL_COPY , IMAGES_CACHE_LOCAL , SQLDUMP_FILENAME , CREATE_NEW_DUMPFILE 
 from bioport_repository.biography import Biography
 from bioport_repository.source import Source
 from gerbrandyutils import sh
 
 from names.name import Name
-
-THIS_DIR = os.path.split(os.path.abspath(__file__))[0]
-SVN_REPOSITORY  = os.path.abspath(os.path.join(THIS_DIR, 'data/bioport_repository'))
-SVN_REPOSITORY_LOCAL_COPY = os.path.abspath(os.path.join(THIS_DIR, 'data/bioport_repository_local_copy'))
-IMAGES_CACHE_LOCAL = os.path.join(THIS_DIR, 'tmp')
-SQLDUMP_FILENAME = os.path.join(THIS_DIR, 'data/bioport_mysqldump.sql')
-CREATE_NEW_DUMPFILE = False #very expesnive if True
 #CREATE_NEW_DUMPFILE = True #very ex/pesnive if True
 repository = Repository(
   svn_repository_local_copy = SVN_REPOSITORY_LOCAL_COPY, 

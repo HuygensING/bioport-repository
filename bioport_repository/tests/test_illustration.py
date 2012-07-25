@@ -22,7 +22,6 @@ THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 url_root = 'file://%s/data/images/' % THIS_DIR
 images = u'%s/data/images/' % THIS_DIR
 images_cache_local = IMAGES_CACHE_LOCAL 
-images_cache_local = images_cache_local
 images_cache_url = 'file://%s' % IMAGES_CACHE_LOCAL 
 fn = u'image1.jpg'
 #this unicode stuff gives problems
@@ -38,10 +37,10 @@ class IllustrationTestCase(CommonTestCase):
         shutil.copyfile(os.path.join(images, fn), os.path.join(images, fn2))
 
     def test_create_id(self):
-        ill = Illustration('xxx', None, None)
+        ill = Illustration(url='xxx', images_cache_local=images_cache_local, images_cache_url=images_cache_url)
         assert ill.id.endswith('xxx')
-        ill = Illustration('xxx?asdf=xfajl&adsfklj=x', None, None)
-        ill2 = Illustration('xxx?asdf=aaa&adsfklj=x', None, None)
+        ill = Illustration('xxx?asdf=xfajl&adsfklj=x', images_cache_local=images_cache_local, images_cache_url=images_cache_url)
+        ill2 = Illustration('xxx?asdf=aaa&adsfklj=x',  images_cache_local=images_cache_local, images_cache_url=images_cache_url)
         assert ill.id.endswith('xxx')
         self.assertNotEqual(ill.id, ill2.id)
         

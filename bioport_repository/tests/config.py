@@ -1,3 +1,4 @@
+import os
 from sqlalchemy.exc import OperationalError
 from sqlalchemy import create_engine
 
@@ -19,3 +20,10 @@ def _find_valid_dsn():
 
 DB_CONNECTION = DSN = _find_valid_dsn()
 
+
+THIS_DIR = os.path.split(os.path.abspath(__file__))[0]
+SVN_REPOSITORY  = os.path.abspath(os.path.join(THIS_DIR, 'data/bioport_repository'))
+SVN_REPOSITORY_LOCAL_COPY = os.path.abspath(os.path.join(THIS_DIR, 'data/bioport_repository_local_copy'))
+IMAGES_CACHE_LOCAL = os.path.join(THIS_DIR, 'tmp')
+SQLDUMP_FILENAME = os.path.join(THIS_DIR, 'data/bioport_mysqldump.sql')
+CREATE_NEW_DUMPFILE = False #very expesnive if True

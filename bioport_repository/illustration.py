@@ -54,7 +54,7 @@ class Illustration:
          - prefix : will be prefixed to the local cached filename 
         """
         self._url = url
-        self._images_cache_local = unicode(images_cache_local)  or u''  # XXX it should be renamed in _images_directory
+        self._images_cache_local = images_cache_local and unicode(images_cache_local)  or u''  # XXX it should be renamed in _images_directory
         self._thumbnails_directory = os.path.join(self._images_cache_local, 'thumbnails')
         if not os.path.isdir(self._thumbnails_directory):
             os.mkdir(self._thumbnails_directory)
