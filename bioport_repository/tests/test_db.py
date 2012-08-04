@@ -15,6 +15,7 @@ class DBRepositoryTestCase(CommonTestCase):
         assert 'soundex' in db.engine.table_names(), db.engine.table_names()
 
     def test_manipulate_source(self):
+        #nbase is the amount of sources in the database
         nbase = self.db.get_session().query(SourceRecord).count()
         src = Source(id='123')
         self.db.add_source(src)
@@ -22,6 +23,9 @@ class DBRepositoryTestCase(CommonTestCase):
         self.assertEqual(len(self.db.get_sources()), nbase+1)
         self.db.delete_source(src)
         self.assertEqual(len(self.db.get_sources()),nbase) 
+        #now add the source again, to check if the previous result did not reamin cached
+        self.db.add_source(src) 
+        self.assertEqual(len(self.db.get_sources()),nbase + 1) 
     
    
     

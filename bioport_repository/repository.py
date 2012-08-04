@@ -36,7 +36,7 @@ class Repository(object):
     
         assert user
         self.svn_repository = SVNRepository(svn_repository=svn_repository, svn_repository_local_copy=svn_repository_local_copy)
-        
+        print 'initializing %s' % self
         self.db = DBRepository(
             dsn=dsn, 
             user=user, 
@@ -263,11 +263,12 @@ class Repository(object):
                     biourl = os.path.join(os.path.dirname(source.url), biourl)
             if limit and iteration > limit:
                 break
-            logging.info('progress %s/%s: adding biography at %s' %(iteration, len(ls), biourl))
+            logging.info('progress %s/%s: adding biography at %s' % (iteration, len(ls), biourl))
             #create a Biography object 
             bio = Biography(source_id=source.id, repository=source.repository)
             bio.from_url(biourl)
-            self.save_biography(bio, comment=u'downloaded biography from source %s' % source)
+            bio.save(user='',comment=u'downloaded biography from source %s' % source)
+#            self.save_biography(bio, comment=u'downloaded biography from source %s' % source)
 
         # remove the temp directory which has been used to extract
         # the xml files

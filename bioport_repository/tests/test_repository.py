@@ -19,7 +19,6 @@ class RepositoryTestCase(CommonTestCase):
         #add some sources source
         src = Source(id=u'test', url=url , description=u'test')
         self.repo.add_source(src)
-    
         self.repo.download_biographies(src)
         new_number = len(list(self.repo.get_biographies(source_id=src.id)))
         assert new_number > 0 

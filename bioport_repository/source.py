@@ -21,6 +21,8 @@ class Source(object):
         """
         self.xml = xml
         self.id = unicode(id)
+        #TODO: raise a proper exception, fix database fields as well
+        assert len(id) <= 20, 'source.id cannot be more than 20 characters long'
         self.url = url
         self.description = description
         self.quality = quality

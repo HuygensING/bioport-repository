@@ -834,17 +834,6 @@ class DBRepository:
     
     def get_persons(self, **args):
         return self.repository.get_persons(**args)
-        #this is the main entry point
-#        qry = self._get_persons_query(**args)
-#        #executing the qry.statement is MUCH faster than qry.all()
-#        ls = self.get_session().execute(qry.statement)
-#        #but - do we want to make Person objects for each of these things 
-#        #(yes, because we use lots of information later - for example for navigation)
-#        #XXX (but is is very expensive)
-##        result = [Person(bioport_id=r.bioport_id, repository=self.repository, record=r) for r in ls]
-#        ls = [self.get_person(r.bioport_id) for r in ls] 
-#        ls = filter(None, ls)
-#        return ls
 
     def all_persons(self):
         """return a dictionary with *all* bioport_ids as keys and Person instances as values
@@ -857,12 +846,13 @@ class DBRepository:
         except AttributeError:
             #initialize
             pass
-        logging.info('** fill_all_persons_cache - should happen only @ restart')
+        logging.info('** fill_all_persons_cache - should happen only @ restart %s' % self)
         time0 = time.time()
         qry = self._get_persons_query(full_records=True, hide_invisible=False)
         #executing the qry.statement is MUCH faster than qry.all()
         ls = self.get_session().execute(qry.statement)
 #        ls = qry.all() #
+#        logging.info('** %s records' % len(ls))
         self._all_persons = dict((r.bioport_id, Person(bioport_id=r.bioport_id, repository=self.repository)) for r in ls)
         logging.info('done (filling all_persons cache): %s seconds' % (time.time() - time0))
         return self._all_persons
