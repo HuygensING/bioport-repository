@@ -144,7 +144,6 @@ class Illustration:
      
         
     # --- actions
-   
     def download(self, overwrite=True):
         """Download the original image with original dimensions and saves it on
         disk.
@@ -157,7 +156,7 @@ class Illustration:
             return
         else:
             url = normalize_url(self.source_url)
-            logging.info('downloading image from %s to %s' % (repr(url), repr(self.cached_local)))
+            logging.info('Downloading image from %s to %s' % (repr(url), repr(self.cached_local)))
             try:
                 http = urllib2.urlopen(url)
             except (urllib2.HTTPError, OSError, UnicodeEncodeError), err:
