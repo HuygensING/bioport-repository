@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+import os
+
 from sqlalchemy.orm.exc import NoResultFound, DetachedInstanceError
 
 from bioport_repository.merged_biography import MergedBiography, BiographyMerger
@@ -333,10 +335,14 @@ class Person(object):
         return self.record.names
 
     def thumbnail(self):
-        images_cache_url = self.repository.images_cache_url
-        if not images_cache_url.endswith('/'):
-            images_cache_url += '/'
-        return '%s%s' % (images_cache_url, self.record.thumbnail)
+        url = self.record.thumbnail
+        if not url:
+            return url
+        elif url.startswith('http:'):
+            return url
+        else:
+            images_cache_url = self.repository.images_cache_url
+            return os.path.join(images_cache_url, self.record.thumbnail)
 
     def geslachtsnaam(self):
         return self.record.geslachtsnaam
@@ -549,21 +555,6 @@ class Person(object):
             
         return Wrapper(self)
 
-#class DummyPerson(object):
-#    def __init__(self, bioport_id, name=None):
-#        self.bioport_id = None
-#        self.name = 'No person with bioportid %s exists' % bioport_id 
-#    def get_names(self):
-#        return [self.name]
-#    def get_bioport_id(self):
-#        return self.bioport_id
-#    def get_value(self, k):
-#        return ''
-#    def get_biographies(self):
-#        return []
-#    def snippet(self):
-#        return ''
-    
 class Contradiction(object):
     """An object which represents a person with contradictory
     biographies.
