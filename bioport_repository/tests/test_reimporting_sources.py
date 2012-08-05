@@ -78,7 +78,7 @@ class RepositoryTestCase(CommonTestCase):
         repo = self.repo
         url = os.path.abspath(os.path.join(THIS_DIR, 'data/knaw/list.xml'))
         SOURCE_ID = u'test1'
-        src_knaw = src = Source(id=SOURCE_ID, url=url , description='knaw test dinges...')
+        src_knaw = src = Source(id=SOURCE_ID, url=url , description='knaw test dinges...', repository=self.repo)
         self.assertEqual(src.url, url)
         repo.add_source(src)
         repo.download_biographies(src)

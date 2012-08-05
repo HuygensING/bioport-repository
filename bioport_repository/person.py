@@ -342,7 +342,7 @@ class Person(object):
             return url
         else:
             images_cache_url = self.repository.images_cache_url
-            return os.path.join(images_cache_url, self.record.thumbnail)
+            return '%s/%s' % (images_cache_url, self.record.thumbnail)
 
     def geslachtsnaam(self):
         return self.record.geslachtsnaam

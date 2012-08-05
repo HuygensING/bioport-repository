@@ -236,6 +236,10 @@ class Repository(object):
         
         logging.info('downloading data at %s' % source.url)
         logging.info('parsing source url')
+        
+        #TODO: perhaps it would be better to check on Source.__init__ if repository argument is given
+        if not source.repository:
+            source.repository = self
         try:
             ls = biodes.parse_list(source.url)
             if limit:

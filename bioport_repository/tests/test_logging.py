@@ -37,7 +37,7 @@ class LoggingTestCase(CommonTestCase):
         repo = self.repo
         
         url = 'file://%s' % os.path.abspath(os.path.join(THIS_DIR, 'data/knaw/list.xml'))
-        source = Source(id=u'test1', url=url , description='test')
+        source = Source(id=u'test1', url=url , description='test', repository = self.repo)
         self.repo.add_source(source)
         self.assertEqual(self.last_log_message().table, 'source')
         self.repo.download_biographies(source)
