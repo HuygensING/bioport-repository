@@ -307,7 +307,8 @@ class Repository(object):
         bios = self.get_biographies(source=source)
         total = 0
         skipped = 0
-        for bio in bios:
+        for i,bio in enumerate(bios):
+            logging.info('[%s/%s] downloading illustrations' % (i, len(bios)))
             total += 1
             if limit and total > limit:
                 break
