@@ -294,8 +294,11 @@ class Repository(object):
 
     def download_illustrations(self, source, overwrite=False, limit=None):
         """Download the illustrations associated with the biographies in the source.
+        
         arguments:
             - source:  a Source instance
+            - overwrite: Boolean. If overwrite is true, then we download also if we already have this image. 
+                default is False.
         returns:
             (total, skipped)
         """
@@ -313,7 +316,7 @@ class Repository(object):
                     ill.download(overwrite=overwrite)
                 except CantDownloadImage, err:
                     skipped += 1
-                    logging.warning("can't download image: %s" % str(err))
+                    logging.warning("Can't download image: %s" % str(err))
         # remove the temp directory which has been used to extract
         # the xml files
         if source.url and source.url.endswith("tar.gz"):

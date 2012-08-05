@@ -357,8 +357,8 @@ class Biography(object, BioDesDoc): #, SVNEntry):
         return self.get_source().get_quality()
 
     def get_illustrations(self, default=[]):
-        figures = BioDesDoc.get_illustrations(self)
         
+        figures = BioDesDoc.get_illustrations(self)
         images_cache_local=''
         images_cache_url =''
         prefix = self.get_source().id

@@ -79,20 +79,7 @@ class Person(object):
                 self._record = r
             
         return self._record
-#        try:
-#            session = self.repository.db.get_session()
-#            r = session.query(PersonRecord).filter(PersonRecord.bioport_id==self.get_bioport_id()).one()
-#            return r
-#            return self._record
-#        except AttributeError:
-#            session = self.repository.db.get_session()
-#            try:
-#                r = session.query(PersonRecord).filter(PersonRecord.bioport_id==self.get_bioport_id()).one()
-#            except NoResultFound:
-#                r = PersonRecord(bioport_id=self.get_bioport_id())
-#                session.add(r)
-#            self._record = r
-#        return self._record
+    
     def _fresh_record(self):
         """return a fresh record from the db"""
         del self._record
@@ -111,15 +98,6 @@ class Person(object):
 
             r_person = r 
             #check if a person with this bioportid alreay exists
-#            try:  
-#                r_person = session.query(PersonRecord).filter_by(bioport_id=bioport_id).one()
-#            except sqlalchemy.orm.exc.NoResultFound:
-#                if not, we add a new one
-#                raise BioPortException('There is no person with bioport_id %s' % bioport_id)
-               
-#            person = Person(bioport_id=bioport_id, record=r_person, repository=db)
-#            session.merge(self._fresh_record())
-#        with self.get_session_context() as session:
             merged_biography = self.get_merged_biography()
             computed_values = self.computed_values
             r_person.naam = computed_values.naam
@@ -334,6 +312,8 @@ class Person(object):
         
         the first data is the date of bith, but if that does not exist, it is date of baptism
         the second date is the date of death, or, if that does not exist, date of burial
+        
+        TODO: why is the baptism-burial part commented out?
         """
         date1 = self.geboortedatum() 
 #        if not date1:
@@ -342,7 +322,6 @@ class Person(object):
 #                date1 = event.get('when')
 #        
         date2 = self.sterfdatum()
-        #XXX remove the 'False'part!
 #        if not date2:
 #            event = self.get_merged_biography().get_event('burial')
 #            if event is not None:
@@ -354,7 +333,10 @@ class Person(object):
         return self.record.names
 
     def thumbnail(self):
-        return self.record.thumbnail
+        images_cache_url = self.repository.images_cache_url
+        if not images_cache_url.endswith('/'):
+            images_cache_url += '/'
+        return '%s%s' % (images_cache_url, self.record.thumbnail)
 
     def geslachtsnaam(self):
         return self.record.geslachtsnaam
@@ -467,7 +449,8 @@ class Person(object):
 
     @property
     def computed_values(self):
-        """these are the computed values, that go back as much as possible to the source data """
+        """these are the computed values (used for caching), 
+        that go back as much as possible to the source data """
         
         class Wrapper:
             def __init__(self, person):
@@ -483,8 +466,17 @@ class Person(object):
                 
                 self.has_contradictions = bool(person.get_biography_contradictions())
                 illustrations =  self.merged_biography.get_illustrations()
-                self.thumbnail = illustrations and illustrations[0].has_image() and illustrations[0].image_small_url or u''
-                self.thumbnail = illustrations and illustrations[0].image_small_url or u''
+#                self.thumbnail = illustrations and illustrations[0].has_image() and illustrations[0].image_small_url or u''
+                illustration = illustrations and illustrations[0]
+                if illustration:
+                    url = illustration.image_small_url
+                    url = url[len(illustration._images_cache_url):] 
+                    if url.startswith('/'):
+                        url = url[1:]
+                    self.thumbnail = url
+                else:
+                    self.thumbnail = ''
+                
             @property
             def snippet(self):
                 self._snippet = u''

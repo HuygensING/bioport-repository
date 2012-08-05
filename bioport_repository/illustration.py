@@ -48,7 +48,7 @@ class Illustration:
          - url  : the original url of the image
          - images_cache_local : path to a place on the filesystem where the 
            image will be downloaded to.
-         - images_cache_url : url at which the image will be accessabiel once 
+         - images_cache_url : URL at which the image will be accessabiel once 
            downloaded
          - link_url: an optional url to link to
          - prefix : will be prefixed to the local cached filename 
@@ -66,7 +66,6 @@ class Illustration:
 
 
     # --- public API used by the view
-
     @property
     def link_url(self):
         """The url of the site the biography points to"""
