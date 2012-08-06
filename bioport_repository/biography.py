@@ -281,10 +281,6 @@ class Biography(object, BioDesDoc): #, SVNEntry):
             r_biography.time = datetime.today().isoformat()
             r_biography.source_id       
             
-        #do some sanity checks
-        person = self.repository.get_person(self.get_bioport_id())
-        assert person
-        
         # update the information of the associated person (or add a person 
         # if the biography is new)
         person = self._person
