@@ -2,6 +2,7 @@ from __future__ import with_statement
 
 import os
 import urllib2
+import httplib
 import traceback
 import sys
 import logging
@@ -159,7 +160,7 @@ class Illustration:
             logging.info('Downloading image from %s to %s' % (repr(url), repr(self.cached_local)))
             try:
                 http = urllib2.urlopen(url)
-            except (urllib2.HTTPError, OSError, UnicodeEncodeError), err:
+            except (urllib2.HTTPError, OSError, UnicodeEncodeError, httplib.BadStatusLine), err:
                 if os.path.isfile(self.cached_local):
                     os.remove(self.cached_local)
                 raise CantDownloadImage(str(err))
@@ -180,7 +181,7 @@ class Illustration:
             self._create_thumbnail(*SMALL_THUMB_SIZE)
             self._create_thumbnail(*HOME_THUMB_SIZE)
         except IOError, err:
-            os.remove(self.cached_local)
+            os.remove(self.cached_local) #why??
             raise CantDownloadImage(str(err))
         except:
             logexception()
