@@ -160,7 +160,7 @@ class Illustration:
             logging.info('Downloading image from %s to %s' % (repr(url), repr(self.cached_local)))
             try:
                 http = urllib2.urlopen(url)
-            except (urllib2.HTTPError, OSError, UnicodeEncodeError, httplib.BadStatusLine), err:
+            except (urllib2.HTTPError, OSError, UnicodeEncodeError, httplib.BadStatusLine, urllib2.URLError), err:
                 if os.path.isfile(self.cached_local):
                     os.remove(self.cached_local)
                 raise CantDownloadImage(str(err))
