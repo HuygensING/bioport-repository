@@ -124,6 +124,7 @@ class Illustration:
         """path on the local file system to a copy of the image"""      
         #in the test environment (on jenkins, but not locally) we get an enocding error here
         #when this is given as input to os.stat
+        # (the locale settings there are slighly different, IT instead of en_US, but still UTF8)
         #return unicode(os.path.join(self._images_cache_local,  self.id))
         #and so we try to return an encoded string instead 
         return os.path.join(self._images_cache_local,  self.id).encode('utf8')
