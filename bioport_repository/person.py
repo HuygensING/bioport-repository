@@ -8,13 +8,13 @@ from bioport_repository.db_definitions import STATUS_NEW
 from bioport_repository.common import format_date
 from bioport_repository.db_definitions import RelPersonCategory, RelPersonReligion, PersonRecord, PersonSource
 
+
 class Person(object):
-    """A Person is an object that is identified with a bioport
-    identifier.  It is usually associated with one or more Biography
-    objects.
+    """A Person is an object that is identified with a bioport identifier. 
+    A Person is usually associated with one or more Biography objects.
     """
 
-    def __init__(self, 
+    def __init__(self,
         bioport_id,
         biographies=None,  # XXX - this is not used!
         repository=None,
@@ -33,7 +33,6 @@ class Person(object):
             status - an integer
             remarks - a string
         """
-#      assert is_valid_bioport_id(bioport_id)
         self.id = self.bioport_id = bioport_id
         self.repository = repository
         self._record = record

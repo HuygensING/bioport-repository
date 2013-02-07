@@ -13,20 +13,24 @@ from names.common import html2unicode
 from sqlalchemy.orm.exc import DetachedInstanceError
 from biodes import BioDesDoc
 from bioport_repository.illustration import Illustration
-from bioport_repository.data_extraction import BioDataExtractor
+from bioport_repository.datamanipulation.data_extraction import BioDataExtractor
 from bioport_repository.db_definitions import BiographyRecord
 
 
-def create_biography_id(source_id, local_id):        
+def create_biography_id(source_id, local_id):
+    """generate an id for this biogrpahy on the baseis fo source_id and local_id
+
+    local_id is expected to be unique in the source_id namespace
+    """
     id = '%s/%s' % (source_id, local_id)
-    if len(id) > 50:        
+    if len(id) > 50:
         logging.warning('Ids can be maximally 50 characters long; this one ' \
                         'is %s: "%s"\nShorted it to 50 characters' % (len(id), id))
         id = id[:50]
     return id
 
-    
-class Biography(object, BioDesDoc): #, SVNEntry):
+
+class Biography(object, BioDesDoc):
 
     def __init__(self, 
         id=None, 
