@@ -1,3 +1,7 @@
+# 
+# TODO: drop table person_view; in prodction db.
+#
+
 from sqlalchemy import Column, Integer, Unicode, ForeignKey,  Boolean, UnicodeText, Float,  Date
 from sqlalchemy import MetaData, Text, DateTime
 from sqlalchemy.ext.declarative import declarative_base
@@ -12,7 +16,6 @@ metadata = MetaData()
 Base = declarative_base()
 
 
-            
 class BiographyRecord(Base):
     """represents a version of  biodes document"""
     __tablename__ = 'biography'
@@ -95,57 +98,29 @@ class SoundexRecord(Base):
     id = Column(Integer,primary_key=True)
     naam_id = Column(Integer, ForeignKey('naam.id'))
     soundex  = Column(Unicode(100))
-#
-#class PersonView(Base):
-#    """this is our 'cache' table - it duplicates all other data, and this is from where the website reads its data
-#    
-#    Base.metadata.create_all(tables=['person_view'])
-#    
-#    """
-#    __tablename__ = 'person_view'
-#    bioport_id = Column(MSString(50), primary_key=True)
-#    name = Column(Unicode(255))
-#    geboortedatum_min = Column(Date, index=True)
-#    geboortedatum_max = Column(Date, index=True)
-#    sterfdatum_min = Column(Date, index=True)
-#    sterfdatum_max = Column(Date, index=True)
-#    
-#    geboorteplaats = Column(MSString(255), index=True)
-#    sterfplaats = Column(MSString(255), index=True)
-#    naam = Column(MSString(255), index=True)
-#    geslachtsnaam = Column(MSString(255), index=True)
-#    names = Column(UnicodeText)
-#    sort_key = Column(MSString(50), index=True)
-#    sex = Column(Integer, index=True)
-#    search_source = Column(UnicodeText)
-#    snippet = Column(UnicodeText)
-#    thumbnail = Column(MSString(255))
-#    status = Column(Integer, index=True)
-#    has_illustrations = Column(Boolean)
-#    has_contradictions = Column(Boolean)
-#    timestamp = Column(TIMESTAMP)
+
 
 class PersonRecord(Base):
     """This is basically a 'cache' table for searching for persons in the database, together with some meta-data
-    
+
     The data are a combination of the data from the biographies associated with a bioport id
     """
-    
+
     __tablename__ = 'person'
-    
+
     bioport_id = Column(
         MSString(50), 
-        ForeignKey('bioportid.bioport_id'), 
+        ForeignKey('bioportid.bioport_id'),
         primary_key=True,
-        index=True, 
+        index=True,
         unique=True,
         )
-    
+
     geboortedatum_min = Column(Date, index=True)
     geboortedatum_max = Column(Date, index=True)
     sterfdatum_min = Column(Date, index=True)
     sterfdatum_max = Column(Date, index=True)
-    
+
     geboortedatum = Column(MSString(12), index=True)
     geboorteplaats = Column(MSString(255), index=True)
     sterfdatum = Column(MSString(12), index=True)
@@ -156,32 +131,35 @@ class PersonRecord(Base):
     sort_key = Column(MSString(50), index=True)
     sex = Column(Integer, index=True)
     bioport_id_record = relation(BioPortIdRecord)
-    
+
     search_source = Column(UnicodeText)
     snippet = Column(UnicodeText)
     remarks = Column(UnicodeText)
     thumbnail = Column(MSString(255))
     status = Column(Integer, index=True)
-    
+
     has_illustrations = Column(Boolean)
     has_contradictions = Column(Boolean)
-    
+
     timestamp = Column(TIMESTAMP)
-        
+
+
 class PersonSoundex(Base): 
     __tablename__ = 'person_soundex'
     id = Column(Integer, primary_key=True)
     bioport_id = Column(MSString(50),ForeignKey('person.bioport_id'), index=True, )
     soundex = Column(Unicode(20), index=True)
     is_from_family_name = Column(Boolean)
-    
+
+
 class PersonName(Base): 
     __tablename__ = 'person_name'
     id = Column(Integer, primary_key=True)
     bioport_id = Column(MSString(50),ForeignKey('person.bioport_id'), index=True, )
     name = Column(Unicode(20), index=True)
     is_from_family_name = Column(Boolean)
-    
+
+
 class PersonSource(Base):     
     __tablename__ = 'person_source'
     id = Column(Integer, primary_key=True)

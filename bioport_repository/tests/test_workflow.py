@@ -1,5 +1,5 @@
 import os
-from bioport_repository.tests.common_testcase import CommonTestCase, unittest 
+from bioport_repository.tests.common_testcase import CommonTestCase, unittest
 #from bioport_repository.repository import
 from bioport_repository.source import Source, BioPortSource
 
@@ -14,11 +14,11 @@ class WorkflowTestCase(CommonTestCase):
     def test_workflow(self):
         #a test where we run trhough the whole workflow 
         #of downloading, identifyying, adding and editing descriptions, combining information
-        
-        repository = self.repo 
+
+        repository = self.repo
 
         self.repo.db._update_category_table()
-        
+
         #------------------------ 
         #download data from a source
         #------------------------ 
@@ -26,26 +26,26 @@ class WorkflowTestCase(CommonTestCase):
         source = Source(id=u'test', url=url , description=u'test', repository=repository)
         repository.add_source(source)
         repository.download_biographies(source)
-        
+
         url = 'file://%s' % os.path.join(THIS_DIR, 'data/knaw2/list.xml')
         source = Source(id=u'knaw2', url=url , description=u'test', repository=repository)
         repository.add_source(source)
         repository.download_biographies(source)
-        
+
         #inspect the sources
         repository.get_sources(order_by='quality', desc=True)
-        
+
         self.assertEqual(len(list(repository.get_biographies())), 10)
         self.assertEqual(len(repository.get_persons()), 10)
-        
+
         source = BioPortSource()
         repository.add_source(source)
         #------------------------ 
         #identify two biographies
         #------------------------ 
-        
+
         #get two biographies
-        
+
         #get a biography
         person1 = repository.get_persons()[1]
         bio1 = person1.get_biographies()[0]
@@ -53,15 +53,14 @@ class WorkflowTestCase(CommonTestCase):
         repository.db.fill_similarity_cache(minimal_score=0.0, refresh=True)
         similar_persons = repository.get_most_similar_persons(bioport_id=person1.bioport_id)
         score, p1, p2 = similar_persons[0]
-        
+
         person2 = (person1 == p1 and p2) or (person1 == p2 and p1)
         bio2 = person2.get_biographies()[-1]
         id1 = person1.get_bioport_id()
         id2 = person2.get_bioport_id()
-        
-        self.assertNotEqual(id1 ,id2)
-        
-        
+
+        self.assertNotEqual(id1 , id2)
+
         #for more identification workflow, see test_repository.RepositoryTestCase.test_workflow_identification
         person = repository.identify(person1, person2)
         if person.get_bioport_id() == person2.get_bioport_id():
@@ -73,38 +72,37 @@ class WorkflowTestCase(CommonTestCase):
         #so this means we have a person with these two biographies attached
         bios = person.get_biographies()
         self.assertEqual(set([b.id for b in bios]), set([bio1.id, bio2.id]))
-        
+
         #now the old bioport_id redirets to the new one
         assert id2 in repository.get_bioport_ids()
         self.assertEqual(repository.redirects_to(id2), id1)
-        
+
         #it also means that we (still) have 10 biographies
-        self.assertEqual(len(list(repository.get_biographies())), 10) 
+        self.assertEqual(len(list(repository.get_biographies())), 10)
         #but now we have 9 persons
         self.assertEqual(len(repository.get_persons()), 9, repository.get_persons())
-        
+
         #find the 5 most similar personname-pairs
         repository.db.fill_similarity_cache(minimal_score=0.0)
-        ls = repository.get_most_similar_persons() 
+        ls = repository.get_most_similar_persons()
         ls = [p for p in ls]
         _nr_similarity = len(ls)
         #get the score, and two persons
         _score, p1, p2 = ls[0]
 
         repository.antiidentify(p1, p2)
-#        ls = repository.get_most_similar_persons() 
-        ls =  list(ls)
-        
+        ls = list(ls)
+
 #        self.assertEqual(len(ls), _nr_similarity-1, '%s - %s - %s' % (len(ls), _nr_similarity-1,  ls))
         _score, p1, p2 = ls[0]
-        
+
         #identifiy the persons
         repository.identify(p1, p2)
-        
+
         #in the end, we commit our changes
         #repository.commit()
-        
-        #------------------------ 
+
+        #------------------------
         #add a new biodes document for a person
         #------------------------ 
         person = repository.get_persons()[3]
@@ -112,22 +110,22 @@ class WorkflowTestCase(CommonTestCase):
         #this bio is a biogrpahy of our person
         self.assertEqual(bio.get_bioport_id(), person.get_bioport_id())
         assert bio.id in [bio.id for bio in person.get_biographies()]
-        
+
         #edit it
         #try to extract the gelsachtsnaam from the text
         s = bio.guess_value('geboortedatum')
         bio.set_value(geboortedatum=s)
-        bio.set_category([1,2,3])
-        person.status = 3 
+        bio.set_category([1, 2, 3])
+        person.record.status = 3
         #save your edited bioportsource
         self._save_biography(bio)
-       
-        
-        
+
+
+
         #-----------------------------
         # PRESENtATION
         #-----------------------
-        
+
         #do some queries
         repository.get_persons(beginletter='a')
         repository.get_persons(search_term='A*')
@@ -135,7 +133,7 @@ class WorkflowTestCase(CommonTestCase):
         # combine the biographies
         #------------------------ 
         bio = person.get_merged_biography()
-        
+
 
 def test_suite():
     test_suite = unittest.TestSuite()

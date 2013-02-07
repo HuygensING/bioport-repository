@@ -601,11 +601,11 @@ class RepositoryTestCase(CommonTestCase):
         id1 = person1.get_bioport_id() 
         id2 = person2.get_bioport_id()  
         assert id1 != id2
-        person1.status = STATUS_ONLY_VISIBLE_IF_CONNECTED
+        person1.record.status = STATUS_ONLY_VISIBLE_IF_CONNECTED
         self.repo.save_person(person1)
         #identify the two people
         person = self.repo.identify(person1, person2)
-        self.assertEqual(person.status,person2.status)
+        self.assertEqual(person.status, person2.status)
         self.assertEqual(self.repo.get_person(person.get_bioport_id()).status, person2.status)
     
     def test_identify_categories(self):

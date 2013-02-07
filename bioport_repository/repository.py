@@ -21,11 +21,11 @@ from bioport_repository.illustration import CantDownloadImage
 
 
 class Repository(object):
-    
+
     ENABLE_SVN = False
     ENABLE_DB = True
 
-    def __init__(self, 
+    def __init__(self,
         svn_repository=None,
         svn_repository_local_copy=None,
         dsn=None,
@@ -33,15 +33,14 @@ class Repository(object):
         images_cache_local=None,
         images_cache_url=None,
         ):
-    
+
         assert user
         self.svn_repository = SVNRepository(svn_repository=svn_repository, svn_repository_local_copy=svn_repository_local_copy)
         print 'initializing %s' % self
         self.db = DBRepository(
-            dsn=dsn, 
-            user=user, 
+            dsn=dsn,
+            user=user,
             repository=self,
-#           ZOPE_SESSIONS=ZOPE_SESSIONS, 
             )
         self.db.repository = self
         if images_cache_local:
@@ -50,11 +49,11 @@ class Repository(object):
                 assert os.path.exists(images_cache_local), msg
             except:
                 print msg
-                
+
         self.images_cache_local = images_cache_local
         self.images_cache_url = images_cache_url
-        self.user=user
-        
+        self.user = user
+
     def commit(self, svn_entry=None):
         """commmit the local changes to the repository"""
         if self.ENABLE_SVN:
@@ -63,52 +62,45 @@ class Repository(object):
                 self.svn_repository.commit(msg, svn_entry.path())
             else:
                 self.svn_repository.commit(msg)
-        
+
     def get_bioport_ids(self):
         """return _all_ bioport_ids in the system"""
         return self.db.get_bioport_ids()
-            
+
     def get_person(self, bioport_id):
         return self.db.get_person(bioport_id=bioport_id, repository=self)
-        
+
     def count_persons(self, **args):
         return self.db.count_persons(**args)
 
-    def get_persons(self, **args): 
+    def get_persons(self, **args):
         """Get persons satisfying the given arguments
-        
-        
+
         arguments:
             order_by - a string - default is 'sort_key'
-        
+
         returns: a PersonList instance - a list of Person instances
         """
         return self.get_persons_sequence(**args)
-#        if self.ENABLE_DB:
-#            return self.db.get_persons(**args)
-#        elif self.ENABLE_SVN:
-#            raise NotImplementedError()
 
     def get_bioport_id(self, url_biography):
         return self.db.get_bioport_id(url_biography=url_biography)
-    
+
     def get_persons_sequence(self, **args):
         """return a PersonList instance"""
         if args.get('full_records'):
             del args['full_records']
         query = self.db._get_persons_query(**args)
-#        ls = query.session.execute(query._compile_context().statement,
-#                                  query._params).fetchall() 
         ls = query.session.execute(query).fetchall()
-        ls = [r[0] for r in ls] 
+        ls = [r[0] for r in ls]
         return PersonList(self, ls)
-            
+
     def delete_person(self, person):
         if self.ENABLE_DB:
             return self.db.delete_person(person)
         if self.ENABLE_SVN:
             raise NotImplementedError()
-    
+
     def count_biographies(self, **args):
         return self.db.count_biographies(**args)
 
@@ -117,13 +109,13 @@ class Repository(object):
             return self.db.get_biographies(**args)
         elif self.ENABLE_SVN:
             raise NotImplementedError()
-        
+
     def get_biography(self, local_id=None, **args):
         return self.db.get_biography(local_id=local_id, **args)
-    
+
     def redirects_to(self, bioport_id):
         return self.db.redirects_to(bioport_id)
-        
+
     def add_source(self, source):
         """add a source of data to the db"""
         if source.id in [src.id for src in self.get_sources()]:
@@ -132,20 +124,20 @@ class Repository(object):
             self.db.add_source(source)
         if self.ENABLE_SVN:
             self.svn_repository.add_source(source)
-        return source        
-    
+        return source
+
     def delete_source(self, source):
         if self.ENABLE_DB:
             self.db.delete_source(source)
         if self.ENABLE_SVN:
             self.svn_repository.delete_source(source)
-  
+
     def get_source(self, id):
         ls = [src for src in self.get_sources() if src.id == id]
         if not ls:
             raise ValueError('No source found with id %s\nAvailabe sources are %s' % (id, [s.id for s in self.get_sources()]))
         return ls[0]
-     
+
     def get_sources(self, order_by='quality', desc=True):
         """
         return: a list of Source instances
@@ -154,11 +146,11 @@ class Repository(object):
             return self.db.get_sources(order_by=order_by, desc=desc)
         elif self.ENABLE_SVN:
             return self.svn_repository.get_sources(order_by=order_by, desc=desc)
-    
+
     def get_status_value(self, k, default=None):
         items = STATUS_VALUES
         return dict(items).get(k, default)
-        
+
     def get_status_values(self):
         return STATUS_VALUES
 
@@ -168,7 +160,7 @@ class Repository(object):
     def get_author(self, author_id):
         if self.ENABLE_DB:
             return self.db.get_author(author_id)
-        raise NotImplementedError 
+        raise NotImplementedError
 
     def save(self, x):
         if x.__class__ == Biography:
@@ -178,25 +170,24 @@ class Repository(object):
         else:
             raise TypeError('Cannot save a object %s in the repository: unknown type' % x)
 
-   
     def save_source(self, source):
         source.repository = self
         if self.ENABLE_DB:
             self.db.save_source(source)
         if self.ENABLE_SVN:
             raise NotImplementedError()
-    
+
     def save_person(self, person):
         if self.ENABLE_DB:
             self.db.save_person(person)
         if self.ENABLE_SVN:
             raise NotImplementedError()
-        
+
     def save_biography(self, biography, comment):
         biography.repository = self
         if self.ENABLE_DB:
             biography = self.db.save_biography(biography, user=self.user, comment=comment)
-            
+
         if self.ENABLE_SVN:
             raise NotImplementedError()
 
@@ -204,7 +195,7 @@ class Repository(object):
 
     def detach_biography(self, biography):
         return self.db.detach_biography(biography)
-    
+
     def delete_biographies(self, source):
         sources_ids = [src.id for src in self.get_sources()]
         if source.id not in sources_ids:
@@ -214,42 +205,42 @@ class Repository(object):
                 self.db.delete_biographies(source)
             if self.ENABLE_SVN:
                 raise NotImplementedError
-    
+
     def delete_biography(self, biography):
         return self.db.delete_biography(biography)
-    
-    def download_biographies(self, source, limit=None ):
+
+    def download_biographies(self, source, limit=None):
         """Download all biographies from source.url and add them to the repository.
         Mark any biographies that we did not find (anymore), by removing the source_url property.
         Return the number of total and skipped biographies.
-       
-        arguments:    
+
+        arguments:
             source: a Source instance
-        
+
         returns:
              a list of biography instances
         """
-        
+
         #at the URL given we find a list of links to biodes files
         #print 'Opening', source.url
         assert source.url, 'No URL was defined with the source "%s"' % source.id
-        
+
         logging.info('downloading data at %s' % source.url)
         logging.info('parsing source url')
-        
+
         #TODO: perhaps it would be better to check on Source.__init__ if repository argument is given
         if not source.repository:
             source.repository = self
         try:
             ls = biodes.parse_list(source.url)
             if limit:
-                ls = ls[:limit] 
+                ls = ls[:limit]
         except etree.XMLSyntaxError, error: #@UndefinedVariable
             raise BioPortException('Error parsing data at %s -- check if this is valid XML\n%s' % (source.url, error))
-        
+
         if not ls:
             raise BioPortException('The file at %s does not contain any links to biographies' % source.url)
-        
+
         #we have a valid list of biographies to download
         #first we remove all previously imported biographies at this source
         logging.info('deleting existing biographies from %s' % source)
@@ -271,8 +262,7 @@ class Repository(object):
             #create a Biography object 
             bio = Biography(source_id=source.id, repository=source.repository)
             bio.from_url(biourl)
-            bio.save(user='',comment=u'downloaded biography from source %s' % source)
-#            self.save_biography(bio, comment=u'downloaded biography from source %s' % source)
+            bio.save(user='', comment=u'downloaded biography from source %s' % source)
 
         # remove the temp directory which has been used to extract
         # the xml files
@@ -281,27 +271,27 @@ class Repository(object):
 
         s = '%s biographies downloaded from source %s' % (iteration, source.id)
         logging.info(s)
-        logging.info('deleting orphaned persons')
         source.last_bios_update = time.time()
         self.save_source(source)
 
+        logging.info('deleting orphaned persons')
         self.delete_orphaned_persons(source_id=source.id)
         return total, skipped
-    
+
     def delete_orphaned_persons(self, **args):
         #remove all elements from the person table that do not have any biographies associated with them anymore
         for p in self.get_persons(**args):
 #            logging.info('%s'% p)
             if not p.get_biographies():
                 self.delete_person(p)
-        return 
+        return
 
     def download_illustrations(self, source, overwrite=False, limit=None):
         """Download the illustrations associated with the biographies in the source.
-        
+
         arguments:
             - source:  a Source instance
-            - overwrite: Boolean. If overwrite is true, then we download also if we already have this image. 
+            - overwrite: Boolean. If overwrite is true, then we download also if we already have this image.
                 default is False.
         returns:
             (total, skipped)
@@ -311,7 +301,7 @@ class Repository(object):
         bios = self.get_biographies(source=source)
         total = 0
         skipped = 0
-        for i,bio in enumerate(bios):
+        for i, bio in enumerate(bios):
             logging.info('[%s/%s] downloading illustrations' % (i, len(bios)))
             total += 1
             if limit and total > limit:
@@ -331,19 +321,19 @@ class Repository(object):
                 shutil.rmtree(directory)
 
         return total, skipped
-    
+
     def get_most_similar_persons(self, **args):
         """get the most similar pairs of person, name we can find
-           
+
            similar_to : a  bioport id
         returns:
             a list of triples (score, person1, person2)
         """
         return self.db.get_most_similar_persons(**args)
-    
+
     def identify(self, person1, person2):
         """Identify the persons in this list (because they are really the same person)
-        
+
         arguments:
             persons - a list of Person instances
         returns:
@@ -351,40 +341,40 @@ class Repository(object):
         """
         #the oldest identifier will be the canonical one
         return self.db.identify(person1, person2)
-    
+
     def identify_persons(self, source_id, min_score):
         for _score, person1, person2 in self.get_most_similar_persons(source_id=source_id, min_score=min_score, size=None):
             self.identify(person1, person2)
-            
+
     def antiidentify(self, person1, person2):
-        self.db.antiidentify(person1,person2)
-    
+        self.db.antiidentify(person1, person2)
+
 #    OBSOLETE - or better, this should be handled undoing separate identify transactions
-    def unidentify(self, person):       
+    def unidentify(self, person):
         return self.db.unidentify(person)
 
     def get_antiidentified(self):
         """return a list of anti-identified perons"""
         return self.db.get_antiidentified()
-    
+
     def is_antiidentified(self, person1, person2):
         """return True if these two persons are on the 'anti-identified' list"""
         return self.db.is_antiidentified(person1, person2)
-    
+
     def defer_identification(self, person1, person2):
-        self.db.defer_identification(person1,person2)
-        
+        self.db.defer_identification(person1, person2)
+
     def get_deferred(self):
         return self.db.get_deferred()
-    
+
     def get_identified(self, **args):
         return self.db.get_identified(**args)
-            
+
     def redirect_identifier(self, bioport_id, redirect_to):
         """make sure that:
         1. all biographies associated with bioport_id will be associated with redirect_to
         2. the repository redirecs all references to bioport_id to redirect_to
-       
+
         arguments:
             bioport_id - a bioport id
             redirect_to - a bioport id
@@ -397,16 +387,16 @@ class Repository(object):
             raise NotImplementedError#        id = self.get_identifier(bioport_id)
 
     def get_bioport_biography(self, person, create_if_not_exists=True):
-        """get, or if it does not yet exist, create, a biodes document that represents the interventions 
+        """get, or if it does not yet exist, create, a biodes document that represents the interventions
         of the editors in the biographical portal
-        
+
         arguments:
             person - an instance of Person
         returns:
             an instance of Biography
-        """    
+        """
         source = BioPortSource()
-                
+
         if not source.id in [s.id for s in self.get_sources()]:
             src = Source('bioport', repository=self)
             self.add_source(src)
@@ -419,7 +409,7 @@ class Repository(object):
                 #create a new biography
                 return self._create_bioport_biography(person)
             else:
-                return 
+                return
         else:
             #disabled warning - this is not so bad after all
 #            if len(ls) != 1: 
@@ -430,10 +420,10 @@ class Repository(object):
             return ls[0]
             if len(ls) == 1:
                 return ls[0]
-            
+
             ls_with_our_bioid = [b for b in ls if person.get_bioport_id() in b.id]
             if ls_with_our_bioid:
-                if not len(ls_with_our_bioid) == 1: 
+                if not len(ls_with_our_bioid) == 1:
                     raise Exception()
                 return ls_with_our_bioid[0]
             else:
@@ -444,13 +434,13 @@ class Repository(object):
 
     def _create_bioport_biography(self, person):
         source = BioPortSource(id='dummy')
-        bio = Biography(id='%s/%s'  % (source.id, person.get_bioport_id()), source_id=source.id)
+        bio = Biography(id='%s/%s' % (source.id, person.get_bioport_id()), source_id=source.id)
         bio._set_up_basic_structure()
         bio.set_value(local_id=person.get_bioport_id())
         bio.set_value(bioport_id=person.get_bioport_id())
         self.save_biography(bio, u'created Bioport biography')
         return bio
- 
+
     def get_identifier(self, bioport_id):
         if self.ENABLE_DB:
             self.db.get_identifier()
@@ -462,14 +452,14 @@ class Repository(object):
 
     def get_occupation(self, id):
         return self.db.get_occupation(id)
-    
+
     def get_category(self, id):
         return self.db.get_category(id)
 
     def get_categories(self):
         #we wrap the category objects, so that when the session closes, sqlalchemy does noet complain about the memoized objects
         return self.db.get_categories()
-    
+
     def get_places(self, *args, **kwargs):
 #        logging.info('call get_places(%s, %s)' % (args, kwargs))
         return self.db.get_places(*args, **kwargs)
@@ -479,45 +469,46 @@ class Repository(object):
 
     def get_versions(self, **args):
         """get the amount of last changes
-        
+
         returns:
             a list of versioning.Version objects
         """
         return self.db.get_versions(**args)
-    
+
     def undo_version(self, document_id, version):
         """undo all changes to the document with document_id, from version onwards"""
         return self.db.undo_version(document_id, version)
 
+
 class PersonList(object):
     """This object tries to behave like a list of Person objects as efficiently as possible
-    
+
     A personlist is initiated with:
-        a repository instance 
+        a repository instance
         a list of bioport_ids
     """
     def __init__(self, repository, bioport_ids):
         """
         arguments:
             query : either a list of a sqlalchemy query object
-            
+
         """
         #this query will return bioport ids
-        
+
         self.repository = repository
         self._bioport_ids = bioport_ids
-            
+
     def __len__(self):
         return len(self._bioport_ids)
-    
+
     def __getitem__(self, key):
         if isinstance(key, slice):
             new_list = PersonList(self.repository, self._bioport_ids[key])
             return new_list
-        
+
         i = int(key)
         return self.repository.db.all_persons().get(self._bioport_ids[i])
-   
+
 """OLD PERSONLIST IMPLEMENTATION
 (kept here for documentation, feel free to delete if needed)
 
@@ -530,47 +521,47 @@ class PersonList(object):
         ""
         arguments:
             query : either a list of a sqlalchemy query object
-            
+
         ""
         self.query = query
         self.repository = repository
         self._persons = {}
-        
+
         if not isinstance(query, list):
             # We bypass SQLAlchemy ORM because it' expensive
             # and we don't need it for all results of the query
             # expecially when they are 24.000, like a serch for van der Aa
             try:
                 self._records = query.session.execute(query._compile_context().statement,
-                                  query._params).fetchall() 
+                                  query._params).fetchall()
             except InvalidRequestError:
-                query.transaction.abort() 
+                query.transaction.abort()
                 self._records = query.session.execute(query._compile_context().statement,
                                   query._params).fetchall()
- 
+
             self.column_names = [a.column.name for a in self.query._entities]
         else:
-            self._records = query 
-            
+            self._records = query
+
     def __len__(self):
         if type(self.query) is list:
             return len(self.query)
         return self.query.count()
-    
+
     def get_record(self, i):
         if self._records:
-            # If we already have the record we mimic SqlAlchemy result object 
+            # If we already have the record we mimic SqlAlchemy result object
             # (accessible by column name as an attribute)
             return AttributeDict(dict(zip(self.column_names, self._records[i])))
         else:
             raise
-    
+
     def __getitem__(self, key):
         if isinstance(key, slice):
             new_list = PersonList(self._records[key], self.repository)
             new_list.column_names = self.column_names
             return new_list
-        
+
         i = int(key)
         if i<0:
             i = len(self) + i
