@@ -17,7 +17,7 @@ class Person(object):
 
     def __init__(self,
         bioport_id,
-        biographies=None,  # XXX - this is not used!
+        biographies=None, # XXX - this is not used!
         repository=None,
         record=None,
 #        status=None,
@@ -292,7 +292,7 @@ class Person(object):
             return self.record.sterfdatum
         else:
             return self.computed_values.sterfdatum
-        
+
 #        event = self.get_merged_biography().get_event('death')
 #        if event is not None:
 #            return event.get('when')
@@ -301,26 +301,25 @@ class Person(object):
 
     def get_dates_for_overview(self):
         """return a tuple of ISO-dates to show in the overview
-        
+
         the first data is the date of bith, but if that does not exist, it is date of baptism
         the second date is the date of death, or, if that does not exist, date of burial
-        
+
         TODO: why is the baptism-burial part commented out?
         """
-        date1 = self.geboortedatum() 
+        date1 = self.geboortedatum()
 #        if not date1:
 #            event = self.get_merged_biography().get_event('baptism')
 #            if event is not None:
 #                date1 = event.get('when')
-#        
+#
         date2 = self.sterfdatum()
 #        if not date2:
 #            event = self.get_merged_biography().get_event('burial')
 #            if event is not None:
 #                date2 = event.get('when')
         return date1, date2
-        
-    
+
     def names(self):
         return self.record.names
 
@@ -340,14 +339,14 @@ class Person(object):
     @classmethod
     def _are_dates_equal(cls, date1, date2):
         """return True if the two dates are 'equal'
-        
+
         arguments:
             date1, date2 are strings in ISO-xxxxx format.
         """
         # "1980-09-10" and "1980" are equal
         # "1980-09" and "1980" are equal
         # "1980-09-10" and "1980-09-12" are not
-        
+
         x, y = date1, date2
         lenx = len(x)
         leny = len(y)
@@ -369,22 +368,22 @@ class Person(object):
                 if not cls._are_dates_equal(tocheck, d):
                     return True
         return False
-    
+
     def update(self):
         #XXX you should call "save" and not "update"
         return self.save()
- 
+
     def _update_source(self):
         """update the table person_source and replace the source_ids to the bioport_id"""
-        bioport_id = self.bioport_id 
+        bioport_id = self.bioport_id
         source_ids = [b.source_id for b in self.get_biographies()]
         with self.repository.db.get_session_context() as session:
             #delete existing references
             session.query(PersonSource).filter(PersonSource.bioport_id == bioport_id).delete()
             for source_id in source_ids:
-                r = PersonSource(bioport_id=bioport_id, source_id=source_id) 
+                r = PersonSource(bioport_id=bioport_id, source_id=source_id)
                 session.add(r)
-                
+
     def get_biography_contradictions(self):
         """Iterates over all biographies and checks birth dates and
         places for contradictions (e.g. one bio states "x" while
@@ -426,14 +425,14 @@ class Person(object):
         return retlist
 
     def merge_bioport_biographies(self):
-        """merge the bioport biographies of this person 
-        
+        """merge the bioport biographies of this person
+
         if the bios are not mergeable (they may have different data), don't change anything
         otherwise, add the merged biography, and remove all the old ones
         """
         bios = self.get_biographies(source_id='bioport')
         if not bios:
-            return 
+            return
         elif type(bios) != type([]):
             return bios
         elif len(bios) < 2:
@@ -446,9 +445,9 @@ class Person(object):
 
     @property
     def computed_values(self):
-        """these are the computed values (used for caching), 
+        """these are the computed values (used for caching),
         that go back as much as possible to the source data """
-        
+
         class Wrapper:
             def __init__(self, person):
                 self.p = self.person = person
@@ -460,20 +459,20 @@ class Person(object):
                 self.geboorteplaats = self.merged_biography.get_value('geboorteplaats')
                 self.sterfplaats = self.merged_biography.get_value('sterfplaats')
                 self.names = u' '.join([unicode(name) for name in self._names])
-                
+
                 self.has_contradictions = bool(person.get_biography_contradictions())
-                illustrations =  self.merged_biography.get_illustrations()
+                illustrations = self.merged_biography.get_illustrations()
 #                self.thumbnail = illustrations and illustrations[0].has_image() and illustrations[0].image_small_url or u''
                 illustration = illustrations and illustrations[0]
                 if illustration:
                     url = illustration.image_small_url
-                    url = url[len(illustration._images_cache_url):] 
+                    url = url[len(illustration._images_cache_url):]
                     if url.startswith('/'):
                         url = url[1:]
                     self.thumbnail = url
                 else:
                     self.thumbnail = ''
-                
+
             @property
             def snippet(self):
                 self._snippet = u''
@@ -486,10 +485,10 @@ class Person(object):
             def _name(self):
                 name = self.merged_biography.naam()
                 return name
-            
-            @property 
+
+            @property
             def _names(self):
-                return self.merged_biography.get_names() 
+                return self.merged_biography.get_names()
             @property
             def merged_biography(self):
 #                if not merged_biography.get_biographies():
@@ -497,9 +496,9 @@ class Person(object):
                 try:
                     return self._merged_biography
                 except AttributeError:
-                    self._merged_biography =  self.p.get_merged_biography()
+                    self._merged_biography = self.p.get_merged_biography()
                     return self._merged_biography
-            
+
             @property
             def naam(self):
                 return self._name and self._name.guess_normal_form()
@@ -514,7 +513,7 @@ class Person(object):
                 return bool(self.merged_biography.get_illustrations())
             @property
             def search_source(self):
-                result =[]
+                result = []
                 for name in self._names:
                     result.append(name.volledige_naam())
                 for bio in self.p.get_biographies():
@@ -524,16 +523,16 @@ class Person(object):
             @property
             def sex(self):
                 return self.merged_biography.get_value('geslacht')
-            
+
             @property
             def geboortedatum(self):
-                date1 =  self.merged_biography.get_value('geboortedatum')
+                date1 = self.merged_biography.get_value('geboortedatum')
                 if not date1:
                     event = self.merged_biography.get_event('baptism')
                     if event is not None:
                         date1 = event.get('when')
                 return date1
-            
+
             @property
             def sterfdatum(self):
                 date2 = self.merged_biography.sterfdatum()
@@ -542,8 +541,8 @@ class Person(object):
                     if event is not None:
                         date2 = event.get('when')
                 return date2
-         
-            
+
+
         return Wrapper(self)
 
 class Contradiction(object):
@@ -558,7 +557,7 @@ class Contradiction(object):
         self.values = values
 
     def __str__(self):
-        s = "<%s at %s; type=%s values=%s>" % (self.__class__.__name__,  id(self),
+        s = "<%s at %s; type=%s values=%s>" % (self.__class__.__name__, id(self),
                                                repr(self.type), repr(self.values))
         return s
 

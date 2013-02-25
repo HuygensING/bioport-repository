@@ -12,25 +12,25 @@ from bioport_repository import  helper_scripts
 helper_scripts.upgrade_march2012(dsn)
 """
 def upgrade_march2012(dsn, bioport_id=None, min=None, max=None):
-    
+
     repository = Repository(dsn=dsn, images_cache_url='http://www.inghist.nl/media/bioport/images/')
     print 'upgrading!'
     if bioport_id:
         persons = repository.get_persons(bioport_id=bioport_id)
     else:
         persons = repository.get_persons()
-        
+
     for i, person in enumerate(persons):
         if min and i < min:
             continue
         if max and i > max:
             continue
         session = repository.db.get_session()
-        r_person =  session.query(PersonRecord).filter_by(bioport_id=person.bioport_id).one()
+        r_person = session.query(PersonRecord).filter_by(bioport_id=person.bioport_id).one()
 #        r_person = person.record
         computed_values = person.computed_values
-        r_person.geboortedatum =  computed_values.geboortedatum 
-        r_person.sterfdatum = computed_values.sterfdatum 
+        r_person.geboortedatum = computed_values.geboortedatum
+        r_person.sterfdatum = computed_values.sterfdatum
         r_person.thumbnail = computed_values.thumbnail
 #        if r_person.thumbnail and not os.path.exists(r_person.thumbnail):
 #            illustrations =  person.merged_biography.get_illustrations()
@@ -40,7 +40,7 @@ def upgrade_march2012(dsn, bioport_id=None, min=None, max=None):
 #                print 'created %s' % fn 
 #            else:
 #                r_person.thumbnail = None
-                
+
         print '[%s/%s] %s (%s-%s) - %s' % (i, len(persons), person, r_person.geboortedatum, r_person.sterfdatum, r_person.thumbnail)
         session.flush()
         transaction.commit()
@@ -64,11 +64,11 @@ def update_religion(dsn):
         #update the religion table
         merged_biography = p.get_merged_biography()
         bioport_id = p.get_bioport_id()
-        religion= merged_biography.get_religion()
-        religion_qry = session.query(RelPersonReligion).filter(RelPersonReligion.bioport_id==bioport_id)
+        religion = merged_biography.get_religion()
+        religion_qry = session.query(RelPersonReligion).filter(RelPersonReligion.bioport_id == bioport_id)
         if religion is not None:
-            religion_id =  religion.get('idno')
-            try:    
+            religion_id = religion.get('idno')
+            try:
                 r = religion_qry.one()
                 r.religion_id = religion_id
             except  NoResultFound:
@@ -77,7 +77,7 @@ def update_religion(dsn):
                 session.flush()
         else:
             religion_qry.delete()
-            session.flush()        
+            session.flush()
 
 
 """update all persons
@@ -95,7 +95,7 @@ def update_persons(dsn, start=None, size=None):
     logging.info('start updating')
     repository = Repository(dsn=dsn)
     repository.db.update_persons(start=start, size=size)
-    
+
 """Set all status of X to Y
 dsn = 'mysql://localhost/bioport'
 from bioport_repository import  helper_scripts
@@ -113,7 +113,7 @@ def _change_states(dsn, status_old, status_new):
         person.status = status_new
         repository.save_person(person)
     print 'done!'
-    
+
 """
 Set all RKD artists with status "New" to status "DONE"
 
@@ -125,7 +125,7 @@ helper_scripts._set_new_rkdartists_to_done(dsn)
 """
 def _set_new_rkdartists_to_done(dsn):
     source_id = 'rkdartists'
-    _set_new_persons_to_done(dsn,source_id)
+    _set_new_persons_to_done(dsn, source_id)
 
 def _set_new_dbnlers_to_done(dsn):
     source_id = 'dbnl'
@@ -155,7 +155,7 @@ def _set_new_persons_to_done(dsn, source_id):
 
 
 """
-Set all DNBL with no category the category 'letterkunde' 
+Set all DNBL with no category the category 'letterkunde'
 
 USAGE:
 dsn = 'mysql://localhost/bioport'
@@ -165,7 +165,7 @@ helper_scripts._set_dbnl_to_letterkunde(dsn)
 
 """
 
-def _set_dbnl_to_letterkunde(dsn): 
+def _set_dbnl_to_letterkunde(dsn):
     repository = Repository(dsn=dsn)
     print 'getting persons'
     i = 0
@@ -178,7 +178,7 @@ def _set_dbnl_to_letterkunde(dsn):
             print 'set category'
             bio.set_category([CATEGORY_LETTERKUNDE])
             repository.save_biography(bio, comment=u'Set category to "letterkunde"')
-    
+
 
 """
 Set the status of all person with a biography of a certain source
@@ -188,6 +188,7 @@ dsn = 'mysql://localhost/bioport'
 from bioport_repository.helper_scripts import _set_status_of_persons_in_source
 _set_status_of_persons_in_source(dsn, source_id='dbnl')
 """
+
 
 def _set_status_of_persons_in_source(dsn, source_id, status=STATUS_DONE):
     repository = Repository(dsn=dsn)
@@ -214,9 +215,9 @@ _remove_irrelevent_items_from_similarity_table(dsn)
 def _remove_irrelevent_items_from_similarity_table(dsn):
     repository = Repository(dsn=dsn)
     db = repository.db
-    session = db.get_session() 
+    session = db.get_session()
     qry = session.query(CacheSimilarityPersons)
-    i = 0 
+    i = 0
     j = 0
     k = 0
     total = qry.count()
@@ -234,21 +235,21 @@ def _remove_irrelevent_items_from_similarity_table(dsn):
             print error
             transaction.abort()
     transaction.commit()
-    print 'deleted %s items' % j 
+    print 'deleted %s items' % j
     print 'committing...'
     print 'done.'
- 
+
 """
-identify any two persons such that: 
+identify any two persons such that:
 
     one is from source
     score > score
 USAGE:
-    
+
 dsn = 'mysql://localhost/bioport'
 from bioport_repository import helper_scripts
 helper_scripts.identify_persons(dsn, source_id='pdc', min_score=0.8647)
-    
+
 """
 
 def identify_persons(dsn, source_id, min_score):
@@ -261,14 +262,14 @@ def identify_persons(dsn, source_id, min_score):
             repository.identify(person1, person2)
         else:
             break
-        
+
     print 'done (%s persons)' % i
 
 """
 identify any two persons that have dbnl biographies witht he same dbnl id
 
 USAGE:
-    
+
 dsn = 'mysql://localhost/bioport'
 from bioport_repository.helper_scripts import identify_dbnl_biographies
 identify_dbnl_biographies(dsn)
@@ -284,7 +285,7 @@ def identify_dbnl_biographies(dsn):
         for source_id in ['dbnl', 'nnbw', 'vdaa']:
             for biography in repository.get_biographies(source=source_id):
                 yield biography
-    
+
     i = 0
     #construct a dictionary dbnl_id --> [bioportids]
     for biography in get_bios():
@@ -297,12 +298,12 @@ def identify_dbnl_biographies(dsn):
             bioport_id = biography.get_bioport_id()
             if bioport_id not in dct.get(dbnl_id, []):
                 dct[dbnl_id] = dct.get(dbnl_id, []) + [bioport_id]
-                
+
     #remove any keys that have just one biograpphy 
     for k in dct.keys():
         if len(dct[k]) < 2:
             del dct[k]
-            
+
     #now identify any two persons that have the saem dbnl_id
     total = len(dct)
     i = 0
@@ -310,7 +311,7 @@ def identify_dbnl_biographies(dsn):
         i += 1
         print '%s/%s' % (i, total)
         bioport_ids = dct[dbnl_id]
-        bioport_id1 = bioport_ids[0]    
+        bioport_id1 = bioport_ids[0]
         person1 = repository.get_person(bioport_id1)
         for bioport_id2 in bioport_ids[1:]:
             person2 = repository.get_person(bioport_id2)
@@ -322,8 +323,8 @@ def identify_dbnl_biographies(dsn):
                 person1 = person2
         #just to make sure, we set all values to none
         bioport_id1 = bioport_id2 = person1 = person2 = None
-            
-   
+
+
 
 #if __name__ == '__main__':
 #    DSN ='mysql://localhost/bioport'

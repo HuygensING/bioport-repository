@@ -2,11 +2,11 @@
 # TODO: drop table person_view; in prodction db.
 #
 
-from sqlalchemy import Column, Integer, Unicode, ForeignKey,  Boolean, UnicodeText, Float,  Date
+from sqlalchemy import Column, Integer, Unicode, ForeignKey, Boolean, UnicodeText, Float, Date
 from sqlalchemy import MetaData, Text, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.dialects.mysql import VARCHAR as MSString
-from sqlalchemy.orm import relation 
+from sqlalchemy.orm import relation
 
 from sqlalchemy.types import TIMESTAMP
 
@@ -20,13 +20,13 @@ class BiographyRecord(Base):
     """represents a version of  biodes document"""
     __tablename__ = 'biography'
 
-    id = Column(MSString(50, binary=True, collation='utf8_bin'), primary_key=True, index=True, ) #the id consist of source_id/local_id
+    id = Column(MSString(50, binary=True, collation='utf8_bin'), primary_key=True, index=True,) #the id consist of source_id/local_id
     version = Column(Integer, primary_key=True, default=0, autoincrement=False)
-    source_id = Column(MSString(20, collation='utf8_bin'), ForeignKey("source.id"),index=True)
+    source_id = Column(MSString(20, collation='utf8_bin'), ForeignKey("source.id"), index=True)
     url_biography = Column(Unicode(255), index=True) #the url where the biography can be found
     source_url = Column(Unicode(255)) #the url where the biodes_document came from
     biodes_document = Column(Text(64000))
-    
+
     user = Column(MSString(50))
     time = Column(DateTime)
     comment = Column(Unicode(255))
@@ -36,68 +36,71 @@ class BiographyRecord(Base):
 
     def get_bioport_id(self):
         return self.bioportid[0].bioport_id
-    
+
+
 class SourceRecord(Base):
     __tablename__ = 'source'
-    
-    id = Column(MSString(20), index=True,primary_key=True)
+
+    id = Column(MSString(20), index=True, primary_key=True)
     url = Column(MSString(255))
     description = Column(MSString(255), nullable=True)
     quality = Column(Integer)
     xml = Column(Text(64000))
     timestamp = Column(TIMESTAMP)
-    
+
     def __init__(self, id, url, description, quality=None, xml=None):
         self.id = id
         self.url = url
         self.description = description
         self.quality = quality
-        self.xml=xml
- 
+        self.xml = xml
+
 #
 # NOTA BENE:
 #    The tables are not normalized completely.
 #    The reason is that the data in the bioportid table needs to be persistent
 #    while the data of the biography table in general is not
 #
-# 
+#
+
 
 class BioPortIdRecord(Base):
     __tablename__ = 'bioportid'
     bioport_id = Column(MSString(50), ForeignKey("bioportid.bioport_id"), primary_key=True)
-    redirect_to = Column(MSString(50)) 
+    redirect_to = Column(MSString(50))
     timestamp = Column(TIMESTAMP)
     biographies = relation('RelBioPortIdBiographyRecord')
     person = relation('PersonRecord')
-    
+
+
 class RelBioPortIdBiographyRecord(Base):
     __tablename__ = 'relbioportidbiography'
     id = Column(Integer, primary_key=True, autoincrement=True)
-    bioport_id = Column(MSString(50), ForeignKey('bioportid.bioport_id'),index=True)
-    biography_id = Column(MSString(50, collation='utf8_bin'), ForeignKey("biography.id"),index=True, unique=True)
+    bioport_id = Column(MSString(50), ForeignKey('bioportid.bioport_id'), index=True)
+    biography_id = Column(MSString(50, collation='utf8_bin'), ForeignKey("biography.id"), index=True, unique=True)
     timestamp = Column(TIMESTAMP)
-    biography = relation(BiographyRecord) 
+    biography = relation(BiographyRecord)
     bioportid = relation(BioPortIdRecord)
-    
-class AuthorRecord(Base):   
+
+class AuthorRecord(Base):
     """XXX the author table serves as a cache and since we mostly look for persons,
     it makes sense to make the relation with the person table directly"""
     __tablename__ = 'author'
     id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(MSString(255), nullable=False, unique=True) 
-    biographies = relation( 'RelBiographyAuthorRecord', cascade="all, delete-orphan")
-    
+    name = Column(MSString(255), nullable=False, unique=True)
+    biographies = relation('RelBiographyAuthorRecord', cascade="all, delete-orphan")
+
 class RelBiographyAuthorRecord(Base):
     __tablename__ = 'relbiographyauthor'
-    biography_id = Column(MSString(50, collation='utf8_bin' ),  ForeignKey('biography.id'), primary_key=True)
-    author_id = Column(Integer, ForeignKey('author.id'), primary_key=True) 
-    author = relation(AuthorRecord,cascade='all') 
+    biography_id = Column(MSString(50, collation='utf8_bin'), ForeignKey('biography.id'), primary_key=True)
+    author_id = Column(Integer, ForeignKey('author.id'), primary_key=True)
+    author = relation(AuthorRecord, cascade='all')
 
 class SoundexRecord(Base):
     __tablename__ = 'soundex'
-    id = Column(Integer,primary_key=True)
+    id = Column(Integer, primary_key=True)
     naam_id = Column(Integer, ForeignKey('naam.id'))
-    soundex  = Column(Unicode(100))
+    soundex = Column(Unicode(100))
 
 
 class PersonRecord(Base):
@@ -109,7 +112,7 @@ class PersonRecord(Base):
     __tablename__ = 'person'
 
     bioport_id = Column(
-        MSString(50), 
+        MSString(50),
         ForeignKey('bioportid.bioport_id'),
         primary_key=True,
         index=True,
@@ -144,32 +147,32 @@ class PersonRecord(Base):
     timestamp = Column(TIMESTAMP)
 
 
-class PersonSoundex(Base): 
+class PersonSoundex(Base):
     __tablename__ = 'person_soundex'
     id = Column(Integer, primary_key=True)
-    bioport_id = Column(MSString(50),ForeignKey('person.bioport_id'), index=True, )
+    bioport_id = Column(MSString(50), ForeignKey('person.bioport_id'), index=True,)
     soundex = Column(Unicode(20), index=True)
     is_from_family_name = Column(Boolean)
 
 
-class PersonName(Base): 
+class PersonName(Base):
     __tablename__ = 'person_name'
     id = Column(Integer, primary_key=True)
-    bioport_id = Column(MSString(50),ForeignKey('person.bioport_id'), index=True, )
+    bioport_id = Column(MSString(50), ForeignKey('person.bioport_id'), index=True,)
     name = Column(Unicode(20), index=True)
     is_from_family_name = Column(Boolean)
 
 
-class PersonSource(Base):     
+class PersonSource(Base):
     __tablename__ = 'person_source'
     id = Column(Integer, primary_key=True)
-    bioport_id = Column(MSString(50),ForeignKey('person.bioport_id'), index=True, )
+    bioport_id = Column(MSString(50), ForeignKey('person.bioport_id'), index=True,)
     source_id = Column(Unicode(20), index=True)
-    
+
 class NaamRecord(Base):
     __tablename__ = 'naam'
-    id = Column(Integer,primary_key=True)
-    
+    id = Column(Integer, primary_key=True)
+
     soundex = relation(SoundexRecord) #, backref="naam.id")
     sort_key = Column(Unicode(100))
     snippet = Column(UnicodeText)
@@ -181,49 +184,49 @@ class NaamRecord(Base):
     volledige_naam = Column(Unicode(255))
     url_description = Column(UnicodeText)
     territoriale_titel = Column(Unicode(255))
-    variant_of = Column(Integer, ForeignKey('naam.id') )
-    varianten = relation("NaamRecord") 
+    variant_of = Column(Integer, ForeignKey('naam.id'))
+    varianten = relation("NaamRecord")
     variant_of_record = relation("NaamRecord",
              remote_side="NaamRecord.id",
              )
     bioport_id = Column(MSString(50), ForeignKey('person.bioport_id'), index=True)
-    person = relation(PersonRecord, 
+    person = relation(PersonRecord,
                          lazy=False, #load eagerly
                          )
 #    sqlalchemy.schema.ForeignKeyConstraint(['id'], ['soundex.naam_id'], ondelete="CASCADE")
-        
+
 class SimilarityCache(Base):
-    __tablename__ = 'cache_similarity' 
+    __tablename__ = 'cache_similarity'
     naam1_id = Column(Integer, ForeignKey('naam.id'), index=True, primary_key=True, autoincrement=False)
     naam2_id = Column(Integer, ForeignKey('naam.id'), index=True, primary_key=True, autoincrement=False)
-    score = Column(Float, index=True) 
-SimilarityCache.naam1 = relation(NaamRecord, primaryjoin=NaamRecord.id ==SimilarityCache.naam1_id) 
-SimilarityCache.naam2 = relation(NaamRecord, primaryjoin=NaamRecord.id ==SimilarityCache.naam2_id)
+    score = Column(Float, index=True)
+SimilarityCache.naam1 = relation(NaamRecord, primaryjoin=NaamRecord.id == SimilarityCache.naam1_id)
+SimilarityCache.naam2 = relation(NaamRecord, primaryjoin=NaamRecord.id == SimilarityCache.naam2_id)
 
 class CacheSimilarityPersons(Base):
-    __tablename__ = 'cache_similarity_persons' 
+    __tablename__ = 'cache_similarity_persons'
     bioport_id1 = Column(MSString(50), ForeignKey('bioportid.bioport_id'), index=True, primary_key=True, autoincrement=False)
     bioport_id2 = Column(MSString(50), ForeignKey('bioportid.bioport_id'), index=True, primary_key=True, autoincrement=False)
-    score = Column(Float, index=True) 
-    
-class AntiIdentifyRecord(Base):    
-    __tablename__ =  'antiidentical'
-    bioport_id1 = Column(MSString(50), 
-                        ForeignKey('bioportid.bioport_id'), 
+    score = Column(Float, index=True)
+
+class AntiIdentifyRecord(Base):
+    __tablename__ = 'antiidentical'
+    bioport_id1 = Column(MSString(50),
+                        ForeignKey('bioportid.bioport_id'),
                         primary_key=True)
-    bioport_id2 = Column(MSString(50), 
-                        ForeignKey('bioportid.bioport_id'), 
+    bioport_id2 = Column(MSString(50),
+                        ForeignKey('bioportid.bioport_id'),
                         primary_key=True)
-    
+
     timestamp = Column(TIMESTAMP)
-    
+
 class DeferIdentificationRecord(Base):
-    __tablename__ =  'defer_identification'
-    bioport_id1 = Column(MSString(50), 
-                        ForeignKey('bioportid.bioport_id'), 
+    __tablename__ = 'defer_identification'
+    bioport_id1 = Column(MSString(50),
+                        ForeignKey('bioportid.bioport_id'),
                         primary_key=True)
-    bioport_id2 = Column(MSString(50), 
-                        ForeignKey('bioportid.bioport_id'), 
+    bioport_id2 = Column(MSString(50),
+                        ForeignKey('bioportid.bioport_id'),
                         primary_key=True)
     timestamp = Column(TIMESTAMP)
     timestamp = Column(TIMESTAMP)
@@ -231,16 +234,16 @@ class DeferIdentificationRecord(Base):
 
 class Location(Base):
     __tablename__ = 'location'
-    id = Column(Integer, primary_key=True,  autoincrement=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     ufi = Column(Integer)
     uni = Column(Integer)
     long = Column(Float)
     lat = Column(Float)
     adm1 = Column(MSString(2), index=True)
-    sort_name=Column(MSString(100), index=True)
-    full_name=Column(MSString(100), index=True) #
-    
-    
+    sort_name = Column(MSString(100), index=True)
+    full_name = Column(MSString(100), index=True) #
+
+
     """
 NL.00    Netherlands (general)
 NL.01    Provincie Drenthe
@@ -256,36 +259,36 @@ NL.11    South Holland
 NL.15    Overijssel
 NL.16    Flevoland
 """
-    provinces= {
+    provinces = {
         '00':'Netherlands (general)',
 		'01':'Drenthe',
-		'02':'Friesland', 
-		'03':'Gelderland', 
-		'04':'Groningen', 
-		'05':'Limburg', 
-		'06':'Noord Brabant', 
-		'07':'Noord Holland', 
-		'09':'Utrecht', 
-		'10':'Zeeland', 
-		'11':'Zuid Holland', 
-		'15':'Overijssel', 
-		'16':'Flevoland', 
+		'02':'Friesland',
+		'03':'Gelderland',
+		'04':'Groningen',
+		'05':'Limburg',
+		'06':'Noord Brabant',
+		'07':'Noord Holland',
+		'09':'Utrecht',
+		'10':'Zeeland',
+		'11':'Zuid Holland',
+		'15':'Overijssel',
+		'16':'Flevoland',
         }
     def province(self):
         return self.provinces[self.adm1]
-    
+
 class Occupation(Base):
     __tablename__ = 'occupation'
     id = Column(Integer, primary_key=True)
-    name=Column(MSString(100), index=True) # *   
-    
+    name = Column(MSString(100), index=True) # *   
+
 class Category(Base):
     __tablename__ = 'category'
     id = Column(Integer, primary_key=True)
-    name=Column(MSString(100), index=True) # *      
-    
+    name = Column(MSString(100), index=True) # *      
+
 class ChangeLog(Base):
-    __tablename__  = 'changelog'
+    __tablename__ = 'changelog'
     id = Column(Integer, primary_key=True)
     table = Column(MSString(50), index=True)
     record_id_int = Column(Integer, index=True)
@@ -296,44 +299,44 @@ class ChangeLog(Base):
 
 class DBNLIds(Base):
     """this is a temporary class used for identifying vdaa and nnbw entries"""
-    __tablename__ = 'dbnl_ids' 
+    __tablename__ = 'dbnl_ids'
     bioport_id1 = Column(MSString(50), ForeignKey('bioportid.bioport_id'), index=True, primary_key=True, autoincrement=False)
     bioport_id2 = Column(MSString(50), ForeignKey('bioportid.bioport_id'), index=True, primary_key=True, autoincrement=False)
     source1 = Column(MSString(5))
     source2 = Column(MSString(5))
     dbnl_id = Column(MSString(20))
-    score = Column(Float, index=True) 
- 
+    score = Column(Float, index=True)
+
 class RelPersonCategory(Base):
     __tablename__ = 'relpersoncategory'
     id = Column(Integer, primary_key=True, autoincrement=True)
     bioport_id = Column(Integer, ForeignKey('person.bioport_id'), index=True)
-    category_id = Column(Integer, ForeignKey('category.id'), index=True)   
+    category_id = Column(Integer, ForeignKey('category.id'), index=True)
     persons = relation(PersonRecord, backref='categories')
-     
+
 class RelPersonReligion(Base):
     __tablename__ = 'relpersonreligion'
     id = Column(Integer, primary_key=True, autoincrement=True)
     bioport_id = Column(Integer, ForeignKey('person.bioport_id'), index=True)
     religion_id = Column(Integer, index=True) #, ForeignKey('category.id'), index=True)   
     persons = relation(PersonRecord, backref='religions')
-    
+
 class Comment(Base):
     """This table holds comments submitted by portal users
     """
     __tablename__ = 'comment'
     id = Column(Integer, primary_key=True, autoincrement=True)
     bioport_id = Column(
-                        MSString(50), 
-                        ForeignKey('bioportid.bioport_id'), 
-                        index=True, 
+                        MSString(50),
+                        ForeignKey('bioportid.bioport_id'),
+                        index=True,
                         unique=True,
                         )
     text = Column(Text)
     created = Column(DateTime, index=True)
     submitter = Column(MSString(20), default='Anonymous')
     email = Column(MSString(40))
-    
+
 STATUS_NEW = 1
 STATUS_DIFFICULT = 3
 STATUS_DONE = 4
@@ -344,20 +347,20 @@ STATUS_FOREIGNER = 11
 STATUS_ALIVE = 14
 STATUS_NOBIOS = 9999
 STATUS_ONLY_VISIBLE_IF_CONNECTED = 15
-STATUS_VALUES =  [
+STATUS_VALUES = [
     (0, '(geen status toegekend)'),
     (STATUS_NEW, 'nieuw'), #
 #    (2, 'bewerkt'), #XXX TO DELETE
     (STATUS_DIFFICULT, 'moeilijk geval'),
 #    (STATUS_MESSY, 'moeilijk geval (troep)'), #XXX TO DELETE
-    (STATUS_DONE, 'klaar'), 
-    (7, 'te weinig informatie'), 
-    (8, 'familielemma'), 
-    (STATUS_REFERENCE, 'verwijslemma'), 
+    (STATUS_DONE, 'klaar'),
+    (7, 'te weinig informatie'),
+    (8, 'familielemma'),
+    (STATUS_REFERENCE, 'verwijslemma'),
 #    (STATUS_NADER_ONDERZOEK, 'nader onderzoek nodig'),  #XXX TO DELETE --> moeilijk geval
-    (STATUS_FOREIGNER, 'buitenlands'), 
+    (STATUS_FOREIGNER, 'buitenlands'),
     (12, 'nog niet bewerkt'),
-    (13, 'portrait'), 
+    (13, 'portrait'),
     (STATUS_NOBIOS, 'no external biographies'),
     (STATUS_ALIVE, 'leeft nog'),
     (STATUS_ONLY_VISIBLE_IF_CONNECTED, 'alleen gekoppeld zichtbaar'),
@@ -391,26 +394,26 @@ RELIGION_VALUES = [
 	(19, 'Pietistisch',),
 	(20, 'Pinksterbeweging',),
 	(21, 'Rozenkruiser',),
-	
+
 #	'Niet-westerse stromingen:
     (None, '-----------'),
-	
+
 	(22, 'Boeddhist',),
 	(23, 'Confuciaans',),
 	(24, 'Hindoestaans',),
 	(25, 'Islamitisch',),
 	(26, 'Theosofisch',),
 	(27, 'Winti',),
-    
+
     (None, '-----------'),
-	
+
 #	Niet-religieuze overtuigingen:
-	
+
 	(28, 'Agnost',),
 	(29, 'Antroposoof',),
 	(30, 'Holistisch',),
 	(31, 'Vrijmetselaar',),
-    
+
     (None, '-----------'),
 	(99, 'Anders...',),
 ]

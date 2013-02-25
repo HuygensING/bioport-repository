@@ -1,16 +1,16 @@
-from bioport_repository.tests.common_testcase import CommonTestCase, unittest 
+from bioport_repository.tests.common_testcase import CommonTestCase, unittest
 from bioport_repository.person import Person
 #from bioport_repository.source import Source
 from bioport_repository.biography import Biography
 
 
 class PersonTestCase(CommonTestCase):
-        
+
     def test_person_init(self):
         p1 = Person('1234', repository=self.repo)
         p2 = Person('2345')
         self.assertNotEqual(p1.id, p2.id)
-        
+
     def test_get_names(self):
         self.create_filled_repository(sources=1)
         p1 = self.repo.get_persons()[1]
@@ -22,7 +22,7 @@ class PersonTestCase(CommonTestCase):
         assert names1 != names2, names1 + names2
         p = self.repo.identify(p1, p2)
         self.assertEqual(len(p.get_names()), n1 + n2)
-        
+
     def test_memoization(self):
         p1 = self.repo.get_persons()[1]
         p1.get_merged_biography()
@@ -38,34 +38,34 @@ class PersonTestCase(CommonTestCase):
         date_baptism = '1901'
         date_death = '1902'
         date_burial = '1903'
-        
+
         bio._add_event(type='baptism', when=date_baptism)
         self._save_biography(bio)
-        self.assertEqual(self.repo.get_person(bioport_id).get_dates_for_overview(), (date_baptism,None))
-        
+        self.assertEqual(self.repo.get_person(bioport_id).get_dates_for_overview(), (date_baptism, None))
+
         bio.set_value('birth_date', date_birth)
         self._save_biography(bio)
         self.assertEqual(self.repo.get_person(bioport_id).get_dates_for_overview(), (date_birth, None))
 
         bio._add_event(type='burial', when=date_burial)
         self._save_biography(bio)
-        self.assertEqual(self.repo.get_person(bioport_id).get_dates_for_overview(), (date_birth,date_burial))
-        
+        self.assertEqual(self.repo.get_person(bioport_id).get_dates_for_overview(), (date_birth, date_burial))
+
         bio.set_value('death_date', date_death)
         self._save_biography(bio)
-        self.assertEqual(self.repo.get_person(bioport_id).get_dates_for_overview(), (date_birth,date_death))
-        
-        
+        self.assertEqual(self.repo.get_person(bioport_id).get_dates_for_overview(), (date_birth, date_death))
+
+
 class InconsistentPersonsTestCase(CommonTestCase):
 
     x = 0
-    
+
     def get_bio(self, bdate=None, ddate=None, bplace=None, dplace=None):
         self.x += 1
         bio = Biography(id=str(self.x), source_id=u"knaw",
-                        repository=self.repo)        
-        bio.from_args(url_biografie='http://google.it', 
-                      naam_publisher='jelle', 
+                        repository=self.repo)
+        bio.from_args(url_biografie='http://google.it',
+                      naam_publisher='jelle',
                       url_publisher='http://gerbrandy.com',
                       naam="gino")
         if bdate is not None:
@@ -78,7 +78,7 @@ class InconsistentPersonsTestCase(CommonTestCase):
             bio.set_value('death_place', dplace)
         self._save_biography(bio)
         return bio
-        
+
     def test_no_contradictions_1(self):
         bio1 = self.get_bio(dplace='bar')
         bio2 = self.get_bio(dplace='bar')
@@ -86,7 +86,7 @@ class InconsistentPersonsTestCase(CommonTestCase):
         person = bio1.get_person()
         person.add_biography(bio1)
         person.add_biography(bio2)
-        person.add_biography(bio3)      
+        person.add_biography(bio3)
 
         contrs = person.get_biography_contradictions()
         self.assertEqual(contrs, [])
@@ -98,11 +98,11 @@ class InconsistentPersonsTestCase(CommonTestCase):
         person = bio1.get_person()
         person.add_biography(bio1)
         person.add_biography(bio2)
-        person.add_biography(bio3)      
+        person.add_biography(bio3)
 
         contrs = person.get_biography_contradictions()
         self.assertEqual(contrs, [])
-        
+
     def test_places_contradictions_1(self):
         # death places
         bio1 = self.get_bio(dplace='bar')
@@ -137,14 +137,14 @@ class InconsistentPersonsTestCase(CommonTestCase):
 
         self.assertEqual(len(cons), 2)
         birth_con = cons[0]
-        self.assertEqual(set(birth_con.values),set([('birth1', 'knaw'), 
-                                            ('birth2', 'knaw'), 
+        self.assertEqual(set(birth_con.values), set([('birth1', 'knaw'),
+                                            ('birth2', 'knaw'),
                                             ('birth3', 'knaw')])
                         )
         self.assertEqual(birth_con.type, 'birth places')
 
         death_con = cons[1]
-        self.assertEqual(set(death_con.values), set([('death1','knaw'), 
+        self.assertEqual(set(death_con.values), set([('death1', 'knaw'),
                                             ('death2', 'knaw')])
                         )
         self.assertEqual(death_con.type, 'death places')
@@ -163,7 +163,7 @@ class InconsistentPersonsTestCase(CommonTestCase):
         self.assertEqual(len(cons), 1)
         con = cons[0]
         con.values.sort(key=lambda x: x[0])
-        self.assertEqual(con.values, [('2010-10-10', 'knaw'), 
+        self.assertEqual(con.values, [('2010-10-10', 'knaw'),
                                       ('2010-11-10', 'knaw')])
         self.assertEqual(con.type, 'birth dates')
 
@@ -181,33 +181,33 @@ class InconsistentPersonsTestCase(CommonTestCase):
         self.assertEqual(len(cons), 1)
         con = cons[0]
         con.values.sort(key=lambda x: x[0])
-        self.assertEqual(con.values, [('2010-10-10', 'knaw'), 
+        self.assertEqual(con.values, [('2010-10-10', 'knaw'),
                                       ('2010-11-10', 'knaw')])
         self.assertEqual(con.type, 'death dates')
-        
-    def test_are_dates_different(self):   
+
+    def test_are_dates_different(self):
         # false
         pairs = [("1877-02-26", "bioport"),
-                 ("1877", "bwn"),]
+                 ("1877", "bwn"), ]
         self.assertFalse(Person._are_dates_different(pairs))
         pairs = [("1877-02", "bioport"),
-                 ("1877", "bwn"),]
+                 ("1877", "bwn"), ]
         self.assertFalse(Person._are_dates_different(pairs))
         pairs = [("1877-02-26", "bioport"),
                  ("1877-02-26", "foo"),
                  ("1877", "bwn"),
-                 ("1877", "bar"),]
+                 ("1877", "bar"), ]
         self.assertFalse(Person._are_dates_different(pairs))
-        
+
         # true
         pairs = [("1877-02-26", "bioport"),
                  ("1877-02-27", "bioport"),
-                 ("1877", "bwn"),]
-                 
+                 ("1877", "bwn"), ]
+
         self.assertTrue(Person._are_dates_different(pairs))
         pairs = [("1877-02-26", "bioport"),
                  ("1877-02-26", "bioport"),
-                 ("1876", "bwn"),]
+                 ("1876", "bwn"), ]
         self.assertTrue(Person._are_dates_different(pairs))
 
 

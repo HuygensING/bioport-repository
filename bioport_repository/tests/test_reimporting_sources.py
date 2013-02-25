@@ -2,7 +2,7 @@ import os
 
 from bioport_repository.tests.common_testcase import CommonTestCase, THIS_DIR, unittest
 from bioport_repository.repository import Source
-from bioport_repository.db_definitions import STATUS_NEW
+from bioport_repository.db_definitions import STATUS_NEW, STATUS_DIFFICULT
 
 
 class RepositoryTestCase(CommonTestCase):
@@ -21,6 +21,11 @@ class RepositoryTestCase(CommonTestCase):
 
         old_persons = [repo.get_person(bioport_id) for bioport_id in repo.get_bioport_ids()]
 
+        some_person = old_persons[0]
+        self.assertEqual(some_person.status, STATUS_NEW)
+        some_person.record.status = STATUS_DIFFICULT
+        some_person.save()
+
         #if we download the information at our source, nothing should have changed
         repo.download_illustrations(src)
         self.assertEqual(len(repo.get_persons(source_id=SOURCE_ID)), 5)
@@ -33,14 +38,17 @@ class RepositoryTestCase(CommonTestCase):
         self.assertEqual(len(repo.get_persons()), BASE + 5)
         self.assertEqual(set([p.bioport_id for p in old_persons]), set([p.bioport_id for p in repo.get_persons()]))
 
+        # also the status should remain the same
+        self.assertEqual(STATUS_DIFFICULT, repo.get_person(bioport_id=some_person.bioport_id).status)
+
         #now we change the biographies that are available in some of the sources, and download again
         url2 = os.path.abspath(os.path.join(THIS_DIR, 'data/knaw_changed/list.xml'))
         src.url = url2
         repo.download_biographies(src)
-        #the new url has one biograrphy less, and one new one. 
+        #the new url has one biograrphy less, and one new one.
         #we remove the one that has disappeared, so the number of persons should now be the same as it was previously
         #1 has remained exactly the same
-        #2 has disappeared 
+        #2 has disappeared
         #3 has changed location - it is found in 006.xml
         #4 has changed name
         #5 has changed location, but should have the same data
@@ -58,13 +66,13 @@ class RepositoryTestCase(CommonTestCase):
                 if bio.get_source().id == SOURCE_ID:
                     knaw_bio = bio
             person.knaw_bio = knaw_bio
-            id = knaw_bio.get_id().split('/')[1]
+            bio_id = knaw_bio.get_id().split('/')[1]
             for i in range(1, 10):
-                if id == '00%s' % i:
+                if bio_id == '00%s' % i:
                     persons[i] = person
-        #person 2 has disappeared 
+        #person 2 has disappeared
         self.assertTrue(2 not in persons, persons)
-        #3 has changed location - it is found in 006.xml. 
+        #3 has changed location - it is found in 006.xml.
         assert persons[3].knaw_bio.source_url.endswith('006.xml'), persons[3].knaw_bio.source_url
 
         #person 4 has a changed name
@@ -79,7 +87,7 @@ class RepositoryTestCase(CommonTestCase):
         repo = self.repo
         url = os.path.abspath(os.path.join(THIS_DIR, 'data/knaw/list.xml'))
         SOURCE_ID = u'test1'
-        src_knaw = src = Source(id=SOURCE_ID, url=url , description='knaw test dinges...', repository=self.repo)
+        src_knaw = src = Source(id=SOURCE_ID, url=url, description='knaw test dinges...', repository=self.repo)
         self.assertEqual(src.url, url)
         repo.add_source(src)
         repo.download_biographies(src)
@@ -101,7 +109,7 @@ class RepositoryTestCase(CommonTestCase):
         SOURCE_ID2 = u'test2'
         self.assertEqual(len(repo.get_persons()), BASE)
         url = os.path.abspath(os.path.join(THIS_DIR, 'data/knaw/list.xml'))
-        src1 = src = Source(id=SOURCE_ID, url=url , description='knaw test dinges...')
+        src1 = src = Source(id=SOURCE_ID, url=url, description='knaw test dinges...')
         self.assertEqual(src.url, url)
         repo.add_source(src)
         repo.download_biographies(src)
@@ -109,7 +117,7 @@ class RepositoryTestCase(CommonTestCase):
         self.assertEqual(len(persons), BASE + 5)
 
         url = os.path.abspath(os.path.join(THIS_DIR, 'data/knaw2/list.xml'))
-        src2 = Source(id=SOURCE_ID2, url=url , description='knaw test dinges')
+        src2 = Source(id=SOURCE_ID2, url=url, description='knaw test dinges')
         repo.add_source(src2)
         repo.download_biographies(src2)
         persons = repo.get_persons()
@@ -182,7 +190,6 @@ class RepositoryTestCase(CommonTestCase):
         self.assertEqual(len(person5.get_biographies(source_id=SOURCE_ID)), 1)
         self.assertEqual(len(person5.get_biographies(source_id=SOURCE_ID2)), 1)
 
-
     def test_removal_of_bios(self):
         #one of the biographies of person1 has been removed
         #1. the biography should not be there anymore
@@ -192,7 +199,7 @@ class RepositoryTestCase(CommonTestCase):
         url1 = os.path.abspath(os.path.join(THIS_DIR, 'data/knaw/list.xml'))
         url2 = os.path.abspath(os.path.join(THIS_DIR, 'data/knaw_changed/list.xml'))
 
-        src = Source(id=u'test', url=url1 , description='knaw test dinges')
+        src = Source(id=u'test', url=url1, description='knaw test dinges')
         repo.add_source(src)
 
         repo.download_biographies(src)
