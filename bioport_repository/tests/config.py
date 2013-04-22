@@ -8,6 +8,7 @@ POSSIBLE_DSN = ['mysql://root@localhost/%s' % DB_NAME,
                 'mysql://localhost/%s' % DB_NAME,
                ]
 
+
 def _find_valid_dsn():
     for s in POSSIBLE_DSN:
         try:
@@ -16,7 +17,7 @@ def _find_valid_dsn():
             pass
         else:
             return s
-#    raise ValueError("no valid DSN found")
+    raise ValueError("no valid DSN found")
 
 DB_CONNECTION = DSN = _find_valid_dsn()
 

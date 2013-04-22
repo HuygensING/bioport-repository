@@ -10,7 +10,6 @@ from hashlib import md5
 import simplejson
 from gerbrandyutils import normalize_url
 
-
 try:
     from PIL import Image
 except ImportError:

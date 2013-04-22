@@ -76,10 +76,10 @@ class Biography(object, BioDesDoc):
         except AttributeError:
             if not self.biodes_document:
                 self._set_up_basic_structure()
-                self.biodes_document = etree.tostring(self.root) #@UndefinedVariable
+                self.biodes_document = etree.tostring(self.root)
                 return self.root
             else:
-                self.root = etree.fromstring(self.biodes_document) #@UndefinedVariable
+                self.root = etree.fromstring(self.biodes_document)
                 return self.root
 
     def get_source(self):
@@ -88,6 +88,7 @@ class Biography(object, BioDesDoc):
         except AttributeError:
             self._source = self.repository.get_source(self.source_id)
             return self._source
+        
     @property
     def record(self):
         try:
@@ -171,7 +172,6 @@ class Biography(object, BioDesDoc):
         ls = self.get_element_biography().xpath('snippet[@source_id="%s"]' % source_id)
         if ls:
             return ls[0].text
-
 
     def set_snippet(self, source_id, snippet):
         """set a snippet for a certain source
