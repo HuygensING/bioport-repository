@@ -1,0 +1,4 @@
+.svn/
+bioport_repository.egg-info/
+*.swp
+*.pyc
