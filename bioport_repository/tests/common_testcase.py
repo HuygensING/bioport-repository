@@ -28,13 +28,9 @@ class CommonTestCase(unittest.TestCase):
     _fill_repository = True
 
     def setUp(self):
-#        if os.path.isdir(SVN_REPOSITORY):
-#            shutil.rmtree(SVN_REPOSITORY)
-#        sh('svnadmin create %s --pre-1.4-compatible' % SVN_REPOSITORY)
         if not os.path.isdir(IMAGES_CACHE_LOCAL):
             os.mkdir(IMAGES_CACHE_LOCAL)
         self.repo = repository
-
         self.repo.db.metadata.drop_all()
         if self._fill_repository:
             if CREATE_NEW_DUMPFILE or not os.path.isfile(SQLDUMP_FILENAME):
@@ -48,12 +44,11 @@ class CommonTestCase(unittest.TestCase):
     def tearDown(self):
 #        #clean out the repository
 #        #get whatever data there was
-#        sh('rm -rf %s' % SVN_REPOSITORY ) 
-#        sh('rm -rf %s' % SVN_REPOSITORY_LOCAL_COPY ) 
 
         # remove all data from the database
-        self.repo.db.metadata.drop_all()
         self.repo.db.clear_cache()
+        self.repo.db.Session.remove() # we sometimes get table locks if we dont doe this before calling metadata.drop_all()
+        self.repo.db.metadata.drop_all()
         if os.path.exists(IMAGES_CACHE_LOCAL):
             shutil.rmtree(IMAGES_CACHE_LOCAL)
 
@@ -70,9 +65,13 @@ class CommonTestCase(unittest.TestCase):
         def parse_dsn(s):
             return sqlalchemy.engine.url._parse_rfc1738_args(s)
 
+        
         dsn = parse_dsn(DSN)
         username = dsn.username or ""
         passwd = dsn.password or ""
+        
+        self.repo.db.Session.remove() # we sometimes get table locks if we dont doe this before calling metadata.drop_all()
+        
         if not passwd:
             sh('mysql -u %s bioport_test -e "source %s"' % (username, SQLDUMP_FILENAME))
         else:

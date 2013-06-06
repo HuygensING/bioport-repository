@@ -15,6 +15,9 @@ from sqlalchemy.types import TIMESTAMP
 metadata = MetaData()
 Base = declarative_base()
 
+# XXX : need next to have metadata.create_all() to work. Cf. also http://stackoverflow.com/questions/20148/myisam-versus-innodb
+Base.__table_args__ = {'mysql_engine':'MyIsam'}
+
 
 class BiographyRecord(Base):
     """represents a version of  biodes document"""

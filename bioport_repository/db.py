@@ -69,7 +69,7 @@ EXCLUDE_THIS_STATUS_FROM_SIMILARITY = [5, 9]  # if persons have this status, we 
 class DBRepository:
     """Interface with the MySQL database"""
     SIMILARITY_TRESHOLD = 0.70
-    
+
     def __init__(self,
         dsn,
         user,
@@ -87,11 +87,10 @@ class DBRepository:
             encoding='utf8',
             echo=echo,
             pool_recycle=3600,  # set pool_recycle to one hour to avoig sql server has gone away errors
-#            strategy="threadlocal",
+#             strategy="threadlocal",
             )
 
         self.Session = scoped_session(sessionmaker(bind=self.engine, extension=ZopeTransactionExtension()))
-#        self.Session = sessionmaker(bind=self.engine)
         self.db = self
         self.repository = repository
 
@@ -115,14 +114,15 @@ class DBRepository:
             yield session
         except:
             transaction.abort()
-#            session.rollback()
+#             session.rollback()
             raise
         else:
             try:
-#                session.flush()
+#                 session.flush()
                 transaction.commit()
+                self.Session.remove()
             except:
-#                session.rollback()
+#                 session.rollback()
                 transaction.abort()
                 raise
 
@@ -215,7 +215,7 @@ class DBRepository:
         return map(lambda x: x[0], rs)
 
     @instance.clearafter
-    def delete_biographies(self, source):  # , biography=None): 
+    def delete_biographies(self, source):  # , biography=None):
         with self.get_session_context() as session:
             # delete also all biographies associated with this source
             session.query(BiographyRecord).filter_by(source_id=source.id).delete()
@@ -225,7 +225,7 @@ class DBRepository:
             sql = """DELETE  s from person_source s
                 where s.source_id = '%s'""" % source.id
             session.execute(sql)
-            # delete all persons  that have become 'orphans' (i.e. that have no source anymore) 
+            # delete all persons  that have become 'orphans' (i.e. that have no source anymore)
             sql = """DELETE  p from person p
                 left outer join person_source s
                 on s.bioport_id = p.bioport_id
@@ -254,33 +254,33 @@ class DBRepository:
 
 #    def add_naam(self, naam, bioport_id, src):
 #        """add a record to the table 'naam'
-#        
+#
 #        arguments:
-#            naam - an instance of Naam 
+#            naam - an instance of Naam
 #            biography - an instance of biography
 #        """
 #        with self.get_session_context() as session:
 #            item = NaamRecord()
 #            session.add(item)
-#            
+#
 #            item.bioport_id = bioport_id
 #            item.volledige_naam = naam.guess_normal_form()
 #            item.xml = naam.to_string()
 #            item.sort_key = naam.sort_key()
 #            item.src = src
 #            #item.src = src and unicode(src) or unicode(self.id)
-#            
+#
 #            assert type(item.xml) == type(u'')
 #            assert type(item.sort_key) == type(u'')
 #
 #            item.soundex = []
 #            #item.variant_of = variant_of
-#            
+#
 #            for s in naam.soundex_nl():
 #                soundex = SoundexRecord()
 #                soundex.soundex = s
 #                item.soundex.append(soundex)
-#            return item.id 
+#            return item.id
 
     @instance.clearafter
     def delete_names(self, bioport_id):
@@ -319,7 +319,7 @@ class DBRepository:
 #            default_status = self.get_source(biography.source_id).default_status
 #            if bioport_id:
 #                pass
-# #                person = self.get_person(bioport_id) 
+# #                person = self.get_person(bioport_id)
 # #                if person:
 # ##                r = qry.all()[0]
 # ##                person = Person(bioport_id=r.bioport_id, repository=self.repository, record=r)
@@ -328,13 +328,13 @@ class DBRepository:
 # #                    self.add_person(bioport_id=bioport_id, default_status=default_status, dontcheckforprexistingsbio=True)
 #            else:
 #                bioport_id = self.fresh_identifier()
-#                person = self.add_person(bioport_id=bioport_id, default_status=default_status, dontcheckforprexistingsbio=True) 
+#                person = self.add_person(bioport_id=bioport_id, default_status=default_status, dontcheckforprexistingsbio=True)
 #                biography.set_value('bioport_id',bioport_id)
-# 
+#
 #            #register the biography in the bioportid registry
 #            #(note that this changes the XML in the biography object)
 #            self._register_biography(biography)
-#            
+#
 #            #get all biographies with this id, and increment their version number with one
 #            ls =  self._get_biography_query(
 # #                source_id=biography.source_id,
@@ -346,11 +346,11 @@ class DBRepository:
 #            ls = list(ls)
 #            ls.reverse()
 #            for i, r_bio in ls:
-#                r_bio.version = i + 1 
+#                r_bio.version = i + 1
 #                session.flush()
-#            
+#
 #            r_biography = BiographyRecord(id=biography.get_id())
-#                
+#
 #            r_biography.source_id = biography.source_id
 #            r_biography.biodes_document = biography.to_string()
 #            r_biography.source_url = unicode(biography.source_url)
@@ -360,19 +360,19 @@ class DBRepository:
 #            r_biography.comment = comment
 #            r_biography.time = datetime.today().isoformat()
 #            session.add(r_biography)
-#        
+#
 # #        person = self.get_person(biography.get_bioport_id())
 # #        assert person
-#       
+#
 #        #we need to do this outside the transaction, unfortunately, because
-#        
-#        # update the information of the associated person (or add a person 
+#
+#        # update the information of the associated person (or add a person
 #        # if the biography is new)
-#           
+#
 #        msg  = 'saved biography with id %s' % (biography.id)
 #        if comment:
 #            msg += '; %s' % comment
-#            
+#
 #        self.log(msg=msg, record = r_biography)
 #        return biography
 
@@ -412,7 +412,7 @@ class DBRepository:
                 r_person = PersonRecord(bioport_id=bioport_id)
                 session.add(r_person)
             r_person.status = default_status
-            person = Person(bioport_id=bioport_id, record=r_person, repository=self.repository)  # , record=r_person) 
+            person = Person(bioport_id=bioport_id, record=r_person, repository=self.repository)  # , record=r_person)
             return self.update_person(person=person, compute_similarities=compute_similarities)
 
 
@@ -444,14 +444,14 @@ class DBRepository:
         person.save()
 # #        , compute_similaries=compute_similarities)
 #        with self.get_session_context() as session:
-#            
+#
 #            #check if a person with this bioportid alreay exists
-#            try:  
+#            try:
 #                r_person = session.query(PersonRecord).filter_by(bioport_id=bioport_id).one()
 #            except sqlalchemy.orm.exc.NoResultFound:
 #                #if not, we add a new one
 #                raise BioPortException('There is no person with bioport_id %s' % bioport_id)
-#               
+#
 #            person = Person(bioport_id=bioport_id, record=r_person, repository=self)
 # #        with self.get_session_context() as session:
 #            merged_biography = person.get_merged_biography()
@@ -461,22 +461,22 @@ class DBRepository:
 #            r_person.has_illustrations = computed_values.has_illustrations
 #            r_person.search_source = computed_values.search_source
 #            r_person.sex = computed_values.sex
-#            r_person.geboortedatum_min = computed_values.geboortedatum_min  
-#            r_person.geboortedatum_max = computed_values.geboortedatum_max 
-#            r_person.sterfdatum_min = computed_values.sterfdatum_min 
+#            r_person.geboortedatum_min = computed_values.geboortedatum_min
+#            r_person.geboortedatum_max = computed_values.geboortedatum_max
+#            r_person.sterfdatum_min = computed_values.sterfdatum_min
 #            r_person.sterfdatum_max = computed_values.sterfdatum_max
-#            r_person.geboortedatum = computed_values.geboortedatum 
-#            r_person.sterfdatum = computed_values.sterfdatum 
-#            r_person.geboorteplaats = computed_values.geboorteplaats 
-#            r_person.sterfplaats = computed_values.sterfplaats 
-#            r_person.names  = computed_values.names 
+#            r_person.geboortedatum = computed_values.geboortedatum
+#            r_person.sterfdatum = computed_values.sterfdatum
+#            r_person.geboorteplaats = computed_values.geboorteplaats
+#            r_person.sterfplaats = computed_values.sterfplaats
+#            r_person.names  = computed_values.names
 #            r_person.snippet = computed_values.snippet
-#            r_person.has_contradictions = computed_values.has_contradictions 
+#            r_person.has_contradictions = computed_values.has_contradictions
 #            r_person.thumbnail = computed_values.thumbnail
-#           
+#
 #            #update categories
 #            session.query(RelPersonCategory).filter(RelPersonCategory.bioport_id==bioport_id).delete()
-#            
+#
 #            for category in merged_biography.get_states(type='category'):
 #                category_id = category.get('idno')
 #                assert type(category_id) in [type(u''), type('')], category_id
@@ -488,15 +488,15 @@ class DBRepository:
 #                r = RelPersonCategory(bioport_id=bioport_id, category_id=category_id)
 #                session.add(r)
 #                session.flush()
-#            
-#            
+#
+#
 #            #update the religion table
 #            religion= merged_biography.get_religion()
 #            religion_qry = session.query(RelPersonReligion).filter(RelPersonReligion.bioport_id==bioport_id)
 #            if religion is not None:
 #                religion_id =  religion.get('idno')
 #                if religion_id:
-#                    try:    
+#                    try:
 #                        r = religion_qry.one()
 #                        r.religion_id = religion_id
 #                    except  NoResultFound:
@@ -506,23 +506,23 @@ class DBRepository:
 #            else:
 #                religion_qry.delete()
 #                session.flush()
-#                
-#            
+#
+#
 #            #'the' source -- we take the first non-bioport source as 'the' source
 #            #and we use it only for filterling later
-#            #XXX what is this used for??? 
+#            #XXX what is this used for???
 #            src = [s for s in merged_biography.get_biographies() if s.source_id != 'bioport']
 #            if src:
 #                src = src[0].source_id
 #            else:
 #                src = None
-#                
-#            #refresh the names 
+#
+#            #refresh the names
 #            self.delete_names(bioport_id=bioport_id)
 #            self.update_name(bioport_id=bioport_id, names=computed_values._names)
-#            
+#
 #            self.update_source(bioport_id, source_ids = [b.source_id for b in person.get_biographies()])
-#            
+#
 #            if person.get_biography_contradictions():
 #                r_person.has_contradictions = True
 #            else:
@@ -628,7 +628,7 @@ class DBRepository:
                 return new_bioportid
         raise ValueError("no valid id found")
 
-    def _register_biography(self, biography):  # , bioport_id=None):       
+    def _register_biography(self, biography):  # , bioport_id=None):
         """register the biography in the bioport registry and assign it a bioport_id if it does not have one
 
         arguments:
@@ -669,7 +669,7 @@ class DBRepository:
             if bioport_id != biography.get_bioport_id():
                 biography.set_value('bioport_id', bioport_id)
 
-            # update the registry  
+            # update the registry
             # if it is not connected to the new biography, we add the relation
             qry = session.query(RelBioPortIdBiographyRecord)
             qry = qry.filter_by(biography_id=biography.id)
@@ -750,7 +750,7 @@ class DBRepository:
             for r in qry.all()]
 
         if bioport_id:
-            #        first those biographies that have the present bioport_id in their id - 
+            #        first those biographies that have the present bioport_id in their id -
             #        then the reset, by quality
             # (note that False comes before True when sorting, hence the 'not in')
 
@@ -950,9 +950,9 @@ class DBRepository:
 
         if hide_invisible:
             # we always hide the follwing categoires
-            #    (STATUS_FOREIGNER, 'buitenlands'), 
+            #    (STATUS_FOREIGNER, 'buitenlands'),
             #    (STATUS_MESSY, 'moeilijk geval (troep)'),
-            #    (STATUS_REFERENCE, 'verwijslemma'), 
+            #    (STATUS_REFERENCE, 'verwijslemma'),
             #    (STATUS_NOBIOS, 'no external biographies')
             #    (STATUS_ALIVE, 'leeft nog')
             to_hide = [
@@ -1062,7 +1062,7 @@ class DBRepository:
 
         if order_by:
             if order_by == 'random':
-                # XXX this is perhaps a slow way of doing is; for our purposes it is also enough to pick a random 
+                # XXX this is perhaps a slow way of doing is; for our purposes it is also enough to pick a random
                 # id, and do somethin like "where id > randomlypickednumber limit XXX"
                 some_bioportid = ''.join([random.choice('0123456789') for _i in range(LENGTH)])
                 qry = qry.filter(PersonRecord.bioport_id > some_bioportid)
@@ -1153,7 +1153,7 @@ class DBRepository:
 
         elif (datmaand_min or datdag_min
               or datmaand_max or datdag_max):
-            # the user has not specified a year, only a date 
+            # the user has not specified a year, only a date
             # basically, we are now searching for people that have a birthday (or died on a date) in a certain range
             field_min = getattr(PersonRecord, datetype + 'datum_min', None)
             field_max = getattr(PersonRecord, datetype + 'datum_max', None)
@@ -1223,7 +1223,7 @@ class DBRepository:
                 search_name = search_name[:-1]
 
             for s in search_name.split():
-                # changed this to a faster separate table with the "words" that we are searching for 
+                # changed this to a faster separate table with the "words" that we are searching for
 #                    qry = qry.filter(PersonRecord.names.op('regexp')(u'[[:<:]]%s[[:>:]]' % s))
                 alias = aliased(PersonName)
                 qry = qry.join(alias)
@@ -1409,17 +1409,17 @@ class DBRepository:
                         qry = session.query(CacheSimilarityPersons).filter(CacheSimilarityPersons.bioport_id1 == bioport_id).delete()
                         qry = session.query(CacheSimilarityPersons).filter(CacheSimilarityPersons.bioport_id2 == bioport_id).delete()
                     logging.info('[%s/%s] computing similarities: %s' % (i, len(persons), person))
-                    # we add the identity score so that we can check later that we have 'done' this record, 
+                    # we add the identity score so that we can check later that we have 'done' this record,
                     self.add_to_similarity_cache(bioport_id, bioport_id, score=1.0)
 
                 # now get a list of potential persons
-                # we create a soundex on the basis of the name of the person 
+                # we create a soundex on the basis of the name of the person
                 combined_name = ' '.join([n.guess_geslachtsnaam() or n.volledige_naam() for n in person.get_names()])
                 soundexes = soundexes_nl(combined_name,
                      length= -1,
                      group=2,
                      filter_initials=True,
-                     filter_stop_words=False,  # XXX look out withthis: 'koning' and 'heer' are also last names 
+                     filter_stop_words=False,  # XXX look out withthis: 'koning' and 'heer' are also last names
                      filter_custom=TUSSENVOEGSELS + [w.capitalize() for w in TUSSENVOEGSELS], wildcards=False,
                      )
 
@@ -1559,14 +1559,14 @@ class DBRepository:
             return False
         elif self.redirects_to(bioport_id2) != bioport_id2:
             return False
-        # remove items that are  
+        # remove items that are
         elif not ignore_status:
             p1 = self.get_person(bioport_id1, self.repository)
             p2 = self.get_person(bioport_id2, self.repository)
             # (5, 'moeilijk geval (troep)'),
-            # (7, 'te weinig informatie'), 
-            # (8, 'familielemma'), 
-            # (9, 'verwijslemma'), 
+            # (7, 'te weinig informatie'),
+            # (8, 'familielemma'),
+            # (9, 'verwijslemma'),
             if p1.status in EXCLUDE_THIS_STATUS_FROM_SIMILARITY:
                 return False
             if p2.status in EXCLUDE_THIS_STATUS_FROM_SIMILARITY:
@@ -1770,7 +1770,7 @@ class DBRepository:
                 self.log(msg, r_defer)
                 session.flush()
             except IntegrityError:
-                # this is (most probably) because the record already exists 
+                # this is (most probably) because the record already exists
                 transaction.abort()
 
         # also remove the persons from the cache
