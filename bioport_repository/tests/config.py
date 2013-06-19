@@ -23,6 +23,7 @@ try:
     DB_CONNECTION = DSN = _find_valid_dsn()
 except ValueError:
     print 'NO VALID DSN FOUND IN TEST CONFIG'
+    DSN = None
 
 
 THIS_DIR = os.path.split(os.path.abspath(__file__))[0]
