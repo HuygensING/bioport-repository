@@ -851,9 +851,11 @@ class DBRepository:
         except AttributeError:
             # initialize
             pass
+        self._filling_cache = True
+        if self._filling_cache:
+            return []
         logging.info('** fill_all_persons_cache - should happen only @ restart %s' % self)
         time0 = time.time()
-        self._filling_cache = True
         qry = self._get_persons_query(full_records=True, hide_invisible=False)
         # executing the qry.statement is MUCH faster than qry.all()
         ls = self.get_session().execute(qry.statement)
