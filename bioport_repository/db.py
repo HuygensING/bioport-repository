@@ -70,6 +70,8 @@ class DBRepository:
     """Interface with the MySQL database"""
     SIMILARITY_TRESHOLD = 0.70
 
+    _filling_cache = False # is true while we are filling the cache, to not go crazy when we get several requests at the same time
+    
     def __init__(self,
         dsn,
         user,
@@ -851,11 +853,13 @@ class DBRepository:
             pass
         logging.info('** fill_all_persons_cache - should happen only @ restart %s' % self)
         time0 = time.time()
+        self._filling_cache = True
         qry = self._get_persons_query(full_records=True, hide_invisible=False)
         # executing the qry.statement is MUCH faster than qry.all()
         ls = self.get_session().execute(qry.statement)
         self._all_persons = dict((r.bioport_id, Person(bioport_id=r.bioport_id, repository=self.repository)) for r in ls)
         logging.info('done (filling all_persons cache): %s seconds' % (time.time() - time0))
+        self._filling_cache = False
         return self._all_persons
 
     def _get_persons_query(self,
