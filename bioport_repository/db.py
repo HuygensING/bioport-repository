@@ -95,6 +95,8 @@ class DBRepository:
         self.Session = scoped_session(sessionmaker(bind=self.engine, extension=ZopeTransactionExtension()))
         self.db = self
         self.repository = repository
+        # fill cache on init
+        self.all_persons()
 
     @property
     def session(self):
