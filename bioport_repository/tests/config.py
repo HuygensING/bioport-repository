@@ -19,7 +19,10 @@ def _find_valid_dsn():
             return s
     raise ValueError("no valid DSN found")
 
-DB_CONNECTION = DSN = _find_valid_dsn()
+try:
+    DB_CONNECTION = DSN = _find_valid_dsn()
+except ValueError:
+    print 'NO VALID DSN FOUND IN TEST CONFIG'
 
 
 THIS_DIR = os.path.split(os.path.abspath(__file__))[0]
