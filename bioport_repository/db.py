@@ -851,9 +851,9 @@ class DBRepository:
         except AttributeError:
             # initialize
             pass
-        self._filling_cache = True
         if self._filling_cache:
-            return []
+            return {}
+        self._filling_cache = True
         logging.info('** fill_all_persons_cache - should happen only @ restart %s' % self)
         time0 = time.time()
         qry = self._get_persons_query(full_records=True, hide_invisible=False)
