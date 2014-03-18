@@ -1,6 +1,9 @@
+*.pyc
+*.swp
+.project
+.pydevproject
+.settings/
 .svn/
 bioport_repository.egg-info/
-*.swp
-*.pyc
 bioport_repository/tests/data/bioport_mysqldump.sql
 bioport_repository/tests/data/images/imege.jpg
