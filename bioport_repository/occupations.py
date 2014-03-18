@@ -2,7 +2,7 @@
 ##encoding=utf-8
 
 ##########################################################################
-# Copyright (C) 2009 - 2014 Huygens ING & Gebrandy S.R.L.
+# Copyright (C) 2009 - 2014 Huygens ING & Gerbrandy S.R.L.
 # 
 # This file is part of bioport.
 # 
