@@ -188,9 +188,9 @@ class PersonName(Base):
 
 class PersonSource(Base):
     __tablename__ = 'person_source'
-    id = Column(Integer, primary_key=True)
-    bioport_id = Column(MSString(50), ForeignKey('person.bioport_id'), index=True,)
-    source_id = Column(Unicode(20), index=True)
+    #id = Column(Integer, primary_key=True)
+    bioport_id = Column(MSString(50), ForeignKey('person.bioport_id'), index=True, primary_key=True)
+    source_id = Column(Unicode(20), index=True, primary_key=True)
 
 class NaamRecord(Base):
     __tablename__ = 'naam'

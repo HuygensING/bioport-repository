@@ -83,7 +83,7 @@ from bioport_repository.merged_biography import BiographyMerger
 LENGTH = 8  # the length of a bioport id
 ECHO = True  # log all mysql queries.
 ECHO = False  # log all mysql queries.
-EXCLUDE_THIS_STATUS_FROM_SIMILARITY = [5, 9]  # if persons have this status, we will not include them in the similiarty cache
+EXCLUDE_THIS_STATUS_FROM_SIMILARITY = [5, 9]  # if persons have this status, we will not include them in the similarity cache
 
 
 class DBRepository:
@@ -108,7 +108,7 @@ class DBRepository:
             convert_unicode=True,
             encoding='utf8',
             echo=echo,
-            pool_recycle=3600,  # set pool_recycle to one hour to avoig sql server has gone away errors
+            pool_recycle=3600,  # set pool_recycle to one hour to avoid 'sql server has gone away' errors
 #             strategy="threadlocal",
             )
 
@@ -714,7 +714,7 @@ class DBRepository:
         excluding those of the source 'bioport'"""
         if not args.get('version'):
             args['version'] = 0
-
+# BB http://docs.sqlalchemy.org/en/rel_0_9/orm/query.html#count
         return self._get_biography_query(no_bioport_biographies=True, **args).count()
 #        qry = self.get_session().query(BiographyRecord)
 #        qry = qry.filter(BiographyRecord.version == 0)
@@ -775,7 +775,7 @@ class DBRepository:
 
         if bioport_id:
             #        first those biographies that have the present bioport_id in their id -
-            #        then the reset, by quality
+            #        then the rest, by quality
             # (note that False comes before True when sorting, hence the 'not in')
 
             bios = [(('bioport/%s' % bioport_id) not in bio.id, -bio.get_quality(), bio.id, bio) for bio in bios]
@@ -1109,7 +1109,8 @@ class DBRepository:
                 qry = qry.limit(size)
         if start:
             qry = qry.offset(start)
-        qry = qry.distinct()
+        
+        qry = qry.distinct() ## BB: altijd distinct?
 
         return qry
 
