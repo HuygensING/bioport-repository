@@ -34,7 +34,7 @@ from bioport_repository.source import Source
 from gerbrandyutils import sh
 
 from names.name import Name
-#CREATE_NEW_DUMPFILE = True #very ex/pesnive if True
+# CREATE_NEW_DUMPFILE = True # very expensive if True
 repository = Repository(
   svn_repository_local_copy=SVN_REPOSITORY_LOCAL_COPY,
   svn_repository='file://%s' % SVN_REPOSITORY,
@@ -64,7 +64,7 @@ class CommonTestCase(unittest.TestCase):
     def tearDown(self):
         # clean out the repository, and remove all data from the database
         self.repo.db.clear_cache()
-        self.repo.db.Session.remove()  # we sometimes get table locks if we dont do this before calling metadata.drop_all()
+        self.repo.db.Session.remove()  # we sometimes get table locks if we don't do this before calling metadata.drop_all()
         self.repo.db.metadata.drop_all()
         if os.path.exists(IMAGES_CACHE_LOCAL):
             shutil.rmtree(IMAGES_CACHE_LOCAL)
@@ -82,17 +82,16 @@ class CommonTestCase(unittest.TestCase):
         def parse_dsn(s):
             return sqlalchemy.engine.url._parse_rfc1738_args(s)
 
-        
         dsn = parse_dsn(DSN)
         username = dsn.username or ""
         passwd = dsn.password or ""
         
-        self.repo.db.Session.remove() # we sometimes get table locks if we dont doe this before calling metadata.drop_all()
+        self.repo.db.Session.remove() # we sometimes get table locks if we don't do this before calling metadata.drop_all()
         
         if not passwd:
             sh('mysql -u %s bioport_test -e "source %s"' % (username, SQLDUMP_FILENAME))
         else:
-            sh('mysqldump -u %s -p%s bioport_test -"source %s"' % (username, passwd, SQLDUMP_FILENAME))
+            sh('mysql -u %s -p%s bioport_test -e "source %s"' % (username, passwd, SQLDUMP_FILENAME))
         self._is_filled = True
         return self.repo
 
@@ -179,12 +178,12 @@ class CommonTestCase(unittest.TestCase):
             'url_publisher': 'http://placeholder.com',
             }
         defaults.update(args)
-        id = str(len(list(self.repo.get_biographies())))
+        biography_id = str(len(list(self.repo.get_biographies())))
         xml_source = args.get('xml_source')
         if xml_source:
-            return Biography(repository=self.repo, source_id=source_id, id=id).from_string(xml_source)
+            return Biography(repository=self.repo, source_id=source_id, id=biography_id).from_string(xml_source)
         else:
-            return Biography(repository=self.repo, source_id=source_id, id=id).from_args(**defaults)
+            return Biography(repository=self.repo, source_id=source_id, id=biography_id).from_args(**defaults)
 
     def _save_biography(self, biography, comment=u'saved by test'):
         return self.repo.save_biography(biography, comment)
