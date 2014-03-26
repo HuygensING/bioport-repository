@@ -27,8 +27,28 @@ from lxml import etree
 
 from bioport_repository.merged_biography import MergedBiography, BiographyMerger
 from bioport_repository.db_definitions import STATUS_NEW
-from bioport_repository.common import format_date
-from bioport_repository.db_definitions import RelPersonCategory, RelPersonReligion, PersonRecord, PersonSource
+from bioport_repository.common import format_date, to_date
+from bioport_repository.db_definitions import (
+    RelPersonCategory,
+    RelPersonReligion,
+    PersonRecord,
+    PersonSource,
+    STATUS_FOREIGNER,
+    STATUS_MESSY,
+    STATUS_REFERENCE,
+    STATUS_NOBIOS,
+    STATUS_ONLY_VISIBLE_IF_CONNECTED,
+    STATUS_ALIVE
+    )
+
+TO_HIDE = [
+   STATUS_FOREIGNER,
+   STATUS_MESSY,
+   STATUS_REFERENCE,
+   STATUS_NOBIOS,
+   STATUS_ALIVE,
+   STATUS_ONLY_VISIBLE_IF_CONNECTED,
+   ]
 
 
 class Person(object):
@@ -143,7 +163,25 @@ class Person(object):
             r_person.snippet = computed_values.snippet
             r_person.has_contradictions = computed_values.has_contradictions
             r_person.thumbnail = computed_values.thumbnail
-
+            ## BB
+            #     has_name = Column(Boolean) # if naam != null && != ''
+            r_person.has_name = (r_person.naam != None) and (r_person.naam != '') 
+            #     birthday = Column(MSString(4), index=True) # if geboortedatum_min = geboortedatum_max, then extract geboortedag
+            if r_person.geboortedatum_min == r_person.geboortedatum_min:
+                date = to_date(r_person.geboortedatum_min)
+                r_person.birthday = date.strftime("%m%d")
+            #     initial = Column(MSString(1), index=True) # eerste letter van naam
+            r_person.initial = r_person.naam[0]
+            #     invisible = Column(Boolean) # person.status IN (11, 5, 9, 9999, 14, 15)
+            r_person.invisible = r_person.status in TO_HIDE
+#             #     foreigner = Column(Boolean) # person.status IN (11)
+#             r_person.foreigner = r_person.status == STATUS_FOREIGNER
+            #     orphan = Column(Boolean) # person is orphan when the only sources linking to it is 'bioport'
+            """ TODO: test this"""
+            sources = self.get_sources()
+            r_person.orphan = len(sources) == 1 and sources[0].id == 'bioport' 
+              
+            ## /BB
             #update categories
             session.query(RelPersonCategory).filter(RelPersonCategory.bioport_id == bioport_id).delete()
 
