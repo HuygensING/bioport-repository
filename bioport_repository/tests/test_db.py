@@ -20,8 +20,7 @@
 
 from bioport_repository.tests.common_testcase import CommonTestCase, unittest
 from bioport_repository.db import Source, BiographyRecord, PersonRecord, SourceRecord, Biography, RelBioPortIdBiographyRecord, Person
-from bioport_repository.db_definitions import RelPersonCategory, PersonSoundex, \
-    RELIGION_VALUES, STATUS_NOBIOS, PersonSource
+from bioport_repository.db_definitions import RelPersonCategory, PersonSoundex, RELIGION_VALUES, STATUS_NOBIOS, PersonSource
 from bioport_repository.common import format_date , to_date, BioPortException, BioPortNotFoundError
 
 
@@ -46,8 +45,6 @@ class DBRepositoryTestCase(CommonTestCase):
         #now add the source again, to check if the previous result did not reamin cached
         self.db.add_source(src)
         self.assertEqual(len(self.db.get_sources()), nbase + 1)
-
-
 
     def test_manipulate_biographies(self):
         """tests for adding and deleting biographies"""
@@ -393,6 +390,7 @@ class DBRepositoryTestCase(CommonTestCase):
             "UPDATE person set sterfdatum_min ='1882-01-01', sterfdatum_max='1882-12-31'"
             " WHERE sterfdatum_min ='1882-01-15'")
         self.assertEqual(len(repo.get_persons(**qry)), 2)
+
     def test_hide_invisible(self):
         self.create_filled_repository()
         repo = self.repo
