@@ -32,5 +32,7 @@ setup(name = 'bioport_repository',
                         'names',
                         'simplejson',
                         'zope.sqlalchemy',
+                        'Pillow',
+                        'ipdb',
                        ],
       )

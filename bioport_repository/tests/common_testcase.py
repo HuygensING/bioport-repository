@@ -39,7 +39,7 @@ repository = Repository(
   svn_repository_local_copy=SVN_REPOSITORY_LOCAL_COPY,
   svn_repository='file://%s' % SVN_REPOSITORY,
   dsn=DSN,
-  images_cache_local=IMAGES_CACHE_LOCAL
+  images_cache_local=IMAGES_CACHE_LOCAL,
 )
 
 
@@ -62,12 +62,9 @@ class CommonTestCase(unittest.TestCase):
         self.db = self.repo.db
 
     def tearDown(self):
-#        #clean out the repository
-#        #get whatever data there was
-
-        # remove all data from the database
+        # clean out the repository, and remove all data from the database
         self.repo.db.clear_cache()
-        self.repo.db.Session.remove() # we sometimes get table locks if we dont doe this before calling metadata.drop_all()
+        self.repo.db.Session.remove()  # we sometimes get table locks if we dont do this before calling metadata.drop_all()
         self.repo.db.metadata.drop_all()
         if os.path.exists(IMAGES_CACHE_LOCAL):
             shutil.rmtree(IMAGES_CACHE_LOCAL)
@@ -196,7 +193,7 @@ class CommonTestCase(unittest.TestCase):
 class CommonTestCaseTest(CommonTestCase):
 
     def test_sanity(self):
-        self.assertEqual(len(self.repo.get_sources()), 2)
+        self.assertEqual(len(self.repo.get_sources()), 3)
         self.assertEqual(len(list(self.repo.get_biographies())), 10)
         self.assertEqual(len(self.repo.get_persons()), 10)
 

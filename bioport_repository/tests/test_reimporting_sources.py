@@ -42,9 +42,11 @@ class RepositoryTestCase(CommonTestCase):
         old_persons = [repo.get_person(bioport_id) for bioport_id in repo.get_bioport_ids()]
 
         some_person = old_persons[0]
-        self.assertEqual(some_person.status, STATUS_NEW)
-        some_person.record.status = STATUS_DIFFICULT
-        some_person.save()
+        for person in old_persons:
+            # TODO: check why sometimes some_person.status is a string
+            self.assertEqual(long(person.status), STATUS_NEW)
+            person.record.status = STATUS_DIFFICULT
+            person.save()
 
         #if we download the information at our source, nothing should have changed
         repo.download_illustrations(src)
@@ -94,12 +96,17 @@ class RepositoryTestCase(CommonTestCase):
         self.assertTrue(2 not in persons, persons)
         #3 has changed location - it is found in 006.xml.
         assert persons[3].knaw_bio.source_url.endswith('006.xml'), persons[3].knaw_bio.source_url
+        # even in a different location, its status remains the same
+        self.assertEqual(persons[3].status, STATUS_DIFFICULT)
 
         #person 4 has a changed name
-        #XXX we should test this somehow
         assert 'changed' in persons[4].name(), persons[4].name()
+        # even if his name has changes, its status remains the same
+        self.assertEqual(persons[4].status, STATUS_DIFFICULT)
         #person 5 has changed location
         assert persons[5].knaw_bio.source_url.endswith('005a.xml'), persons[5].knaw_bio.source_url
+        self.assertEqual(persons[5].status, STATUS_DIFFICULT)
+
         #person 7 is a new entry
         self.assertEqual(persons[7].status, unicode(STATUS_NEW))
 

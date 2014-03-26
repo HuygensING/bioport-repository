@@ -26,6 +26,7 @@ import types
 import logging
 import string
 from datetime import datetime
+import transaction
 
 from lxml import etree
 
@@ -42,12 +43,12 @@ def create_biography_id(source_id, local_id):
 
     local_id is expected to be unique in the source_id namespace
     """
-    id = '%s/%s' % (source_id, local_id)
-    if len(id) > 50:
+    biography_id = u'%s/%s' % (source_id, local_id)
+    if len(biography_id) > 50:
         logging.warning('Ids can be maximally 50 characters long; this one ' \
-                        'is %s: "%s"\nShorted it to 50 characters' % (len(id), id))
-        id = id[:50]
-    return id
+                        'is %s: "%s"\nShorted it to 50 characters' % (len(biography_id), biography_id))
+        biography_id = biography_id[:50]
+    return biography_id
 
 
 class Biography(object, BioDesDoc):
@@ -103,6 +104,11 @@ class Biography(object, BioDesDoc):
                 return self.root
 
     def get_source(self):
+        """return the source of this biography
+
+        returns:
+            a Source instance
+        """
         try:
             return self._source
         except AttributeError:
@@ -211,6 +217,13 @@ class Biography(object, BioDesDoc):
             element.text = u''
 
     def create_id(self):
+        """return an ID for the biography
+
+        this id is based on:
+        - the local_id defined in the XML file
+        - if this is not found, on the source_url
+
+        """
         if self.id:
             return self.id
         else:
@@ -289,11 +302,17 @@ class Biography(object, BioDesDoc):
             ls.reverse()
             for i, r_bio in ls:
                 r_bio.version = i + 1
-                session.flush()
+                session.object_session(r_bio).flush()
 
-            #creata a new versino
+            # for some reason sqlalchemy does not always write changes to db
+            # (and we get an integreity error because id-version is not unique)
+            # TODO: fix bug described in lines above in a more elegant way
+
+            # create a new version
             self._record = r_biography = BiographyRecord(id=self.get_id())
             session.add(r_biography)
+            session.flush()
+
             r_biography.source_id = self.source_id
             r_biography.biodes_document = self.to_string()
             r_biography.source_url = unicode(self.source_url)

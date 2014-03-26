@@ -1,5 +1,5 @@
-##! /usr/bin/python    
-##encoding=utf-8
+#! /usr/bin/python    
+#encoding=utf-8
 
 ##########################################################################
 # Copyright (C) 2009 - 2014 Huygens ING & Gerbrandy S.R.L.
