@@ -61,7 +61,7 @@ class Repository(object):
         self.db = DBRepository(
             dsn=dsn,
             user=user,
-            repository=self,
+            repository=self
             )
         self.db.repository = self
         if images_cache_local:

@@ -39,7 +39,7 @@ repository = Repository(
   svn_repository_local_copy=SVN_REPOSITORY_LOCAL_COPY,
   svn_repository='file://%s' % SVN_REPOSITORY,
   dsn=DSN,
-  images_cache_local=IMAGES_CACHE_LOCAL,
+  images_cache_local=IMAGES_CACHE_LOCAL
 )
 
 

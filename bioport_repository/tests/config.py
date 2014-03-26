@@ -24,7 +24,7 @@ from sqlalchemy import create_engine
 
 DB_NAME = 'bioport_test'
 POSSIBLE_DSN = ['mysql://root@localhost/%s' % DB_NAME,
-                'mysql://jge:MilanO8@localhost/%s' % DB_NAME,
+                'mysql://histest:test@localhost/%s' % DB_NAME,
                 'mysql://localhost/%s' % DB_NAME,
                ]
 
@@ -51,4 +51,4 @@ SVN_REPOSITORY  = os.path.abspath(os.path.join(THIS_DIR, 'data/bioport_repositor
 SVN_REPOSITORY_LOCAL_COPY = os.path.abspath(os.path.join(THIS_DIR, 'data/bioport_repository_local_copy'))
 IMAGES_CACHE_LOCAL = os.path.join(THIS_DIR, 'tmp')
 SQLDUMP_FILENAME = os.path.join(THIS_DIR, 'data/bioport_mysqldump.sql')
-CREATE_NEW_DUMPFILE = False #very expesnive if True
+CREATE_NEW_DUMPFILE = False #very expensive if True
