@@ -167,11 +167,16 @@ class Person(object):
             #     has_name = Column(Boolean) # if naam != null && != ''
             r_person.has_name = (r_person.naam != None) and (r_person.naam != '') 
             #     birthday = Column(MSString(4), index=True) # if geboortedatum_min = geboortedatum_max, then extract geboortedag
-            if r_person.geboortedatum_min == r_person.geboortedatum_min:
-                date = to_date(r_person.geboortedatum_min)
-                r_person.birthday = date.strftime("%m%d")
+            if r_person.geboortedatum_min != None and r_person.geboortedatum_min == r_person.geboortedatum_min:
+                print 'r_person.geboortedatum_min=%s' % r_person.geboortedatum_min
+                date = to_date(r_person.geboortedatum_min[0:10])
+                print 'date = %s' % date
+                iso = date.isoformat()
+                r_person.birthday = iso[5:7] + iso[8:10]
+                print 'birthday = %s' % r_person.birthday
             #     initial = Column(MSString(1), index=True) # eerste letter van naam
-            r_person.initial = r_person.naam[0]
+            if r_person.has_name:
+                r_person.initial = r_person.naam[0]
             #     invisible = Column(Boolean) # person.status IN (11, 5, 9, 9999, 14, 15)
             r_person.invisible = r_person.status in TO_HIDE
 #             #     foreigner = Column(Boolean) # person.status IN (11)
