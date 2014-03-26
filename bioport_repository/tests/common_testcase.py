@@ -182,12 +182,12 @@ class CommonTestCase(unittest.TestCase):
             'url_publisher': 'http://placeholder.com',
             }
         defaults.update(args)
-        id = str(len(list(self.repo.get_biographies())))
+        size_id = str(len(list(self.repo.get_biographies())))
         xml_source = args.get('xml_source')
         if xml_source:
-            return Biography(repository=self.repo, source_id=source_id, id=id).from_string(xml_source)
+            return Biography(repository=self.repo, source_id=source_id, id=size_id).from_string(xml_source)
         else:
-            return Biography(repository=self.repo, source_id=source_id, id=id).from_args(**defaults)
+            return Biography(repository=self.repo, source_id=source_id, id=size_id).from_args(**defaults)
 
     def _save_biography(self, biography, comment=u'saved by test'):
         return self.repo.save_biography(biography, comment)
