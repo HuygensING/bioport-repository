@@ -1,3 +1,5 @@
+# encoding=utf8
+
 ##########################################################################
 # Copyright (C) 2009 - 2014 Huygens ING & Gerbrandy S.R.L.
 # 
@@ -18,7 +20,6 @@
 # <http://www.gnu.org/licenses/gpl-3.0.html>.
 ##########################################################################
 
-# encoding=utf8
 from bioport_repository.tests.common_testcase import CommonTestCase, unittest
 from bioport_repository.biography import Biography
 from bioport_repository.source import Source
