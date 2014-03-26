@@ -184,8 +184,6 @@ class CommonTestCase(unittest.TestCase):
             return Biography(repository=self.repo, source_id=source_id, id=biography_id).from_string(xml_source)
         else:
             return Biography(repository=self.repo, source_id=source_id, id=biography_id).from_args(**defaults)
-
-    def _save_biography(self, biography, comment=u'saved by test'):
         return self.repo.save_biography(biography, comment)
 
 
