@@ -70,7 +70,7 @@ from bioport_repository.db_definitions import (
     STATUS_NEW, STATUS_FOREIGNER,
     STATUS_MESSY, STATUS_REFERENCE, STATUS_NOBIOS,
     STATUS_ONLY_VISIBLE_IF_CONNECTED,
-    STATUS_ALIVE,
+    STATUS_ALIVE
     )
 
 from bioport_repository.similarity.similarity import Similarity
@@ -980,25 +980,34 @@ class DBRepository:
             #    (STATUS_REFERENCE, 'verwijslemma'),
             #    (STATUS_NOBIOS, 'no external biographies')
             #    (STATUS_ALIVE, 'leeft nog')
-            to_hide = [
-               STATUS_FOREIGNER,
-               STATUS_MESSY,
-               STATUS_REFERENCE,
-               STATUS_NOBIOS,
-               STATUS_ALIVE,
-               STATUS_ONLY_VISIBLE_IF_CONNECTED,
-               ]
-            qry = qry.filter(not_(sqlalchemy.func.ifnull(PersonRecord.status.in_(to_hide), False))) 
+#             to_hide = [
+#                STATUS_FOREIGNER,
+#                STATUS_MESSY,
+#                STATUS_REFERENCE,
+#                STATUS_NOBIOS,
+#                STATUS_ALIVE,
+#                STATUS_ONLY_VISIBLE_IF_CONNECTED,
+#                ]
+#            qry = qry.filter(not_(sqlalchemy.func.ifnull(PersonRecord.status.in_(to_hide), False)))  # @UndefinedVariable
+            #BB
+            qry = qry.filter(PersonRecord.invisible == False)  # @UndefinedVariable
 
         if hide_foreigners:
-            qry = qry.filter(not_(sqlalchemy.func.ifnull(PersonRecord.status.in_([STATUS_FOREIGNER]), False)))
+            #qry = qry.filter(not_(sqlalchemy.func.ifnull(PersonRecord.status.in_([STATUS_FOREIGNER]), False)))  # @UndefinedVariable
+            # BB
+            qry = qry.filter(PersonRecord.status != STATUS_FOREIGNER)  # @UndefinedVariable
+#             qry = qry.filter(PersonRecord.foreigner == False)  # @UndefinedVariable
 
         if beginletter:
-            qry = qry.filter(PersonRecord.naam.startswith(beginletter))  # @UndefinedVariable
+            #qry = qry.filter(PersonRecord.naam.startswith(beginletter))  # @UndefinedVariable
+            # BB
+            qry = qry.filter(PersonRecord.initial == beginletter)  # @UndefinedVariable
 
         elif no_empty_names:
-            qry = qry.filter(PersonRecord.naam != None)
-            qry = qry.filter(PersonRecord.naam != "")
+#             qry = qry.filter(PersonRecord.naam != None)
+#             qry = qry.filter(PersonRecord.naam != "")
+            # BB
+            qry = qry.filter(PersonRecord.has_name == True)
 
         if bioport_id:
             qry = qry.filter(PersonRecord.bioport_id == bioport_id)
@@ -1101,13 +1110,15 @@ class DBRepository:
             qry = qry.join((RelBioPortIdBiographyRecord, PersonRecord.bioport_id == RelBioPortIdBiographyRecord.bioport_id))
             qry = qry.join((BiographyRecord, BiographyRecord.id == RelBioPortIdBiographyRecord.biography_id))
             qry = qry.filter(BiographyRecord.url_biography == url_biography)
+
         if size:
             if int(size) > -1:
                 qry = qry.limit(size)
+        
         if start:
             qry = qry.offset(start)
         
-        qry = qry.distinct() ## BB: altijd distinct?
+        qry = qry.distinct() ## BB: distinct alleen nodig indien join nodig
 
         return qry
 
