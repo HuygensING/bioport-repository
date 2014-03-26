@@ -39,7 +39,7 @@ from bioport_repository.db_definitions import BiographyRecord
 
 
 def create_biography_id(source_id, local_id):
-    """generate an id for this biogrpahy on the baseis fo source_id and local_id
+    """generate an id for this biography on the basis of source_id and local_id
 
     local_id is expected to be unique in the source_id namespace
     """
@@ -349,7 +349,7 @@ class Biography(object, BioDesDoc):
             return None
 
     def guess_value(self, k):
-        """Do you best to 'guess' a decent value for the given k
+        """Do your best to 'guess' a decent value for the given k
 
         if the value is already defined in the biodes document, we return that value
 
