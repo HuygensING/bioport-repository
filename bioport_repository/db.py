@@ -36,6 +36,7 @@ from sqlalchemy.orm import aliased
 from sqlalchemy.orm import sessionmaker, scoped_session
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy import create_engine, desc, and_, or_, not_
+from sqlalchemy.exc import ResourceClosedError
 
 from zope.sqlalchemy import ZopeTransactionExtension
 from plone.memoize import instance
@@ -81,17 +82,15 @@ from bioport_repository.versioning import Version
 from bioport_repository.merged_biography import BiographyMerger
 
 LENGTH = 8  # the length of a bioport id
-ECHO = True  # log all mysql queries.
+# ECHO = True  # log all mysql queries.
 ECHO = False  # log all mysql queries.
-EXCLUDE_THIS_STATUS_FROM_SIMILARITY = [5, 9]  # if persons have this status, we will not include them in the similiarty cache
+EXCLUDE_THIS_STATUS_FROM_SIMILARITY = [5, 9]  # if persons have this status, we will not include them in the similarity cache
 
 
 class DBRepository:
     """Interface with the MySQL database"""
     SIMILARITY_TRESHOLD = 0.70
 
-    _filling_cache = False # is true while we are filling the cache, to not go crazy when we get several requests at the same time
-    
     def __init__(self,
         dsn,
         user,
@@ -108,15 +107,16 @@ class DBRepository:
             convert_unicode=True,
             encoding='utf8',
             echo=echo,
-            pool_recycle=3600,  # set pool_recycle to one hour to avoig sql server has gone away errors
+            pool_recycle=3600,  # set pool_recycle to one hour to avoid 'sql server has gone away' errors
 #             strategy="threadlocal",
             )
 
         self.Session = scoped_session(sessionmaker(bind=self.engine, extension=ZopeTransactionExtension()))
         self.db = self
         self.repository = repository
-        # fill cache on init
-        self.all_persons()
+        # prime the cache
+#         self.all_persons()
+
 
     @property
     def session(self):
@@ -142,11 +142,12 @@ class DBRepository:
             raise
         else:
             try:
-#                 session.flush()
                 transaction.commit()
                 self.Session.remove()
+            except ResourceClosedError:
+                transaction.abort()
+                self.Session.remove()
             except:
-#                 session.rollback()
                 transaction.abort()
                 raise
 
@@ -232,7 +233,6 @@ class DBRepository:
             session.delete(r_source)
 
     def get_bioport_ids(self):
-#        return self.all_persons().keys()
         session = self.get_session()
         qry = session.query(BioPortIdRecord.bioport_id).distinct()
         rs = self.get_session().execute(qry)
@@ -714,7 +714,7 @@ class DBRepository:
         excluding those of the source 'bioport'"""
         if not args.get('version'):
             args['version'] = 0
-
+# BB http://docs.sqlalchemy.org/en/rel_0_9/orm/query.html#count
         return self._get_biography_query(no_bioport_biographies=True, **args).count()
 #        qry = self.get_session().query(BiographyRecord)
 #        qry = qry.filter(BiographyRecord.version == 0)
@@ -775,7 +775,7 @@ class DBRepository:
 
         if bioport_id:
             #        first those biographies that have the present bioport_id in their id -
-            #        then the reset, by quality
+            #        then the rest, by quality
             # (note that False comes before True when sorting, hence the 'not in')
 
             bios = [(('bioport/%s' % bioport_id) not in bio.id, -bio.get_quality(), bio.id, bio) for bio in bios]
@@ -873,17 +873,14 @@ class DBRepository:
         except AttributeError:
             # initialize
             pass
-        if self._filling_cache:
-            return {}
-        self._filling_cache = True
         logging.info('** fill_all_persons_cache - should happen only @ restart %s' % self)
         time0 = time.time()
         qry = self._get_persons_query(full_records=True, hide_invisible=False)
-        # executing the qry.statement is MUCH faster than qry.all()
+        # executing the qry.statement directly is MUCH faster than qry.all()
         ls = self.get_session().execute(qry.statement)
         self._all_persons = dict((r.bioport_id, Person(bioport_id=r.bioport_id, repository=self.repository)) for r in ls)
+#         self._all_persons = {}
         logging.info('done (filling all_persons cache): %s seconds' % (time.time() - time0))
-        self._filling_cache = False
         return self._all_persons
 
     def _get_persons_query(self,
@@ -991,10 +988,10 @@ class DBRepository:
                STATUS_ALIVE,
                STATUS_ONLY_VISIBLE_IF_CONNECTED,
                ]
-            qry = qry.filter(not_(sqlalchemy.func.ifnull(PersonRecord.status.in_(to_hide), False)))  # @UndefinedVariable
+            qry = qry.filter(not_(sqlalchemy.func.ifnull(PersonRecord.status.in_(to_hide), False))) 
 
         if hide_foreigners:
-            qry = qry.filter(not_(sqlalchemy.func.ifnull(PersonRecord.status.in_([STATUS_FOREIGNER]), False)))  # @UndefinedVariable
+            qry = qry.filter(not_(sqlalchemy.func.ifnull(PersonRecord.status.in_([STATUS_FOREIGNER]), False)))
 
         if beginletter:
             qry = qry.filter(PersonRecord.naam.startswith(beginletter))  # @UndefinedVariable
@@ -1050,7 +1047,7 @@ class DBRepository:
             qry = qry.filter(PersonRecord.has_illustrations == has_illustrations)
 
         if match_term:
-            qry = qry.filter(PersonRecord.naam.match(match_term))  # @UndefinedVariable
+            qry = qry.filter(PersonRecord.naam.match(match_term)) 
 
         if search_term:
             # full-text search
@@ -1067,7 +1064,7 @@ class DBRepository:
 
         if any_soundex:
             qry = qry.join(PersonSoundex)
-            qry = qry.filter(PersonSoundex.soundex.in_(any_soundex))  # @UndefinedVariable
+            qry = qry.filter(PersonSoundex.soundex.in_(any_soundex)) 
 
         qry = qry.join(PersonSource)
         qry = qry.filter(PersonSource.source_id != u'bioport')
@@ -1109,7 +1106,8 @@ class DBRepository:
                 qry = qry.limit(size)
         if start:
             qry = qry.offset(start)
-        qry = qry.distinct()
+        
+        qry = qry.distinct() ## BB: altijd distinct?
 
         return qry
 
@@ -1290,7 +1288,7 @@ class DBRepository:
                 qry = qry.join(PersonSoundex)
                 if search_family_name_only:
                     qry = qry.filter(PersonSoundex.is_from_family_name == True)
-                qry = qry.filter(PersonSoundex.soundex.like(s))  # @UndefinedVariable
+                qry = qry.filter(PersonSoundex.soundex.like(s)) 
             else:
                 for s in soundexes:
                     alias = aliased(PersonSoundex)

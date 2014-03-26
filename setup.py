@@ -26,12 +26,13 @@ setup(name = 'bioport_repository',
                  ],
 
       install_requires=['gerbrandyutils',
-
                         'biodes',
                         'plone.memoize',
                         'sqlalchemy',
                         'names',
                         'simplejson',
                         'zope.sqlalchemy',
+                        'Pillow',
+                        'ipdb',
                        ],
       )

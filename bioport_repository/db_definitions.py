@@ -52,7 +52,7 @@ class BiographyRecord(Base):
 
     user = Column(MSString(50))
     time = Column(DateTime)
-    comment = Column(Unicode(255))
+    comment = Column(Unicode(255), default=u'')
     bioportid = relation('RelBioPortIdBiographyRecord')
     hide = Column(Boolean)
     timestamp = Column(TIMESTAMP)
@@ -191,6 +191,9 @@ class PersonSource(Base):
     id = Column(Integer, primary_key=True)
     bioport_id = Column(MSString(50), ForeignKey('person.bioport_id'), index=True,)
     source_id = Column(Unicode(20), index=True)
+#    #id = Column(Integer, primary_key=True)
+#    bioport_id = Column(MSString(50), ForeignKey('person.bioport_id'), index=True, primary_key=True)
+#    source_id = Column(Unicode(20), index=True, primary_key=True)
 
 class NaamRecord(Base):
     __tablename__ = 'naam'

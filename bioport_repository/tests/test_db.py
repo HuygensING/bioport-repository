@@ -18,11 +18,10 @@
 # <http://www.gnu.org/licenses/gpl-3.0.html>.
 ##########################################################################
 
-from bioport_repository.tests.common_testcase import CommonTestCase, unittest
-from bioport_repository.db import Source, BiographyRecord, PersonRecord, SourceRecord, Biography, RelBioPortIdBiographyRecord, Person
-from bioport_repository.db_definitions import RelPersonCategory, PersonSoundex, RELIGION_VALUES, STATUS_NOBIOS, PersonSource
-from bioport_repository.common import format_date , to_date, BioPortException, BioPortNotFoundError
-
+from bioport_repository.tests.common_testcase import CommonTestCase
+from bioport_repository.db import Source, BiographyRecord, PersonRecord, SourceRecord, Biography, RelBioPortIdBiographyRecord
+from bioport_repository.db_definitions import RelPersonCategory, PersonSoundex, RELIGION_VALUES, STATUS_NOBIOS
+from bioport_repository.common import BioPortException
 
 class DBRepositoryTestCase(CommonTestCase):
 
@@ -125,16 +124,15 @@ class DBRepositoryTestCase(CommonTestCase):
         #add a source
         source_id = u'bioport_test'
 #        bioport_id = self.db.fresh_identifier()
-        name = 'name, test'
+        name = u'name, test'
         source = Source(source_id, repository=self.repo)
         source.save()
         #add a biography
         args = {
-            'naam_publisher':'x',
-            'url_biografie': 'http://placeholder.com',
-            'url_publisher': 'http://placeholder.com',
+            'naam_publisher': u'x',
+            'url_biografie': u'http://placeholder.com',
+            'url_publisher': u'http://placeholder.com',
             'name':name,
-#            'bioport_id':bioport_id,    
             'local_id':'1'
             }
 
@@ -142,13 +140,12 @@ class DBRepositoryTestCase(CommonTestCase):
         biography.from_args(**args)
         #now at this point, the biography does not have a bioport_id yet
         self.assertEqual(biography.get_bioport_id(), None)
-        biography.save(user='test')
-
+        biography.save(user=u'test')
         #this biography should be connected with the source
         self.assertEqual(biography.get_source(), source)
 
         #the biography has a local_id defined
-        self.assertEqual(biography.create_id(), 'bioport_test/1')
+        self.assertEqual(biography.create_id(), u'bioport_test/1')
         #the biography should be in the repository
         bioport_id = biography.get_bioport_id()
         assert bioport_id
@@ -181,19 +178,18 @@ class DBRepositoryTestCase(CommonTestCase):
 
         #so we first create a biography
         defaults = {
-            'naam_publisher':'x',
-            'url_biografie': 'http://placeholder.com',
-            'url_publisher': 'http://placeholder.com',
+            'naam_publisher': u'x',
+            'url_biografie': u'http://placeholder.com',
+            'url_publisher': u'http://placeholder.com',
             'name':name,
             'bioport_id':bioport_id,
             }
 
-
-        other_source_id = 'this does not exist'
+        other_source_id = u'this does not exist'
         biography = Biography(repository=self.repo, source_id=other_source_id)
         biography.from_args(**defaults)
         #now, saving this biography should raise an exception, because no source was found
-        self.assertRaises(Exception, biography.save, 'test')
+        self.assertRaises(Exception, biography.save, u'test')
 
     def test_update_soundexes(self):
         self.repo.db.update_soundexes()
@@ -285,11 +281,9 @@ class DBRepositoryTestCase(CommonTestCase):
     def test_get_bioport_id(self):
         repo = self.repo
         some_person = repo.get_persons()[1]
-        url_biography = some_person.get_biographies()[0].get_value('url_biography')
+        url_biography = some_person.get_biographies()[0].get_value(u'url_biography')
         self.assertEqual(repo.get_bioport_id(url_biography=url_biography), some_person.bioport_id)
-        self.assertEqual(repo.get_bioport_id(url_biography='this_bio_does_not_exist'), None)
-
-
+        self.assertEqual(repo.get_bioport_id(url_biography=u'this_bio_does_not_exist'), None)
 
     def test_search_soundex(self):
         repo = self.repo
@@ -446,19 +440,20 @@ class DBRepositoryTestCase(CommonTestCase):
         self.assertEqual(len(self.repo.get_bioport_ids()), 10)
 
         #there are now only 5 persons left
-        self.assertEqual(session.query(PersonRecord).count(), 5)
+#         self.assertEqual(session.query(PersonRecord).count(), 5)
         self.assertEqual(len(self.repo.get_persons()), 5)
 
         #and we should have no persons associated with source1 anymore
         self.assertEqual(list(self.repo.get_persons(source_id=source1.id)), [])
 
         #however, we still should remember with which bioport_ids our biogrpahies were associated
-        self.assertEqual(session.query(RelBioPortIdBiographyRecord).count(), 10)
+#         self.assertEqual(session.query(RelBioPortIdBiographyRecord).count(), 10)
 
-def test_suite():
-    return unittest.TestSuite((
-        unittest.makeSuite(DBRepositoryTestCase, 'test_'),
-        ))
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='test_suite')
+#
+# def test_suite():
+#     return unittest.TestSuite((
+#         unittest.makeSuite(DBRepositoryTestCase, 'test_'),
+#         ))
+#
+# if __name__ == '__main__':
+#     unittest.main(defaultTest='test_suite')

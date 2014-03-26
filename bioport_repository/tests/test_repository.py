@@ -415,22 +415,22 @@ class RepositoryTestCase(CommonTestCase):
         source_id = p1.get_biographies()[0].get_source().id
         self.assertEqual((score, p1, p2) , repo.get_most_similar_persons(source_id=source_id)[0])
         self.assertEqual((score, p1, p2) , repo.get_most_similar_persons(source_id2=source_id)[0])
-
-    def xxx_test_merging_in_identification(self):
-        #XXX this is a test for when merging while identifying has been activated (in Repository.identify)
-        #when we identify two persons that have bioport biographies defined, they should merge
-        p1 = self._add_person('Lucky')
-        p2 = self._add_person('Pozzo')
-        self.repo.get_bioport_biography(person=p1)
-        self.repo.get_bioport_biography(person=p2)
-        #check sanity
-        assert p1.get_biographies(source_id='bioport')
-        assert p2.get_biographies(source_id='bioport')
-        new_p = self.repo.identify(p1, p2)
-
-        self.assertEqual(len(new_p.get_biographies()), 3)
-        p = self.repo.get_person(bioport_id=new_p.get_bioport_id())
-        self.assertEqual(len(p.get_biographies()), 3)
+# 
+#     def xxx_test_merging_in_identification(self):
+#         #XXX this is a test for when merging while identifying has been activated (in Repository.identify)
+#         #when we identify two persons that have bioport biographies defined, they should merge
+#         p1 = self._add_person('Lucky')
+#         p2 = self._add_person('Pozzo')
+#         self.repo.get_bioport_biography(person=p1)
+#         self.repo.get_bioport_biography(person=p2)
+#         #check sanity
+#         assert p1.get_biographies(source_id='bioport')
+#         assert p2.get_biographies(source_id='bioport')
+#         new_p = self.repo.identify(p1, p2)
+# 
+#         self.assertEqual(len(new_p.get_biographies()), 3)
+#         p = self.repo.get_person(bioport_id=new_p.get_bioport_id())
+#         self.assertEqual(len(p.get_biographies()), 3)
 #class RepositoryTestCase(CommonTestCase):
 
     def test_refreshing_of_identification_cache(self):
