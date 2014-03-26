@@ -147,11 +147,14 @@ class PersonRecord(Base):
     sterfdatum_min = Column(Date, index=True)
     sterfdatum_max = Column(Date, index=True)
 
+
     geboortedatum = Column(MSString(12), index=True)
     geboorteplaats = Column(MSString(255), index=True)
     sterfdatum = Column(MSString(12), index=True)
     sterfplaats = Column(MSString(255), index=True)
     naam = Column(MSString(255), index=True)
+    
+    
     geslachtsnaam = Column(MSString(255), index=True)
     names = Column(UnicodeText)
     sort_key = Column(MSString(50), index=True)
@@ -168,6 +171,15 @@ class PersonRecord(Base):
     has_contradictions = Column(Boolean)
 
     timestamp = Column(TIMESTAMP)
+
+    # BB
+    has_name = Column(Boolean) # if naam != null && != ''
+    birthday = Column(MSString(4), index=True) # if geboortedatum_min = geboortedatum_max, then extract geboortedag
+    initial = Column(MSString(1), index=True) # eerste letter van naam
+    invisible = Column(Boolean) # person.status IN (11, 5, 9, 9999, 14, 15)
+#     foreigner = Column(Boolean) # person.status IN (11)
+    orphan = Column(Boolean) # person is orphan when the only sourced linking to it is 'bioport'  
+    # /BB
 
 
 class PersonSoundex(Base):
