@@ -1,3 +1,4 @@
+# encoding=utf8
 ##########################################################################
 # Copyright (C) 2009 - 2014 Huygens ING & Gerbrandy S.R.L.
 # 
@@ -49,6 +50,23 @@ class PersonTestCase(CommonTestCase):
         p1.get_merged_biography()
         p1.get_merged_biography()
         p1.get_merged_biography()
+
+    def test_person_initial_is_set(self):
+        self.create_filled_repository(sources=1)
+        p1 = self.repo.get_persons()[1]
+        p2 = self.repo.get_persons()[2]
+        expected_initial1 = p1.naam()[0].lower()
+        expected_initial2 = p2.naam()[0].lower()
+        self.assertEquals(p1.initial(), expected_initial1, 'wrong initial: %s' % p1.initial())
+        self.assertEquals(p2.initial(), expected_initial2, 'wrong initial: %s' % p2.initial())
+        
+    def test_person_initial_is_set1(self):
+        person = self._add_person(name='Zylophon')
+        self.assertEquals(person.initial(), 'z', 'wrong initial: %s' % person.initial())
+        person = self._add_person(name='Xenophon')
+        self.assertEquals(person.initial(), 'x', 'wrong initial: %s' % person.initial())
+        person = self._add_person(name=u'Äriél')
+        self.assertEquals(person.initial(), u'ä', u'wrong initial: %s' % person.initial())
 
     def test_get_dates_for_overview(self):
         person = self._add_person(name='Estragon')

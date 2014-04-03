@@ -316,6 +316,12 @@ class Person(object):
 
     naam = name
 
+    def initial(self):
+        if self.record:
+            return self.record.initial
+        else:
+            return self.get_merged_biography().initial()
+
     def redirects_to(self):
         """
         Does this bioport_id redirect somewhere else? if yes, return

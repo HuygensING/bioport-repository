@@ -30,7 +30,6 @@ from sqlalchemy import MetaData, Text, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.dialects.mysql import VARCHAR as MSString
 from sqlalchemy.orm import relation
-
 from sqlalchemy.types import TIMESTAMP
 
 #define the tables
