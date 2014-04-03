@@ -20,6 +20,7 @@
 # <http://www.gnu.org/licenses/gpl-3.0.html>.
 ##########################################################################
 
+
 june21_2012 = """
 ALTER TABLE `biography` ADD INDEX `ix_source_version`(`source_id`, `version`);
 

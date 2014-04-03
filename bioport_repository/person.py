@@ -366,7 +366,7 @@ class Person(object):
     def get_dates_for_overview(self):
         """return a tuple of ISO-dates to show in the overview
 
-        the first data is the date of bith, but if that does not exist, it is date of baptism
+        the first data is the date of birth, but if that does not exist, it is date of baptism
         the second date is the date of death, or, if that does not exist, date of burial
 
         TODO: why is the baptism-burial part commented out?
@@ -440,11 +440,17 @@ class Person(object):
     def _update_source(self):
         """update the table person_source and replace the source_ids to the bioport_id"""
         bioport_id = self.bioport_id
-        source_ids = [b.source_id for b in self.get_biographies()]
+
+        # BB sometimes there's duplication in source_ids, should this be possible?
+        # BB anyway, put it in a set to remove duplication
+        source_ids = frozenset([b.source_id for b in self.get_biographies()])
+#         print source_ids
+        
         with self.repository.db.get_session_context() as session:
             #delete existing references
             session.query(PersonSource).filter(PersonSource.bioport_id == bioport_id).delete()
             for source_id in source_ids:
+#                 print bioport_id,source_id
                 r = PersonSource(bioport_id=bioport_id, source_id=source_id)
                 session.add(r)
 

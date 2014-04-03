@@ -19,8 +19,11 @@
 ##########################################################################
 
 # 
-# TODO: drop table person_view; in prodction db.
+# TODO: drop table person_view; in production db.
 #
+
+# BB When making changes to theses classes which would result in a new database scheme,
+# be sure to remove data/bioport_mysqldump.sql so it will be regenerated in the tests
 
 from sqlalchemy import Column, Integer, Unicode, ForeignKey, Boolean, UnicodeText, Float, Date
 from sqlalchemy import MetaData, Text, DateTime
@@ -200,15 +203,13 @@ class PersonName(Base):
 
 class PersonSource(Base):
     __tablename__ = 'person_source'
-    id = Column(Integer, primary_key=True)
-    bioport_id = Column(MSString(50), ForeignKey('person.bioport_id'), index=True,)
-    source_id = Column(Unicode(20), index=True)
-#    #id = Column(Integer, primary_key=True)
+    bioport_id = Column(MSString(50), ForeignKey('person.bioport_id'), primary_key=True)
+    source_id = Column(Unicode(20), primary_key=True)
 #    bioport_id = Column(MSString(50), ForeignKey('person.bioport_id'), index=True, primary_key=True)
 #    source_id = Column(Unicode(20), index=True, primary_key=True)
 
 class NaamRecord(Base):
-    __tablename__ = 'naam'
+    __tablename__ = 'naam'  
     id = Column(Integer, primary_key=True)
 
     soundex = relation(SoundexRecord) #, backref="naam.id")
