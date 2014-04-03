@@ -167,7 +167,7 @@ class Person(object):
             #     has_name = Column(Boolean) # if naam != null && != ''
             r_person.has_name = (r_person.naam != None) and (r_person.naam != '') 
             #     birthday = Column(MSString(4), index=True) # if geboortedatum_min = geboortedatum_max, then extract geboortedag
-            if r_person.geboortedatum_min != None and r_person.geboortedatum_min == r_person.geboortedatum_min:
+            if r_person.geboortedatum_min != None and r_person.geboortedatum_min == r_person.geboortedatum_max:
 #                 print 'r_person.geboortedatum_min=%s' % r_person.geboortedatum_min
                 date = to_date(r_person.geboortedatum_min[0:10])
 #                 print 'date = %s' % date
@@ -322,11 +322,23 @@ class Person(object):
         else:
             return self.get_merged_biography().initial()
 
+    def is_invisible(self):
+        if self.record:
+            return self.record.invisible
+        else:
+            return self.get_merged_biography().is_invisible()
+
     def has_name(self):
         if self.record:
             return self.record.has_name
         else:
             return self.get_merged_biography().has_name()
+
+    def birthday(self):
+        if self.record:
+            return self.record.birthday
+        else:
+            return self.get_merged_biography().birthday()
 
     def redirects_to(self):
         """
