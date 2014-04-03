@@ -68,6 +68,14 @@ class PersonTestCase(CommonTestCase):
         person = self._add_person(name=u'Äriél')
         self.assertEquals(person.initial(), u'ä', u'wrong initial: %s' % person.initial())
 
+    def test_person_has_name_is_set(self):
+        person = self._add_person(name='')
+        self.assertEquals(person.has_name(), False, 'has_name should be false')
+        person = self._add_person()
+        self.assertEquals(person.has_name(), False, 'has_name should be false')
+        person = self._add_person(name='Xenophon')
+        self.assertEquals(person.has_name(), True, 'has_name should be true')
+
     def test_get_dates_for_overview(self):
         person = self._add_person(name='Estragon')
         bio = person.get_biographies()[0]
