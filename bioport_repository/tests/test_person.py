@@ -21,7 +21,7 @@
 
 from bioport_repository.tests.common_testcase import CommonTestCase, unittest
 from bioport_repository.person import Person
-#from bioport_repository.source import Source
+# from bioport_repository.source import Source
 from bioport_repository.biography import Biography
 from bioport_repository.db_definitions import STATUS_DONE, STATUS_FOREIGNER
 
@@ -71,26 +71,43 @@ class PersonTestCase(CommonTestCase):
 
     def test_person_has_name_is_set(self):
         person = self._add_person(name='')
-        self.assertEquals(person.has_name(), False, 'has_name should be false')
+        self.assertEqual(person.has_name(), False, 'has_name should be false')
         person = self._add_person()
-        self.assertEquals(person.has_name(), False, 'has_name should be false')
+        self.assertEqual(person.has_name(), False, 'has_name should be false')
         person = self._add_person(name='Xenophon')
-        self.assertEquals(person.has_name(), True, 'has_name should be true')
+        self.assertEqual(person.has_name(), True, 'has_name should be true')
 
     def test_person_birthday_is_set(self):
-        person = self._add_person(name='Saskia',geboortedatum='2010-01-06')
-        self.assertEquals(person.birthday(), '0106', 'person.birthday() returns %s' % person.birthday())
+        person = self._add_person(name='Saskia', geboortedatum='2010-01-06')
+        self.assertEqual(person.birthday(), '0106', 'person.birthday() returns %s' % person.birthday())
         person = self._add_person(name='Unknown')
-        self.assertEquals(person.birthday(), None, 'person.birthday() returns %s' % person.birthday())
+        self.assertEqual(person.birthday(), None, 'person.birthday() returns %s' % person.birthday())
 
     def test_person_invisible_is_set(self):
         person = self._add_person(name='Saskia')
         person.record.status = STATUS_FOREIGNER
         person.save()
-        self.assertEquals(person.is_invisible(), True, 'person should be invisible')
+        self.assertEqual(person.is_invisible(), True, 'person should be invisible')
         person.record.status = STATUS_DONE
         person.save()
-        self.assertEquals(person.is_invisible(), False, 'person should be visible')
+        self.assertEqual(person.is_invisible(), False, 'person should be visible')
+
+    def test_person_orphan_is_set(self):
+        person = self._add_person(name='Remi')
+        self.assertEqual(person.is_orphan(), False)
+        b = person.get_biographies()
+        self.assertEqual(len(b),1)
+        default_bio = b[0]
+        self.assertNotEqual(default_bio.source_id, 'bioport')
+
+        bio = Biography(id="bla", source_id=u"bioport",
+                        repository=self.repo)
+        person.add_biography(bio)
+        person.save()
+        self.assertEqual(person.is_orphan(), False)
+
+        self.repo.delete_biography(default_bio)
+        self.assertEqual(person.is_orphan(), True)
 
     def test_get_dates_for_overview(self):
         person = self._add_person(name='Estragon')

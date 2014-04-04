@@ -68,9 +68,7 @@ from bioport_repository.db_definitions import (
     SourceRecord,
     RelPersonReligion,
     STATUS_NEW, STATUS_FOREIGNER,
-    STATUS_MESSY, STATUS_REFERENCE, STATUS_NOBIOS,
-    STATUS_ONLY_VISIBLE_IF_CONNECTED,
-    STATUS_ALIVE
+    STATUS_ONLY_VISIBLE_IF_CONNECTED
     )
 
 from bioport_repository.similarity.similarity import Similarity
@@ -90,6 +88,7 @@ EXCLUDE_THIS_STATUS_FROM_SIMILARITY = [5, 9]  # if persons have this status, we 
 class DBRepository:
     """Interface with the MySQL database"""
     SIMILARITY_TRESHOLD = 0.70
+    LOG_QUERY = False
 
     def __init__(self,
         dsn,
@@ -882,6 +881,10 @@ class DBRepository:
 #         self._all_persons = {}
         logging.info('done (filling all_persons cache): %s seconds' % (time.time() - time0))
         return self._all_persons
+    
+    def _log_query(self, label, qry):
+        if self.LOG_QUERY:
+          print '>> %s: qry = %s\n' % (label, qry)
 
     def _get_persons_query(self,
         bioport_id=None,
@@ -942,6 +945,8 @@ class DBRepository:
         arguments:
             search_family_name_only (Boolean): if True, consider only the geslachtsnaam (family name) when searching
         """
+        make_distinct = False
+        
         session = self.get_session()
         if full_records:
             qry = session.query(
@@ -966,12 +971,14 @@ class DBRepository:
                 )
         else:
             qry = session.query(PersonRecord.bioport_id)
+        self._log_query('full_records', qry)
 
         if is_identified:
             # a person is identified if another bioport id redirects to it
             # XXX: this is not a good definition
             PBioPortIdRecord = aliased(BioPortIdRecord)
             qry = qry.join((PBioPortIdRecord, PersonRecord.bioport_id == PBioPortIdRecord.redirect_to))
+            self._log_query('is_identified', qry)
 
         if hide_invisible:
             # we always hide the follwing categoires
@@ -989,47 +996,62 @@ class DBRepository:
 #                STATUS_ONLY_VISIBLE_IF_CONNECTED,
 #                ]
 #            qry = qry.filter(not_(sqlalchemy.func.ifnull(PersonRecord.status.in_(to_hide), False)))  # @UndefinedVariable
-            #BB
+            # BB
             qry = qry.filter(PersonRecord.invisible == False)  # @UndefinedVariable
+            self._log_query('hide_invisible', qry)
 
         if hide_foreigners:
-            #qry = qry.filter(not_(sqlalchemy.func.ifnull(PersonRecord.status.in_([STATUS_FOREIGNER]), False)))  # @UndefinedVariable
+            # qry = qry.filter(not_(sqlalchemy.func.ifnull(PersonRecord.status.in_([STATUS_FOREIGNER]), False)))  # @UndefinedVariable
             # BB
             qry = qry.filter(PersonRecord.status != STATUS_FOREIGNER)  # @UndefinedVariable
 #             qry = qry.filter(PersonRecord.foreigner == False)  # @UndefinedVariable
+            self._log_query('hide_foreigners', qry)
 
         if beginletter:
-            #qry = qry.filter(PersonRecord.naam.startswith(beginletter))  # @UndefinedVariable
+            # qry = qry.filter(PersonRecord.naam.startswith(beginletter))  # @UndefinedVariable
             # BB
             qry = qry.filter(PersonRecord.initial == beginletter)  # @UndefinedVariable
+            self._log_query('beginletter', qry)
 
         elif no_empty_names:
 #             qry = qry.filter(PersonRecord.naam != None)
 #             qry = qry.filter(PersonRecord.naam != "")
             # BB
             qry = qry.filter(PersonRecord.has_name == True)
+            self._log_query('no_empty_names', qry)
 
         if bioport_id:
             qry = qry.filter(PersonRecord.bioport_id == bioport_id)
+            self._log_query('bioport_id', qry)
 
         if category:
             if category in ['0']:
                 category = None
             qry = qry.join(RelPersonCategory)
             qry = qry.filter(RelPersonCategory.category_id == category)
+            make_distinct = True
+            self._log_query('category', qry)
 
         if religion:
             qry = qry.join(RelPersonReligion)
             qry = qry.filter(RelPersonReligion.religion_id == religion)
+            make_distinct = True
+            self._log_query('religion', qry)
 
         geboorte_date_filter = self._get_date_filter(locals(), 'geboorte')
-        qry = qry.filter(geboorte_date_filter)
+        if geboorte_date_filter != "TRUE":
+            qry = qry.filter(geboorte_date_filter)
+            self._log_query('geboorte_date_filter', qry)
 
         sterf_date_filter = self._get_date_filter(locals(), 'sterf')
-        qry = qry.filter(sterf_date_filter)
+        if sterf_date_filter != "TRUE":
+            qry = qry.filter(sterf_date_filter)
+            self._log_query('sterf_date_filter', qry)
 
         levend_date_filter = self._get_date_filter(locals(), 'levend')
-        qry = qry.filter(levend_date_filter)
+        if levend_date_filter != "TRUE":
+            qry = qry.filter(levend_date_filter)
+            self._log_query('levend_date_filter', qry)
 
         if geboorteplaats:
             if '*' in geboorteplaats:
@@ -1039,6 +1061,7 @@ class DBRepository:
                 qry = qry.filter(dafilter)
             else:
                 qry = qry.filter(PersonRecord.geboorteplaats == geboorteplaats)
+            self._log_query('geboorteplaats', qry)
 
         if sterfplaats:
             if '*' in sterfplaats:
@@ -1048,15 +1071,19 @@ class DBRepository:
                 qry = qry.filter(dafilter)
             else:
                 qry = qry.filter(PersonRecord.sterfplaats == sterfplaats)
+            self._log_query('sterfplaats', qry)
 
         if geslacht:
             qry = qry.filter(PersonRecord.sex == geslacht)
+            self._log_query('geslacht', qry)
 
         if has_illustrations is not None:
             qry = qry.filter(PersonRecord.has_illustrations == has_illustrations)
+            self._log_query('has_illustrations', qry)
 
         if match_term:
             qry = qry.filter(PersonRecord.naam.match(match_term)) 
+            self._log_query('match_term', qry)
 
         if search_term:
             # full-text search
@@ -1068,31 +1095,44 @@ class DBRepository:
             words_query = ' '.join(words_with_plus)
             qry = qry.filter('match (search_source) against '
                               '("%s" in boolean mode)' % words_query)
+            self._log_query('search_term', qry)
 
         qry = self._filter_search_name(qry, search_name, search_family_name_only=search_family_name_only)
+        self._log_query('search_name', qry)
 
         if any_soundex:
             qry = qry.join(PersonSoundex)
             qry = qry.filter(PersonSoundex.soundex.in_(any_soundex)) 
+            make_distinct = True
+            self._log_query('soundex', qry)
 
-        qry = qry.join(PersonSource)
-        qry = qry.filter(PersonSource.source_id != u'bioport')
+#         qry = qry.filter(PersonSource.source_id != u'bioport')
+        # BB replaced with orphan field on person
+        qry = qry.filter(PersonRecord.orphan == False)
+        self._log_query('not_orphan', qry)
 
         if source_id:
+            qry = qry.join(PersonSource)
             qry = qry.filter(PersonSource.source_id == unicode(source_id))
+            self._log_query('source_id', qry)
 
+        # BB TODO: see if the need for a join and/or a distinct here can be removed
         if source_id2:
             PersonSource2 = aliased(PersonSource)
             qry = qry.join(PersonSource2)
             qry = qry.filter(PersonSource2.source_id == source_id2)
+            make_distinct = True
+            self._log_query('source_id2', qry)
 
         if status:
             if status in ['0']:
                 status = None
             qry = qry.filter(PersonRecord.status == status)
+            self._log_query('status', qry)
 
         if where_clause:
             qry = qry.filter(where_clause)
+            self._log_query('where_clause', qry)
 
         if order_by:
             if order_by == 'random':
@@ -1102,23 +1142,32 @@ class DBRepository:
                 qry = qry.filter(PersonRecord.bioport_id > some_bioportid)
             else:
                 qry = qry.order_by(order_by)
+            self._log_query('order_by', qry)
 
         if has_contradictions:
             qry = qry.filter(PersonRecord.has_contradictions == True)
+            self._log_query('has_contradictions', qry)
 
         if url_biography:
             qry = qry.join((RelBioPortIdBiographyRecord, PersonRecord.bioport_id == RelBioPortIdBiographyRecord.bioport_id))
             qry = qry.join((BiographyRecord, BiographyRecord.id == RelBioPortIdBiographyRecord.biography_id))
             qry = qry.filter(BiographyRecord.url_biography == url_biography)
+            make_distinct = True
+            self._log_query('url_biography', qry)
 
         if size:
             if int(size) > -1:
                 qry = qry.limit(size)
+            self._log_query('size', qry)
         
         if start:
             qry = qry.offset(start)
-        
-        qry = qry.distinct() ## BB: distinct alleen nodig indien join nodig
+            self._log_query('start', qry)
+
+        if make_distinct:
+            # # BB: distinct alleen nodig indien join nodig is
+            qry = qry.distinct()
+            self._log_query('make_distinct', qry)
 
         return qry
 
@@ -1453,7 +1502,7 @@ class DBRepository:
                 # we create a soundex on the basis of the name of the person
                 combined_name = ' '.join([n.guess_geslachtsnaam() or n.volledige_naam() for n in person.get_names()])
                 soundexes = soundexes_nl(combined_name,
-                     length= -1,
+                     length=-1,
                      group=2,
                      filter_initials=True,
                      filter_stop_words=False,  # XXX look out withthis: 'koning' and 'heer' are also last names
@@ -1820,7 +1869,7 @@ class DBRepository:
 
 
     #### LOCATIONS ######
-    def _update_geolocations_table(self, limit= -1):
+    def _update_geolocations_table(self, limit=-1):
         from geolocations import refill_geolocations_table
         this_dir = os.path.dirname(__file__)
         source_fn = os.path.join(this_dir, 'geografische_namen', 'nl.txt')
@@ -1899,12 +1948,12 @@ class DBRepository:
         return [el[0] for el in results]
 
     @instance.memoize
-    def get_category(self, id):
-        qry = self.get_session().query(Category).filter(Category.id == id)
+    def get_category(self, category_id):
+        qry = self.get_session().query(Category).filter(Category.id == category_id)
         try:
             return qry.one()
         except NoResultFound:
-            msg = 'No category with id "%s" could be found' % id
+            msg = 'No category with id "%s" could be found' % category_id
             logging.warning(msg)
 
     def get_log_messages(self, table=None, user=None, order_by='timestamp', order_desc=True):

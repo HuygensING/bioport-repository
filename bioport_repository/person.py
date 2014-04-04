@@ -242,7 +242,7 @@ class Person(object):
             msg = 'Changed person'
             self.repository.db.log(msg, r_person)
 
-        #XXX: these next two lines somehow garantee that something does not break - find out why, what, and remove them
+        #XXX: these next two lines somehow guarantee that something does not break - find out why, what, and remove them
         with self.repository.db.get_session_context() as session:
             session.merge(self.record)
 
@@ -333,6 +333,14 @@ class Person(object):
             return self.record.has_name
         else:
             return self.get_merged_biography().has_name()
+
+    def is_orphan(self):
+        # Not literally: the meaning of orphan here is that the only source available
+        # for this person is a bioport biography
+        if self.record:
+            return self.record.orphan
+        else:
+            return self.get_merged_biography().is_orphan()
 
     def birthday(self):
         if self.record:
@@ -482,7 +490,7 @@ class Person(object):
         """Iterates over all biographies and checks birth dates and
         places for contradictions (e.g. one bio states "x" while
         another one states "y").
-        Rerturn a list of Contradiction instances or [].
+        Return a list of Contradiction instances or [].
         """
         retlist = []
         bdates, ddates, bplaces, dplaces = [], [], [], []

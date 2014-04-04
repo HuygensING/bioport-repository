@@ -179,8 +179,7 @@ class PersonRecord(Base):
     birthday = Column(MSString(4), index=True) # if geboortedatum_min = geboortedatum_max, then extract geboortedag
     initial = Column(MSString(1), index=True) # eerste letter van naam
     invisible = Column(Boolean) # person.status IN (11, 5, 9, 9999, 14, 15)
-#     foreigner = Column(Boolean) # person.status IN (11)
-    orphan = Column(Boolean) # person is orphan when the only sourced linking to it is 'bioport'  
+    orphan = Column(Boolean) # person is orphan when the only source linking to it is 'bioport' 
     # /BB
 
 
