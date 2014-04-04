@@ -973,6 +973,11 @@ class DBRepository:
             qry = session.query(PersonRecord.bioport_id)
         self._log_query('full_records', qry)
 
+#         qry = qry.filter(PersonSource.source_id != u'bioport')
+        # BB replaced with orphan field on person
+        qry = qry.filter(PersonRecord.orphan == False)
+        self._log_query('not_orphan', qry)
+
         if is_identified:
             # a person is identified if another bioport id redirects to it
             # XXX: this is not a good definition
@@ -1029,7 +1034,6 @@ class DBRepository:
                 category = None
             qry = qry.join(RelPersonCategory)
             qry = qry.filter(RelPersonCategory.category_id == category)
-            make_distinct = True
             self._log_query('category', qry)
 
         if religion:
@@ -1105,11 +1109,6 @@ class DBRepository:
             qry = qry.filter(PersonSoundex.soundex.in_(any_soundex)) 
             make_distinct = True
             self._log_query('soundex', qry)
-
-#         qry = qry.filter(PersonSource.source_id != u'bioport')
-        # BB replaced with orphan field on person
-        qry = qry.filter(PersonRecord.orphan == False)
-        self._log_query('not_orphan', qry)
 
         if source_id:
             qry = qry.join(PersonSource)

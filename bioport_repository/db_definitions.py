@@ -346,9 +346,9 @@ class DBNLIds(Base):
 
 class RelPersonCategory(Base):
     __tablename__ = 'relpersoncategory'
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    bioport_id = Column(Integer, ForeignKey('person.bioport_id'), index=True)
-    category_id = Column(Integer, ForeignKey('category.id'), index=True)
+#     id = Column(Integer, primary_key=True, autoincrement=True)
+    bioport_id = Column(Integer, ForeignKey('person.bioport_id'), primary_key=True)
+    category_id = Column(Integer, ForeignKey('category.id'), primary_key=True)
     persons = relation(PersonRecord, backref='categories')
 
 class RelPersonReligion(Base):
