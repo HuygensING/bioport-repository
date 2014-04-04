@@ -32,7 +32,7 @@ from sqlalchemy.dialects.mysql import VARCHAR as MSString
 from sqlalchemy.orm import relation
 from sqlalchemy.types import TIMESTAMP
 
-#define the tables
+# define the tables
 
 metadata = MetaData()
 Base = declarative_base()
@@ -45,11 +45,11 @@ class BiographyRecord(Base):
     """represents a version of  biodes document"""
     __tablename__ = 'biography'
 
-    id = Column(MSString(50, binary=True, collation='utf8_bin'), primary_key=True, index=True,) #the id consist of source_id/local_id
+    id = Column(MSString(50, binary=True, collation='utf8_bin'), primary_key=True, index=True,)  # the id consist of source_id/local_id
     version = Column(Integer, primary_key=True, default=0, autoincrement=False)
     source_id = Column(MSString(20, collation='utf8_bin'), ForeignKey("source.id"), index=True)
-    url_biography = Column(Unicode(255), index=True) #the url where the biography can be found
-    source_url = Column(Unicode(255)) #the url where the biodes_document came from
+    url_biography = Column(Unicode(255), index=True)  # the url where the biography can be found
+    source_url = Column(Unicode(255))  # the url where the biodes_document came from
     biodes_document = Column(Text(64000))
 
     user = Column(MSString(50))
@@ -175,11 +175,11 @@ class PersonRecord(Base):
     timestamp = Column(TIMESTAMP)
 
     # BB
-    has_name = Column(Boolean) # if naam != null && != ''
-    birthday = Column(MSString(4), index=True) # if geboortedatum_min = geboortedatum_max, then extract geboortedag
-    initial = Column(MSString(1), index=True) # eerste letter van naam
-    invisible = Column(Boolean) # person.status IN (11, 5, 9, 9999, 14, 15)
-    orphan = Column(Boolean) # person is orphan when the only source linking to it is 'bioport' 
+    has_name = Column(Boolean, index=True)  # if naam != null && != ''
+    birthday = Column(MSString(4), index=True)  # if geboortedatum_min = geboortedatum_max, then extract geboortedag
+    initial = Column(MSString(1), index=True)  # eerste letter van naam
+    invisible = Column(Boolean, index=True)  # person.status IN (11, 5, 9, 9999, 14, 15)
+    orphan = Column(Boolean, index=True)  # person is orphan when the only source linking to it is 'bioport' 
     # /BB
 
 
@@ -210,7 +210,7 @@ class NaamRecord(Base):
     __tablename__ = 'naam'  
     id = Column(Integer, primary_key=True)
 
-    soundex = relation(SoundexRecord) #, backref="naam.id")
+    soundex = relation(SoundexRecord)  # , backref="naam.id")
     sort_key = Column(Unicode(100))
     snippet = Column(UnicodeText)
     birth = Column(Unicode(10))
@@ -228,7 +228,7 @@ class NaamRecord(Base):
              )
     bioport_id = Column(MSString(50), ForeignKey('person.bioport_id'), index=True)
     person = relation(PersonRecord,
-                         lazy=False, #load eagerly
+                         lazy=False,  # load eagerly
                          )
 #    sqlalchemy.schema.ForeignKeyConstraint(['id'], ['soundex.naam_id'], ondelete="CASCADE")
 
@@ -278,7 +278,7 @@ class Location(Base):
     lat = Column(Float)
     adm1 = Column(MSString(2), index=True)
     sort_name = Column(MSString(100), index=True)
-    full_name = Column(MSString(100), index=True) #
+    full_name = Column(MSString(100), index=True)  #
 
 
     """
@@ -317,12 +317,12 @@ NL.16    Flevoland
 class Occupation(Base):
     __tablename__ = 'occupation'
     id = Column(Integer, primary_key=True)
-    name = Column(MSString(100), index=True) # *   
+    name = Column(MSString(100), index=True)  # *   
 
 class Category(Base):
     __tablename__ = 'category'
     id = Column(Integer, primary_key=True)
-    name = Column(MSString(100), index=True) # *      
+    name = Column(MSString(100), index=True)  # *      
 
 class ChangeLog(Base):
     __tablename__ = 'changelog'
@@ -353,9 +353,9 @@ class RelPersonCategory(Base):
 
 class RelPersonReligion(Base):
     __tablename__ = 'relpersonreligion'
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    bioport_id = Column(Integer, ForeignKey('person.bioport_id'), index=True)
-    religion_id = Column(Integer, index=True) #, ForeignKey('category.id'), index=True)   
+#     id = Column(Integer, primary_key=True, autoincrement=True)
+    bioport_id = Column(Integer, ForeignKey('person.bioport_id'), primary_key=True)
+    religion_id = Column(Integer, primary_key=True)  # , ForeignKey('category.id'), index=True)   
     persons = relation(PersonRecord, backref='religions')
 
 class Comment(Base):
@@ -386,7 +386,7 @@ STATUS_NOBIOS = 9999
 STATUS_ONLY_VISIBLE_IF_CONNECTED = 15
 STATUS_VALUES = [
     (0, '(geen status toegekend)'),
-    (STATUS_NEW, 'nieuw'), #
+    (STATUS_NEW, 'nieuw'),  #
 #    (2, 'bewerkt'), #XXX TO DELETE
     (STATUS_DIFFICULT, 'moeilijk geval'),
 #    (STATUS_MESSY, 'moeilijk geval (troep)'), #XXX TO DELETE
@@ -405,7 +405,7 @@ STATUS_VALUES = [
 
 
 RELIGION_VALUES = [
-#'Christelijke hoofdstromingen in Ndl.:
+# 'Christelijke hoofdstromingen in Ndl.:
 	(1, 'Anglicaans',),
 	(2, 'Doopsgezind',),
 	(3, 'Gereformeerd',),
@@ -416,7 +416,7 @@ RELIGION_VALUES = [
 	(8, 'Rooms katholiek',),
 	(9, 'Vrijzinnig hervormd',),
 	(10, 'Waals',),
-#	'Anders, nl.:',
+# 	'Anders, nl.:',
     (None, '-----------'),
 
 #   'Heterodoxe stromingen:
@@ -432,7 +432,7 @@ RELIGION_VALUES = [
 	(20, 'Pinksterbeweging',),
 	(21, 'Rozenkruiser',),
 
-#	'Niet-westerse stromingen:
+# 	'Niet-westerse stromingen:
     (None, '-----------'),
 
 	(22, 'Boeddhist',),
@@ -444,7 +444,7 @@ RELIGION_VALUES = [
 
     (None, '-----------'),
 
-#	Niet-religieuze overtuigingen:
+# 	Niet-religieuze overtuigingen:
 
 	(28, 'Agnost',),
 	(29, 'Antroposoof',),

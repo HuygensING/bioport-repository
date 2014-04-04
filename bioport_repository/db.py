@@ -884,7 +884,7 @@ class DBRepository:
     
     def _log_query(self, label, qry):
         if self.LOG_QUERY:
-          print '>> %s: qry = %s\n' % (label, qry)
+            print '>> %s: qry = %s\n' % (label, qry)
 
     def _get_persons_query(self,
         bioport_id=None,
@@ -1035,7 +1035,7 @@ class DBRepository:
         if religion:
             qry = qry.join(RelPersonReligion)
             qry = qry.filter(RelPersonReligion.religion_id == religion)
-            make_distinct = True
+#             make_distinct = True
             self._log_query('religion', qry)
 
         geboorte_date_filter = self._get_date_filter(locals(), 'geboorte')

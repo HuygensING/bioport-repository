@@ -58,7 +58,7 @@ class Person(object):
 
     def __init__(self,
         bioport_id,
-        biographies=None, # XXX - this is not used!
+        biographies=None,  # XXX - this is not used!
         repository=None,
         record=None,
 #        status=None,
@@ -137,13 +137,13 @@ class Person(object):
         with self.repository.db.get_session_context() as session:
             r_person = self.record
             bioport_id = self.get_bioport_id()
-            #XXX: is this obsolete?
+            # XXX: is this obsolete?
             if getattr(self, 'remarks', None) is not None:
                 r_person.remarks = self.remarks
             if getattr(self, 'status', None):
                 r_person.status = self.status
 
-            #check if a person with this bioportid alreay exists
+            # check if a person with this bioportid alreay exists
             merged_biography = self.get_merged_biography()
             computed_values = self.computed_values
             r_person.naam = computed_values.naam
@@ -163,7 +163,7 @@ class Person(object):
             r_person.snippet = computed_values.snippet
             r_person.has_contradictions = computed_values.has_contradictions
             r_person.thumbnail = computed_values.thumbnail
-            ## BB
+            # # BB
             #     has_name = Column(Boolean) # if naam != null && != ''
             r_person.has_name = (r_person.naam != None) and (r_person.naam != '') 
             #     birthday = Column(MSString(4), index=True) # if geboortedatum_min = geboortedatum_max, then extract geboortedag
@@ -186,8 +186,8 @@ class Person(object):
             sources = self.get_sources()
             r_person.orphan = len(sources) == 1 and sources[0].id == 'bioport' 
               
-            ## /BB
-            #update categories
+            # # /BB
+            # update categories
             session.query(RelPersonCategory).filter(RelPersonCategory.bioport_id == bioport_id).delete()
 
             for category in merged_biography.get_states(type='category'):
@@ -202,7 +202,7 @@ class Person(object):
                 session.add(r)
                 session.flush()
 
-            #update the religion table
+            # update the religion table
             religion = merged_biography.get_religion()
             religion_qry = session.query(RelPersonReligion).filter(RelPersonReligion.bioport_id == bioport_id)
             if religion is not None:
@@ -219,16 +219,16 @@ class Person(object):
                 religion_qry.delete()
                 session.flush()
 
-            #'the' source -- we take the first non-bioport source as 'the' source
-            #and we use it only for filterling later
-            #XXX what is this used for???
+            # 'the' source -- we take the first non-bioport source as 'the' source
+            # and we use it only for filtering later
+            # XXX what is this used for???
             src = [s for s in merged_biography.get_biographies() if s.source_id != 'bioport']
             if src:
                 src = src[0].source_id
             else:
                 src = None
 
-            #refresh the names
+            # refresh the names
             self.repository.db.delete_names(bioport_id=bioport_id)
             self.repository.db.update_name(bioport_id=bioport_id, names=computed_values._names)
 
@@ -242,7 +242,7 @@ class Person(object):
             msg = 'Changed person'
             self.repository.db.log(msg, r_person)
 
-        #XXX: these next two lines somehow guarantee that something does not break - find out why, what, and remove them
+        # XXX: these next two lines somehow guarantee that something does not break - find out why, what, and remove them
         with self.repository.db.get_session_context() as session:
             session.merge(self.record)
 
@@ -297,7 +297,7 @@ class Person(object):
         return MergedBiography(self.get_biographies())
 
     def get_bioport_biography(self, create_if_not_exists=True):
-        #convenience mthod
+        # convenience mthod
         return  self.repository.get_bioport_biography(self, create_if_not_exists=create_if_not_exists)
 
     def get_names(self):
@@ -466,7 +466,7 @@ class Person(object):
         return False
 
     def update(self):
-        #XXX you should call "save" and not "update"
+        # XXX you should call "save" and not "update"
         return self.save()
 
     def _update_source(self):
@@ -479,7 +479,7 @@ class Person(object):
 #         print source_ids
         
         with self.repository.db.get_session_context() as session:
-            #delete existing references
+            # delete existing references
             session.query(PersonSource).filter(PersonSource.bioport_id == bioport_id).delete()
             for source_id in source_ids:
 #                 print bioport_id,source_id

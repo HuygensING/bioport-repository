@@ -19,7 +19,7 @@
 ##########################################################################
 
 from bioport_repository.tests.common_testcase import CommonTestCase
-from bioport_repository.db import Source, BiographyRecord, PersonRecord, SourceRecord, Biography, RelBioPortIdBiographyRecord
+from bioport_repository.db import Source, BiographyRecord, SourceRecord, Biography
 from bioport_repository.db_definitions import RelPersonCategory, PersonSoundex, RELIGION_VALUES, STATUS_NOBIOS
 from bioport_repository.common import BioPortException
 
