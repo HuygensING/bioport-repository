@@ -1374,9 +1374,12 @@ class DBRepository:
         bioport_id = person.bioport_id
         with self.get_session_context() as session:
             try:
+                # BB manual deletion of related records, no ' on delete cascade' ?
+                session.query(PersonSoundex).filter(PersonSoundex.bioport_id == person.bioport_id).delete()
+                session.query(RelPersonCategory).filter(RelPersonCategory.bioport_id == person.bioport_id).delete()
+
                 r = session.query(PersonRecord).filter(PersonRecord.bioport_id == person.get_bioport_id()).one()
                 session.delete(r)
-                session.query(PersonSoundex).filter(PersonSoundex.bioport_id == person.bioport_id).delete()
                 msg = 'Deleted person %s' % person
                 self.log(msg, r)
             except NoResultFound:
