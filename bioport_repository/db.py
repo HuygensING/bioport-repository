@@ -69,7 +69,7 @@ from bioport_repository.db_definitions import (
     RelPersonReligion,
     STATUS_NEW, STATUS_FOREIGNER,
     STATUS_ONLY_VISIBLE_IF_CONNECTED
-    )
+    , NaamRecord)
 
 from bioport_repository.similarity.similarity import Similarity
 from bioport_repository.person import Person
@@ -1376,7 +1376,11 @@ class DBRepository:
             try:
                 # BB manual deletion of related records, no ' on delete cascade' ?
                 session.query(PersonSoundex).filter(PersonSoundex.bioport_id == person.bioport_id).delete()
+                session.query(PersonName).filter(PersonName.bioport_id == person.bioport_id).delete()
+                session.query(PersonSource).filter(PersonSource.bioport_id == person.bioport_id).delete()
+                session.query(NaamRecord).filter(NaamRecord.bioport_id == person.bioport_id).delete()
                 session.query(RelPersonCategory).filter(RelPersonCategory.bioport_id == person.bioport_id).delete()
+                session.query(RelPersonReligion).filter(RelPersonReligion.bioport_id == person.bioport_id).delete()
 
                 r = session.query(PersonRecord).filter(PersonRecord.bioport_id == person.get_bioport_id()).one()
                 session.delete(r)
