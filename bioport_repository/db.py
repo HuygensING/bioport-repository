@@ -1358,6 +1358,8 @@ class DBRepository:
         return qry
 
     def get_person(self, bioport_id, repository=None):
+#         print "type(%s)=%s" % (bioport_id, type(bioport_id))
+        bioport_id = unicode(str(bioport_id))
         person = self.all_persons().get(bioport_id)
         if not person:
             id = self.redirects_to(bioport_id)
@@ -1376,11 +1378,11 @@ class DBRepository:
             try:
                 # BB manual deletion of related records, no ' on delete cascade' ?
                 session.query(PersonSoundex).filter(PersonSoundex.bioport_id == person.bioport_id).delete()
-                session.query(PersonName).filter(PersonName.bioport_id == person.bioport_id).delete()
-                session.query(PersonSource).filter(PersonSource.bioport_id == person.bioport_id).delete()
-                session.query(NaamRecord).filter(NaamRecord.bioport_id == person.bioport_id).delete()
+#                 session.query(PersonName).filter(PersonName.bioport_id == person.bioport_id).delete()
+#                 session.query(PersonSource).filter(PersonSource.bioport_id == person.bioport_id).delete()
+#                 session.query(NaamRecord).filter(NaamRecord.bioport_id == person.bioport_id).delete()
                 session.query(RelPersonCategory).filter(RelPersonCategory.bioport_id == person.bioport_id).delete()
-                session.query(RelPersonReligion).filter(RelPersonReligion.bioport_id == person.bioport_id).delete()
+#                 session.query(RelPersonReligion).filter(RelPersonReligion.bioport_id == person.bioport_id).delete()
 
                 r = session.query(PersonRecord).filter(PersonRecord.bioport_id == person.get_bioport_id()).one()
                 session.delete(r)

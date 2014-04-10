@@ -91,8 +91,8 @@ class SourceRecord(Base):
 
 class BioPortIdRecord(Base):
     __tablename__ = 'bioportid'
-    bioport_id = Column(MSString(50), ForeignKey("bioportid.bioport_id"), primary_key=True)
-    redirect_to = Column(MSString(50))
+    bioport_id = Column(Integer, ForeignKey("bioportid.bioport_id"), primary_key=True)
+    redirect_to = Column(Integer)
     timestamp = Column(TIMESTAMP)
     biographies = relation('RelBioPortIdBiographyRecord')
     person = relation('PersonRecord')
@@ -101,7 +101,7 @@ class BioPortIdRecord(Base):
 class RelBioPortIdBiographyRecord(Base):
     __tablename__ = 'relbioportidbiography'
     id = Column(Integer, primary_key=True, autoincrement=True)
-    bioport_id = Column(MSString(50), ForeignKey('bioportid.bioport_id'), index=True)
+    bioport_id = Column(Integer, ForeignKey('bioportid.bioport_id'), index=True)
     biography_id = Column(MSString(50, collation='utf8_bin'), ForeignKey("biography.id"), index=True, unique=True)
     timestamp = Column(TIMESTAMP)
     biography = relation(BiographyRecord)
@@ -137,7 +137,7 @@ class PersonRecord(Base):
     __tablename__ = 'person'
 
     bioport_id = Column(
-        MSString(50),
+        Integer,
         ForeignKey('bioportid.bioport_id'),
         primary_key=True,
         index=True,
@@ -187,7 +187,7 @@ class PersonRecord(Base):
 class PersonSoundex(Base):
     __tablename__ = 'person_soundex'
     id = Column(Integer, primary_key=True)
-    bioport_id = Column(MSString(50), ForeignKey('person.bioport_id'), index=True,)
+    bioport_id = Column(Integer, ForeignKey('person.bioport_id'), index=True,)
     soundex = Column(Unicode(20), index=True)
     is_from_family_name = Column(Boolean)
 
@@ -195,14 +195,14 @@ class PersonSoundex(Base):
 class PersonName(Base):
     __tablename__ = 'person_name'
     id = Column(Integer, primary_key=True)
-    bioport_id = Column(MSString(50), ForeignKey('person.bioport_id'), index=True,)
+    bioport_id = Column(Integer, ForeignKey('person.bioport_id'), index=True,)
     name = Column(Unicode(20), index=True)
     is_from_family_name = Column(Boolean)
 
 
 class PersonSource(Base):
     __tablename__ = 'person_source'
-    bioport_id = Column(MSString(50), ForeignKey('person.bioport_id'), primary_key=True)
+    bioport_id = Column(Integer, ForeignKey('person.bioport_id'), primary_key=True)
     source_id = Column(Unicode(20), primary_key=True)
 #    bioport_id = Column(MSString(50), ForeignKey('person.bioport_id'), index=True, primary_key=True)
 #    source_id = Column(Unicode(20), index=True, primary_key=True)
@@ -227,7 +227,7 @@ class NaamRecord(Base):
     variant_of_record = relation("NaamRecord",
              remote_side="NaamRecord.id",
              )
-    bioport_id = Column(MSString(50), ForeignKey('person.bioport_id'), index=True)
+    bioport_id = Column(Integer, ForeignKey('person.bioport_id'), index=True)
     person = relation(PersonRecord,
                          lazy=False,  # load eagerly
                          )
@@ -243,16 +243,16 @@ SimilarityCache.naam2 = relation(NaamRecord, primaryjoin=NaamRecord.id == Simila
 
 class CacheSimilarityPersons(Base):
     __tablename__ = 'cache_similarity_persons'
-    bioport_id1 = Column(MSString(50), ForeignKey('bioportid.bioport_id'), index=True, primary_key=True, autoincrement=False)
-    bioport_id2 = Column(MSString(50), ForeignKey('bioportid.bioport_id'), index=True, primary_key=True, autoincrement=False)
+    bioport_id1 = Column(Integer, ForeignKey('bioportid.bioport_id'), index=True, primary_key=True, autoincrement=False)
+    bioport_id2 = Column(Integer, ForeignKey('bioportid.bioport_id'), index=True, primary_key=True, autoincrement=False)
     score = Column(Float, index=True)
 
 class AntiIdentifyRecord(Base):
     __tablename__ = 'antiidentical'
-    bioport_id1 = Column(MSString(50),
+    bioport_id1 = Column(Integer,
                         ForeignKey('bioportid.bioport_id'),
                         primary_key=True)
-    bioport_id2 = Column(MSString(50),
+    bioport_id2 = Column(Integer,
                         ForeignKey('bioportid.bioport_id'),
                         primary_key=True)
 
@@ -260,10 +260,10 @@ class AntiIdentifyRecord(Base):
 
 class DeferIdentificationRecord(Base):
     __tablename__ = 'defer_identification'
-    bioport_id1 = Column(MSString(50),
+    bioport_id1 = Column(Integer,
                         ForeignKey('bioportid.bioport_id'),
                         primary_key=True)
-    bioport_id2 = Column(MSString(50),
+    bioport_id2 = Column(Integer,
                         ForeignKey('bioportid.bioport_id'),
                         primary_key=True)
     timestamp = Column(TIMESTAMP)
@@ -338,8 +338,8 @@ class ChangeLog(Base):
 class DBNLIds(Base):
     """this is a temporary class used for identifying vdaa and nnbw entries"""
     __tablename__ = 'dbnl_ids'
-    bioport_id1 = Column(MSString(50), ForeignKey('bioportid.bioport_id'), index=True, primary_key=True, autoincrement=False)
-    bioport_id2 = Column(MSString(50), ForeignKey('bioportid.bioport_id'), index=True, primary_key=True, autoincrement=False)
+    bioport_id1 = Column(Integer, ForeignKey('bioportid.bioport_id'), index=True, primary_key=True, autoincrement=False)
+    bioport_id2 = Column(Integer, ForeignKey('bioportid.bioport_id'), index=True, primary_key=True, autoincrement=False)
     source1 = Column(MSString(5))
     source2 = Column(MSString(5))
     dbnl_id = Column(MSString(20))
@@ -365,7 +365,7 @@ class Comment(Base):
     __tablename__ = 'comment'
     id = Column(Integer, primary_key=True, autoincrement=True)
     bioport_id = Column(
-                        MSString(50),
+                        Integer,
                         ForeignKey('bioportid.bioport_id'),
                         index=True,
                         unique=True,

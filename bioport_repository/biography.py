@@ -254,6 +254,7 @@ class Biography(object, BioDesDoc):
 
     def get_bioport_id(self):
         ls = self.get_value('bioport_id')
+#         print ls
         if ls:
             return ls[-1]
         else:

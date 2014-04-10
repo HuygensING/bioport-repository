@@ -70,7 +70,7 @@ class WorkflowTestCase(CommonTestCase):
         person1 = repository.get_persons()[1]
         bio1 = person1.get_biographies()[0]
         # find names that are similar
-        repository.db.fill_similarity_cache(minimal_score=0.0, refresh=True)
+
         similar_persons = repository.get_most_similar_persons(bioport_id=person1.bioport_id)
         score, p1, p2 = similar_persons[0]
 
