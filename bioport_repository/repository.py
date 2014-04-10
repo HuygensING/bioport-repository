@@ -113,7 +113,7 @@ class Repository(object):
             del args['full_records']
         query = self.db._get_persons_query(**args)
         ls = query.session.execute(query).fetchall()
-        ls = [r[0] for r in ls]
+        ls = [unicode(str(r[0]), encoding='UTF-8') for r in ls]
         return PersonList(self, ls)
 
     def delete_person(self, person):
@@ -296,13 +296,13 @@ class Repository(object):
         self.save_source(source)
 
         logging.info('deleting orphaned persons')
-        self.delete_orphaned_persons(source_id=source.id)
+#         self.delete_orphaned_persons(source_id=source.id)
         return total, skipped
 
     def delete_orphaned_persons(self, **args):
         #remove all elements from the person table that do not have any biographies associated with them anymore
         for p in self.get_persons(**args):
-#            logging.info('%s'% p)
+#             logging.info('%s'% p)
             if not p.get_biographies():
                 self.delete_person(p)
         return

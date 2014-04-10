@@ -20,7 +20,7 @@
 # <http://www.gnu.org/licenses/gpl-3.0.html>.
 ##########################################################################
 
-import os
+# import os
 
 from sqlalchemy.orm.exc import NoResultFound, DetachedInstanceError
 from lxml import etree
@@ -257,7 +257,7 @@ class Person(object):
         # XXX: these next two lines somehow guarantee that something does not break - find out why, what, and remove them
         with self.repository.db.get_session_context() as session:
             session.merge(self.record)
-
+        
         self.repository.db._all_persons[self.bioport_id] = self
 
     def add_biography(self, biography, comment=None):

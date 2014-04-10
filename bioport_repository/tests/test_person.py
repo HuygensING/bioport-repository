@@ -29,8 +29,8 @@ from bioport_repository.db_definitions import STATUS_DONE, STATUS_FOREIGNER
 class PersonTestCase(CommonTestCase):
 
     def test_person_init(self):
-        p1 = Person('1234', repository=self.repo)
-        p2 = Person('2345')
+        p1 = Person(1234, repository=self.repo)
+        p2 = Person(2345)
         self.assertNotEqual(p1.id, p2.id)
 
     def test_get_names(self):
