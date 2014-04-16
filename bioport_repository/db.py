@@ -35,7 +35,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import aliased
 from sqlalchemy.orm import sessionmaker, scoped_session
 from sqlalchemy.orm.exc import NoResultFound
-from sqlalchemy import create_engine, desc, and_, or_, not_
+from sqlalchemy import create_engine, desc, and_, or_
 from sqlalchemy.exc import ResourceClosedError
 
 from zope.sqlalchemy import ZopeTransactionExtension

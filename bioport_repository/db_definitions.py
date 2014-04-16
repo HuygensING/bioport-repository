@@ -177,6 +177,7 @@ class PersonRecord(Base):
     # BB
     has_name = Column(Boolean, index=True)  # if naam != null && != ''
     birthday = Column(MSString(4), index=True)  # if geboortedatum_min = geboortedatum_max, then extract geboortedag
+    deathday = Column(MSString(4), index=True)
     initial = Column(MSString(1), index=True)  # eerste letter van naam
     invisible = Column(Boolean, index=True)  # person.status IN (11, 5, 9, 9999, 14, 15)
     orphan = Column(Boolean, index=True)  # person is orphan when the only source linking to it is 'bioport' 

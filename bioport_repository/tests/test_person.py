@@ -83,6 +83,12 @@ class PersonTestCase(CommonTestCase):
         person = self._add_person(name='Unknown')
         self.assertEqual(person.birthday(), None, 'person.birthday() returns %s' % person.birthday())
 
+    def test_person_deathday_is_set(self):
+        person = self._add_person(name='Methusaleh', sterfdatum='2010-01-06')
+        self.assertEqual(person.deathday(), '0106', 'person.deathday() returns %s' % person.deathday())
+        person = self._add_person(name='Unknown')
+        self.assertEqual(person.deathday(), None, 'person.deathday() returns %s' % person.deathday())
+
     def test_person_invisible_is_set(self):
         person = self._add_person(name='Saskia')
         person.record.status = STATUS_FOREIGNER

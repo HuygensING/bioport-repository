@@ -166,6 +166,7 @@ class Person(object):
             # # BB
             #     has_name = Column(Boolean) # if naam != null && != ''
             r_person.has_name = (r_person.naam != None) and (r_person.naam != '') 
+            
             #     birthday = Column(MSString(4), index=True) # if geboortedatum_min = geboortedatum_max, then extract geboortedag
             if r_person.geboortedatum_min != None and r_person.geboortedatum_min == r_person.geboortedatum_max:
 #                 print 'r_person.geboortedatum_min=%s' % r_person.geboortedatum_min
@@ -174,6 +175,13 @@ class Person(object):
                 iso = date.isoformat()
                 r_person.birthday = iso[5:7] + iso[8:10]
 #                 print 'birthday = %s' % r_person.birthday
+
+            if r_person.sterfdatum_min != None and r_person.sterfdatum_min == r_person.sterfdatum_max:
+                date = to_date(r_person.sterfdatum_min[0:10])
+#                 print 'date = %s' % date
+                iso = date.isoformat()
+                r_person.deathday = iso[5:7] + iso[8:10]
+
             #     initial = Column(MSString(1), index=True) # eerste letter van naam
             if r_person.has_name:
                 r_person.initial = r_person.naam[0].lower()
@@ -350,6 +358,12 @@ class Person(object):
             return self.record.birthday
         else:
             return self.get_merged_biography().birthday()
+
+    def deathday(self):
+        if self.record:
+            return self.record.deathday
+        else:
+            return self.get_merged_biography().deathday()
 
     def redirects_to(self):
         """
