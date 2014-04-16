@@ -190,6 +190,7 @@ class Person(object):
             # update categories
             session.query(RelPersonCategory).filter(RelPersonCategory.bioport_id == bioport_id).delete()
 
+            done=[] 
             for category in merged_biography.get_states(type='category'):
                 category_id = category.get('idno')
                 assert type(category_id) in [type(u''), type('')], category_id
@@ -198,9 +199,11 @@ class Person(object):
                 except ValueError:
                     msg = '%s- %s: %s' % (category_id, etree.tostring(category), self.bioport_id)
                     raise Exception(msg)
-                r = RelPersonCategory(bioport_id=bioport_id, category_id=category_id)
-                session.add(r)
-                session.flush()
+                if category_id not in done:
+                    r = RelPersonCategory(bioport_id=bioport_id, category_id=category_id)
+                    done.append(category_id)
+                    session.add(r)
+                    session.flush()
 
             # update the religion table
             religion = merged_biography.get_religion()

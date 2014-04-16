@@ -22,6 +22,7 @@
 """do a resave on all persons to set the added fields"""
 
 from bioport_repository.repository import Repository
+import sys
 
 DSN = 'mysql://histest:test@localhost/histest'
 
@@ -32,9 +33,10 @@ def resave_persons(dsn):
     persons = repository.get_persons(full_records=True, hide_invisible=False, no_empty_names=False)
     print len(persons)
     for j, person in enumerate(persons):
-        print 'resaving %s/%s (of persons)' % (j, len(persons))
-        person.save()
+        print 'resaving person %s/%s; bioport_id: %s' % (j, len(persons), person.get_bioport_id())
+        if person and not person.initial:
+            person.save()
 
 if __name__ == "__main__":
-#     dsn = sys.argv[1]
-    resave_persons(DSN)
+    dsn = sys.argv[1] or DSN
+    resave_persons(dsn)
