@@ -26,11 +26,13 @@ alter table relpersonreligion drop column id, add primary key(bioport_id,religio
 alter table person
   add column has_name tinyint(1) default 1,
   add column birthday varchar(4),
+  add column deathday varchar(4),
   add column initial varchar(1),
   add column invisible tinyint(1) default 0,
   add column orphan tinyint(1) default 0,
   add key `ix_person_has_name` (`has_name`),
   add key `ix_person_birthday` (`birthday`),
+  add key `ix_person_deathday` (`deathday`),
   add key `ix_person_initial` (`initial`),
   add key `ix_person_invisible` (`invisible`),
   add key `ix_person_orphan` (`orphan`);
