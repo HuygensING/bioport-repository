@@ -68,7 +68,7 @@ class Person(object):
         """
         Arguments:
             bioport_id - a unique identifier for this person
-                bioport_id is MANDATORY because persons are by definitiion identified
+                bioport_id is MANDATORY because persons are by definition identified
             biographies - a list of Biography instances
             repository - a Repository instance
             record - an instance of PersonRecord
