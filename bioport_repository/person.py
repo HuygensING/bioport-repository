@@ -25,6 +25,7 @@ import os
 from sqlalchemy.orm.exc import NoResultFound, DetachedInstanceError
 from lxml import etree
 
+from names.common import coerce_to_ascii
 from bioport_repository.merged_biography import MergedBiography, BiographyMerger
 from bioport_repository.db_definitions import STATUS_NEW
 from bioport_repository.common import format_date, to_date
@@ -184,7 +185,7 @@ class Person(object):
 
             #     initial = Column(MSString(1), index=True) # eerste letter van naam
             if r_person.has_name:
-                r_person.initial = r_person.naam[0].lower()
+                r_person.initial = coerce_to_ascii(r_person.naam.lower())[0]
             #     invisible = Column(Boolean) # person.status IN (11, 5, 9, 9999, 14, 15)
             r_person.invisible = r_person.status in TO_HIDE
 #             #     foreigner = Column(Boolean) # person.status IN (11)

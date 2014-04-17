@@ -67,7 +67,7 @@ class PersonTestCase(CommonTestCase):
         person = self._add_person(name='Xenophon')
         self.assertEquals(person.initial(), 'x', 'wrong initial: %s' % person.initial())
         person = self._add_person(name=u'Äriél')
-        self.assertEquals(person.initial(), u'ä', u'wrong initial: %s' % person.initial())
+        self.assertEquals(person.initial(), u'a', u'wrong initial: %s' % person.initial())
 
     def test_person_has_name_is_set(self):
         person = self._add_person(name='')
