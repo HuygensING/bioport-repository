@@ -310,8 +310,8 @@ class DBRepository:
         session = self.get_session()
 #        session.execute('delete c FROM cache_similarity c join naam n1 on c.naam1_id = n1.id where n1.biography_id="%s"' % biography_id)
 #        session.execute('delete c FROM cache_similarity c join naam n2 on c.naam1_id = n2.id where n2.biography_id="%s"' % biography_id)
-        session.execute('delete s   from soundex s  left outer join naam n  on s.naam_id = n.id where n.bioport_id = "%s"' % bioport_id)
-        session.execute('delete n   from naam n where bioport_id = "%s"' % bioport_id)
+        session.execute('delete s   from soundex s  left outer join naam n  on s.naam_id = n.id where n.bioport_id = %s' % bioport_id)
+        session.execute('delete n   from naam n where bioport_id = %s' % bioport_id)
         session.expunge_all()
 
 
@@ -740,7 +740,7 @@ class DBRepository:
             source  - an instance of Source
             person - an instance of Person
             order_by - a string - the name of a column to sort by
-            local_id - the 'local id' of the biography - somethign fo the form 'vdaa/w0269',
+            local_id - the 'local id' of the biography - something of the form 'vdaa/w0269',
                 corresponds to the 'id' field in the database
         returns:
             a list of Biography instances
@@ -1359,7 +1359,6 @@ class DBRepository:
 
     def get_person(self, bioport_id, repository=None):
 #         print "type(%s)=%s" % (bioport_id, type(bioport_id))
-        bioport_id = unicode(str(bioport_id))
         person = self.all_persons().get(bioport_id)
         if not person:
             id = self.redirects_to(bioport_id)
