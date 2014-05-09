@@ -77,7 +77,7 @@ class Person(object):
             remarks - a string
         """
 
-        self.id = self.bioport_id = bioport_id
+        self.id = self.bioport_id = long(bioport_id)
         self.repository = repository
         self._record = record
 #        self._status = status

@@ -220,8 +220,8 @@ class RepositoryTestCase(CommonTestCase):
     def test_removal_of_bios(self):
         #one of the biographies of person1 has been removed
         #1. the biography should not be there anymore
-        #2. the bioport_id shoudl still exist
-        #3. if we have no more biographies for this person, the person shoudl disappear 
+        #2. the bioport_id should still exist
+        #3. if we have no more biographies for this person, the person should disappear 
         repo = self.repo
         url1 = os.path.abspath(os.path.join(THIS_DIR, 'data/knaw/list.xml'))
         url2 = os.path.abspath(os.path.join(THIS_DIR, 'data/knaw_changed/list.xml'))

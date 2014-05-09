@@ -113,7 +113,8 @@ class Repository(object):
             del args['full_records']
         query = self.db._get_persons_query(**args)
         ls = query.session.execute(query).fetchall()
-        ls = [unicode(str(r[0]), encoding='UTF-8') for r in ls]
+#         ls = [unicode(str(r[0]), encoding='UTF-8') for r in ls]
+        ls = [r[0] for r in ls]
         return PersonList(self, ls)
 
     def delete_person(self, person):

@@ -256,7 +256,7 @@ class Biography(object, BioDesDoc):
         ls = self.get_value('bioport_id')
 #         print ls
         if ls:
-            return ls[-1]
+            return long(ls[-1])
         else:
             #try to find the bioport_id in the repository based on the local_id
             bioport_id = self.repository.db.get_bioport_id(biography_id=self.create_id())
@@ -286,7 +286,7 @@ class Biography(object, BioDesDoc):
                     person = db.get_person(bioport_id)
                     if not person:
                         person = db.add_person(bioport_id=bioport_id, default_status=default_status, checkforprexistingsbio=False)
-                self.set_value('bioport_id', bioport_id)
+                self.set_value('bioport_id', long(bioport_id))
                 self._person = person
 
             #register the biography in the bioportid registry

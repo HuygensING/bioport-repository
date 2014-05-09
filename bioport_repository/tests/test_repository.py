@@ -157,7 +157,7 @@ class RepositoryTestCase(CommonTestCase):
         #get the bioport biography (the one used for editing)
         bio = repo.get_bioport_biography(person)
         #check sanity
-        self.assertEqual(bio.get_value('bioport_id'), [person.get_bioport_id()])
+        self.assertEqual(long(bio.get_value('bioport_id')[0]), person.get_bioport_id())
         self.assertEqual(self.repo.db.get_sources()[0], bio.get_source())
         #set a value
         bio.set_value('geboortedatum', '1999-01-01')
@@ -306,8 +306,8 @@ class RepositoryTestCase(CommonTestCase):
         self.assertEqual(len(p4.get_biographies()), 1)
 
         #sanity? the biography should refer to the old id
-        self.assertEqual(p3.get_biographies()[0].get_idno('bioport'), id3)
-        self.assertEqual(p4.get_biographies()[0].get_idno('bioport'), id4)
+        self.assertEqual(long(p3.get_biographies()[0].get_idno('bioport')), id3)
+        self.assertEqual(long(p4.get_biographies()[0].get_idno('bioport')), id4)
 
         self.assertEqual(len(repo.get_identified()), 0)
 

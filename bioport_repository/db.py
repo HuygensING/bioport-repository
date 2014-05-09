@@ -642,13 +642,13 @@ class DBRepository:
         new_bioportid_3 = u''.join([random.choice('0123456789') for _i in range(LENGTH)])
         for new_bioportid in (new_bioportid_1, new_bioportid_2, new_bioportid_3):
             try:
-                self.add_bioport_id(new_bioportid)
+                self.add_bioport_id(long(new_bioportid))
             except IntegrityError:
                 # there is a small chance that we already have used
                 # the bioport id before: in that case we try agin
                 transaction.abort()
             else:
-                return new_bioportid
+                return long(new_bioportid)
         raise ValueError("no valid id found")
 
     def _register_biography(self, biography):  # , bioport_id=None):
@@ -666,7 +666,7 @@ class DBRepository:
             # try to find a bioport id in the Biography
             # XXX this needs to be optimized
             if biography.get_bioport_id() :
-                # if it has a biopor defined, it should already have been registered
+                # if it has a bioport defined, it should already have been registered
                 bioport_id = biography.get_bioport_id()
                 try:
                     r_bioportidrecord = session.query(BioPortIdRecord
@@ -1418,7 +1418,7 @@ class DBRepository:
             r.redirect_to = redirect_to
 
     def redirects_to(self, bioport_id):
-        """follow the rederiction chain to an endpoint
+        """follow the rediriction chain to an endpoint
 
         arguments:
             a bioport identifier
@@ -1565,7 +1565,7 @@ class DBRepository:
             the result is ordered descendinly by score
         arguments:
             source_id, source_id2: ids of sources. If one is given, we return tuples where one of the persons has a biography from that source
-                if both are given, we return tuples such that both person1 adn person2 ahve a biography among the sources
+                if both are given, we return tuples such that both person1 adn person2 have a biography among the sources
         """
         session = self.get_session()
 
@@ -2143,7 +2143,7 @@ and b2.redirect_to is null
                 # we delete the bioport biographies
                 self.delete_biography(bio)
             else:
-                original_bioport_id = bio.get_idnos(type='bioport')[0]
+                original_bioport_id = long(bio.get_idnos(type='bioport')[0])
                 # print '1:',  original_bioport_id
                 # the next three lines are there only because in a previous version, bioport_ids were not 'remembered
                 if original_bioport_id in used_ids:
