@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+# encoding=utf8
 ##########################################################################
 # Copyright (C) 2009 - 2014 Huygens ING & Gerbrandy S.R.L.
 # 
@@ -185,7 +185,13 @@ class Person(object):
 
             #     initial = Column(MSString(1), index=True) # eerste letter van naam
             if r_person.has_name:
-                r_person.initial = coerce_to_ascii(r_person.naam.lower())[0]
+                lower = r_person.naam.lower()
+                try:
+                    tmpinit = coerce_to_ascii(lower[0])
+                    """ throws exception when first character is non-ascii """
+                except:
+                    tmpinit = coerce_to_ascii(lower.replace(u'\u0133','ij').replace(u'ã¼',u'ü').replace(u'\xf8','o'))[0]
+                r_person.initial = tmpinit 
             #     invisible = Column(Boolean) # person.status IN (11, 5, 9, 9999, 14, 15)
             r_person.invisible = r_person.status in TO_HIDE
 #             #     foreigner = Column(Boolean) # person.status IN (11)

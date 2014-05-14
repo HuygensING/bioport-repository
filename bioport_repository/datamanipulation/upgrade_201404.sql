@@ -176,13 +176,6 @@ alter table person_soundex
 select * from person_soundex limit 5;
 show create table person_soundex;
 
-# person_source aanpassen
-create table person_source_orig like person_source;
-insert person_source_orig select * from person_source;
-drop table person_source;
-create table person_source like person_source_orig;
-insert person_source select * from person_source_orig group by bioport_id, source_id;
-alter table person_source drop column id, add primary key(bioport_id,source_id);
 
 #person_source
 show create table person_source;
@@ -197,6 +190,14 @@ alter table person_source
 ;
 select * from person_source limit 5;
 show create table person_source;
+
+# person_source aanpassen
+create table person_source_orig like person_source;
+insert person_source_orig select * from person_source;
+drop table person_source;
+create table person_source like person_source_orig;
+insert person_source select * from person_source_orig group by bioport_id, source_id;
+alter table person_source drop column id, add primary key(bioport_id,source_id);
 
 #relbioportidbiography
 show create table relbioportidbiography;
