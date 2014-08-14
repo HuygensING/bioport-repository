@@ -81,7 +81,7 @@ from bioport_repository.merged_biography import BiographyMerger
 
 LENGTH = 8  # the length of a bioport id
 # ECHO = True  # log all mysql queries.
-ECHO = False  # log all mysql queries.
+ECHO = False  # dont' log all mysql queries.
 EXCLUDE_THIS_STATUS_FROM_SIMILARITY = [5, 9]  # if persons have this status, we will not include them in the similarity cache
 
 
@@ -1312,6 +1312,7 @@ class DBRepository:
 #                    qry = qry.filter(PersonRecord.names.op('regexp')(u'[[:<:]]%s[[:>:]]' % s))
                 alias = aliased(PersonName)
                 qry = qry.join(alias)
+                qry = qry.distinct()
                 if search_family_name_only:
                     qry = qry.filter(alias.is_from_family_name == True)
                 if '?' in s or '*' in s:
@@ -1345,6 +1346,7 @@ class DBRepository:
                 s = s.replace('?', '_')
                 s = s.replace('*', '%')
                 qry = qry.join(PersonSoundex)
+                qry = qry.distinct()
                 if search_family_name_only:
                     qry = qry.filter(PersonSoundex.is_from_family_name == True)
                 qry = qry.filter(PersonSoundex.soundex.like(s)) 
@@ -1352,6 +1354,7 @@ class DBRepository:
                 for s in soundexes:
                     alias = aliased(PersonSoundex)
                     qry = qry.join(alias)
+                    qry = qry.distinct()
                     qry = qry.filter(alias.soundex == s)
                     if search_family_name_only:
                         qry = qry.filter(alias.is_from_family_name == True)
