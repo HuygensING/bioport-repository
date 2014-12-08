@@ -106,8 +106,8 @@ class DBRepository:
             convert_unicode=True,
             encoding='utf8',
             echo=echo,
-            pool_recycle=3600,  # set pool_recycle to one hour to avoid 'sql server has gone away' errors
-#             strategy="threadlocal",
+            max_overflow=20,
+            pool_recycle=3600  # set pool_recycle to one hour to avoid 'sql server has gone away' errors
             )
 
         self.Session = scoped_session(sessionmaker(bind=self.engine, extension=ZopeTransactionExtension()))
@@ -148,6 +148,7 @@ class DBRepository:
                 self.Session.remove()
             except:
                 transaction.abort()
+                self.Session.remove()
                 raise
 
     def query(self):
@@ -218,7 +219,7 @@ class DBRepository:
 
     @instance.clearafter
     def delete_source(self, source):
-        session = self.get_session()
+        session = self.get_session() # BB: geen session_context gebruikt.
         qry = session.query(SourceRecord).filter_by(id=source.id)
         try:
             r_source = qry.one()
@@ -232,7 +233,7 @@ class DBRepository:
             session.delete(r_source)
 
     def get_bioport_ids(self):
-        session = self.get_session()
+        session = self.get_session() # BB: geen session_context gebruikt.
         qry = session.query(BioPortIdRecord.bioport_id).distinct()
         rs = self.get_session().execute(qry)
         return map(lambda x: x[0], rs)
@@ -307,7 +308,7 @@ class DBRepository:
 
     @instance.clearafter
     def delete_names(self, bioport_id):
-        session = self.get_session()
+        session = self.get_session() # BB: geen session_context gebruikt.
 #        session.execute('delete c FROM cache_similarity c join naam n1 on c.naam1_id = n1.id where n1.biography_id="%s"' % biography_id)
 #        session.execute('delete c FROM cache_similarity c join naam n2 on c.naam1_id = n2.id where n2.biography_id="%s"' % biography_id)
         session.execute('delete s   from soundex s  left outer join naam n  on s.naam_id = n.id where n.bioport_id = %s' % bioport_id)
@@ -461,6 +462,7 @@ class DBRepository:
             person = self.get_person(bioport_id)
         if not person:
             # XXX next 2 lines for debugging
+            # BB: geen session_context gebruikt.
             qry = self.get_session().query(PersonRecord).filter(PersonRecord.bioport_id == bioport_id)
             assert not qry.all()
             raise BioPortNotFoundError('Could not find a person with bioport_id %s' % bioport_id)
