@@ -122,7 +122,8 @@ class Biography(object, BioDesDoc):
         except AttributeError:
             raise
         except DetachedInstanceError:
-            self.repository.db.get_session().merge(self._record)
+            with self.repository.db.get_session_context() as session: 
+                session.merge(self._record)
 
         return self._record
 

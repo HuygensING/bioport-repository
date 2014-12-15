@@ -219,12 +219,12 @@ class DBRepository:
 
     @instance.clearafter
     def delete_source(self, source):
-        session = self.get_session() # BB: geen session_context gebruikt.
-        qry = session.query(SourceRecord).filter_by(id=source.id)
-        try:
-            r_source = qry.one()
-        except sqlalchemy.orm.exc.NoResultFound:
-            raise ValueError('Cannot delete source %s because it cannot be found in the database' % source.id)
+        with self.get_session_context() as session:
+            qry = session.query(SourceRecord).filter_by(id=source.id)
+            try:
+                r_source = qry.one()
+            except sqlalchemy.orm.exc.NoResultFound:
+                raise ValueError('Cannot delete source %s because it cannot be found in the database' % source.id)
 
         with self.get_session_context() as session:
             self.delete_biographies(source=source)
@@ -233,9 +233,10 @@ class DBRepository:
             session.delete(r_source)
 
     def get_bioport_ids(self):
-        session = self.get_session() # BB: geen session_context gebruikt.
-        qry = session.query(BioPortIdRecord.bioport_id).distinct()
-        rs = self.get_session().execute(qry)
+        with self.get_session_context() as session:
+            qry = session.query(BioPortIdRecord.bioport_id).distinct()
+        with self.get_session_context() as session:
+            rs = session.execute(qry)
         return map(lambda x: x[0], rs)
 
     @instance.clearafter
@@ -308,12 +309,12 @@ class DBRepository:
 
     @instance.clearafter
     def delete_names(self, bioport_id):
-        session = self.get_session() # BB: geen session_context gebruikt.
+        with self.get_session_context() as session:
 #        session.execute('delete c FROM cache_similarity c join naam n1 on c.naam1_id = n1.id where n1.biography_id="%s"' % biography_id)
 #        session.execute('delete c FROM cache_similarity c join naam n2 on c.naam1_id = n2.id where n2.biography_id="%s"' % biography_id)
-        session.execute('delete s   from soundex s  left outer join naam n  on s.naam_id = n.id where n.bioport_id = %s' % bioport_id)
-        session.execute('delete n   from naam n where bioport_id = %s' % bioport_id)
-        session.expunge_all()
+            session.execute('delete s   from soundex s  left outer join naam n  on s.naam_id = n.id where n.bioport_id = %s' % bioport_id)
+            session.execute('delete n   from naam n where bioport_id = %s' % bioport_id)
+            session.expunge_all()
 
 
     @instance.clearafter
@@ -622,17 +623,17 @@ class DBRepository:
 
         use "update_persons" to update the information in the db (including person_soundex)
         """
-        session = self.get_session()
-        i = 0
-        logging.info('updating all soundexes (this can take a while)')
-        session.query(PersonSoundex).delete()
-        persons = self.get_persons()
-        for person in persons:
-            i += 1
-            if not i % 10:
-                logging.info('%s of %s' % (i, len(persons)))
-            names = person.get_names()
-            self.update_soundex(person.bioport_id, names)
+        with self.get_session_context() as session:
+            i = 0
+            logging.info('updating all soundexes (this can take a while)')
+            session.query(PersonSoundex).delete()
+            persons = self.get_persons()
+            for person in persons:
+                i += 1
+                if not i % 10:
+                    logging.info('%s of %s' % (i, len(persons)))
+                names = person.get_names()
+                self.update_soundex(person.bioport_id, names)
         logging.info('done')
 
     def fresh_identifier(self):
@@ -2026,7 +2027,6 @@ class DBRepository:
         self.get_session().add(comment)
 
     def get_persons_with_identical_dbnl_ids(self, start=0, size=20, refresh=False, source=None):
-        session = self.get_session()
         sql = """SELECT  SQL_CALC_FOUND_ROWS c.bioport_id1, c.bioport_id2, c.source1, c.source2, c.dbnl_id
         FROM dbnl_ids c
 
@@ -2064,8 +2064,9 @@ and b2.redirect_to is null
         sql += ' ORDER BY c.dbnl_id'
 
         sql += ' LIMIT %s OFFSET %s' % (size, start)
-        rs = session.execute(sql)
-        grand_total = list(session.execute("select FOUND_ROWS()"))[0][0]
+        with self.get_session_context() as session:
+            rs = session.execute(sql)
+            grand_total = list(session.execute("select FOUND_ROWS()"))[0][0]
         return ([(Person(r.bioport_id1, repository=self), Person(r.bioport_id2, repository=self)) for r in rs], grand_total)
 
     def tmp_fixup_category_doublures(self):

@@ -246,7 +246,7 @@ def _remove_irrelevent_items_from_similarity_table(dsn):
         print 'progress %s/%s' % (i, total)
         try:
             if not db._should_be_in_similarity_cache(r.bioport_id1, r.bioport_id2):
-                print 'deleting %s form similiaryt cache' % r
+                print 'deleting %s form similiarty cache' % r
                 j += 1
                 k += 1
                 session.delete(r)

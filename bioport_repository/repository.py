@@ -479,7 +479,7 @@ class Repository(object):
         return self.db.get_category(id)
 
     def get_categories(self):
-        #we wrap the category objects, so that when the session closes, sqlalchemy does noet complain about the memoized objects
+        #we wrap the category objects, so that when the session closes, sqlalchemy does not complain about the memoized objects
         return self.db.get_categories()
 
     def get_places(self, *args, **kwargs):
