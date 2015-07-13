@@ -1,18 +1,18 @@
 ##########################################################################
 # Copyright (C) 2009 - 2014 Huygens ING & Gerbrandy S.R.L.
-# 
+#
 # This file is part of bioport.
-# 
+#
 # bioport is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as
 # published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public
 # License along with this program.  If not, see
 # <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -20,24 +20,20 @@
 
 import os
 
-from bioport_repository.tests.common_testcase import CommonTestCase, unittest , THIS_DIR
-from bioport_repository.repository import  Source, Biography
-from bioport_repository.db_definitions import (
-   CacheSimilarityPersons, AntiIdentifyRecord, STATUS_NEW,
-   STATUS_ONLY_VISIBLE_IF_CONNECTED,
-   )
-
+from bioport_repository.tests.common_testcase import CommonTestCase, unittest, THIS_DIR
+from bioport_repository.repository import Source, Biography
+from bioport_repository.db_definitions import AntiIdentifyRecord, STATUS_NEW, STATUS_ONLY_VISIBLE_IF_CONNECTED
 
 
 class RepositoryTestCase(CommonTestCase):
 
     def test_download_bios(self):
         url = os.path.abspath(os.path.join(THIS_DIR, 'data/knaw/list.xml'))
-        #there are already N biographies after setUp
+        # there are already N biographies after setUp
 
         initial_number = len(list(self.repo.get_biographies()))
-        #add some sources source
-        src = Source(id=u'test', url=url , description=u'test')
+        # add some sources source
+        src = Source(id=u'test', url=url, description=u'test')
         self.repo.add_source(src)
         self.repo.download_biographies(src)
         new_number = len(list(self.repo.get_biographies(source_id=src.id)))
@@ -49,10 +45,10 @@ class RepositoryTestCase(CommonTestCase):
         self.assertEqual(self.repo.count_persons(), 10)
 
     def test_get_persons_sequence(self):
-        persons = self.repo.get_persons_sequence()
+        persons = self.repo.db.get_persons_sequence()
         self.assertEqual(len(persons), 10)
         b_persons = self.repo.get_persons_sequence(beginletter='b')
-        assert 0 < len(b_persons) < len(persons) #not all person names start with a 'b'
+        assert 0 < len(b_persons) < len(persons)  # not all person names start with a 'b'
 
     def test_created_repository(self):
         repo = self.repo
@@ -65,21 +61,21 @@ class RepositoryTestCase(CommonTestCase):
         assert bio.get_value('bioport_id')
 
     def test_add_biography(self):
-        #make a new biography
+        # make a new biography
         source = Source(id=u'bioport_test')
         self.repo.add_source(source)
         bio = Biography(id=u'test_bio.xml', source_id=source.id)
 
-        #XXX Do we need this?
+        # XXX Do we need this?
         bio.from_args(
-              url_biografie='http://ladida/didum',
-              naam_publisher='nogeensiets',
-              url_publisher='http://pbulihser_url',
-              naam='Tiedel Doodle Dum',
-              local_id='123',
-              )
+            url_biografie='http://ladida/didum',
+            naam_publisher='nogeensiets',
+            url_publisher='http://pbulihser_url',
+            naam='Tiedel Doodle Dum',
+            local_id='123',
+            )
 
-        #save it
+        # save it
         self._save_biography(bio)
         assert bio.get_bioport_id()
         self.assertEqual(bio.repository, self.repo)
@@ -87,12 +83,12 @@ class RepositoryTestCase(CommonTestCase):
     def test_get_biographies(self):
         bios = self.repo.get_biographies()
         bio = list(bios)[2]
-        id = bio.get_bioport_id()
-        assert id, bio.to_string()
+        bioport_id = bio.get_bioport_id()
+        assert bioport_id, bio.to_string()
         source = bio.get_source()
-        self.assertEqual([b.id for b in self.repo.get_biographies(bioport_id=id)], [bio.id])
+        self.assertEqual([b.id for b in self.repo.get_biographies(bioport_id=bioport_id)], [bio.id])
         self.assertEqual(len(list(self.repo.get_biographies(source=source))), 5)
-        self.assertEqual(self.repo.get_biographies(bioport_id=id, source=bio.get_source()), [bio])
+        self.assertEqual(self.repo.get_biographies(bioport_id=bioport_id, source=bio.get_source()), [bio])
 
         self.assertEqual(self.repo.count_biographies(), len(list(self.repo.get_biographies())))
         self.assertEqual(self.repo.count_biographies(source_id=source.id), 5)
@@ -102,14 +98,14 @@ class RepositoryTestCase(CommonTestCase):
         url = 'file://%s' % os.path.abspath(os.path.join(THIS_DIR, 'data/knaw/list.xml'))
         sources = i.get_sources()
 
-        #add some sources source
-        src1 = Source(id=u'test', url=url , description=u'test')
+        # add some sources source
+        src1 = Source(id=u'test', url=url, description=u'test')
         i.add_source(src1)
 
-        src2 = i.add_source(Source(id=u'test2', url=url , description=u'test2 description'))
+        src2 = i.add_source(Source(id=u'test2', url=url, description=u'test2 description'))
 
         self.assertEqual(len(i.get_sources()), len(sources) + 2, i.get_sources())
-        #and the source we added is among  them
+        # and the source we added is among  them
         assert 'test' in [s.id for s in i.get_sources()], i.get_sources()
 
         self.assertEqual(src2.url, url)
@@ -127,8 +123,8 @@ class RepositoryTestCase(CommonTestCase):
         i.delete_biographies(src1)
         self.assertEqual(len(list(i.get_biographies(source=src1))), 0)
 
-        #the source is also in the repository         
-        #see if we can delete the source
+        # the source is also in the repository
+        # see if we can delete the source
         i.delete_source(Source(u'test'))
         self.assertEqual(len(i.get_sources()), 1 + len(sources))
 
@@ -136,8 +132,7 @@ class RepositoryTestCase(CommonTestCase):
 
     def test_refill(self):
         self.create_filled_repository()
-        #now donwload the data from the first source a seond time
-
+        # now donwload the data from the first source a seond time
 
     def test_redirect_to(self):
         repo = self.create_filled_repository()
@@ -148,18 +143,16 @@ class RepositoryTestCase(CommonTestCase):
         repo.redirect_identifier(id1, id2)
         self.assertEqual(repo.redirects_to(id1), id2)
 
-
-
     def test_bioport_biography(self):
         repo = self.create_filled_repository()
         person = repo.get_persons()[2]
 
-        #get the bioport biography (the one used for editing)
+        # get the bioport biography (the one used for editing)
         bio = repo.get_bioport_biography(person)
-        #check sanity
+        # check sanity
         self.assertEqual(long(bio.get_value('bioport_id')[0]), person.get_bioport_id())
         self.assertEqual(self.repo.db.get_sources()[0], bio.get_source())
-        #set a value
+        # set a value
         bio.set_value('geboortedatum', '1999-01-01')
         self.assertEqual(bio.get_value('geboortedatum'), '1999-01-01')
         self._save_biography(bio)
@@ -184,17 +177,17 @@ class RepositoryTestCase(CommonTestCase):
         bio = Biography(id='test_bio.xml', source_id=source.id)
 
         name = 'Name1'
-        #XXX Do we need this?
+        # XXX Do we need this?
         bio.from_args(
-              url_biografie='http://ladida/didum',
-              naam_publisher='nogeensiets',
-              url_publisher='http://pbulihser_url',
-              naam=name,
-              local_id='123',
-              )
+            url_biografie='http://ladida/didum',
+            naam_publisher='nogeensiets',
+            url_publisher='http://pbulihser_url',
+            naam=name,
+            local_id='123',
+            )
         self.assertEqual(len(bio.get_idnos()), 1, bio.to_string())
         self._save_biography(bio)
-        #we now have two idnos: the local "id", and the "bioport_id"
+        # we now have two idnos: the local "id", and the "bioport_id"
 #        assert 0, bio.xpath('person/idno')
         self.assertEqual(len(bio.get_idnos(type=None)), 2, bio.to_string())
 
@@ -206,7 +199,7 @@ class RepositoryTestCase(CommonTestCase):
         self.assertEqual(biography_from_repo.naam().volledige_naam(), name)
 
         biography_record = list(self.repo.db._get_biography_query(local_id=bio.id))[0]
-        self.assertEqual(biography_record.url_biography , bio.get_value('url_biography'))
+        self.assertEqual(biography_record.url_biography, bio.get_value('url_biography'))
 
         self.assertEqual(len(bio.get_idnos(type=None)), 2, bio.to_string())
 
@@ -214,13 +207,12 @@ class RepositoryTestCase(CommonTestCase):
         source = Source(id='bioport_test')
         bio_id = 'test_bio.xml'
         self.repo.add_source(source)
-        bio = Biography(id=bio_id , source_id=source.id)
+        bio = Biography(id=bio_id, source_id=source.id)
 
         self._save_biography(bio)
 
         def get_versions():
             return list(self.repo.db._get_biography_query(local_id=bio_id))
-
 
         self.assertEqual(len(get_versions()), 1)
         self._save_biography(bio)
@@ -238,21 +230,20 @@ class RepositoryTestCase(CommonTestCase):
         ls = self.repo.get_most_similar_persons()
         _score, p1, p2 = ls[1]
 #        assert 0, [(p.get_bioport_id(), p2.get_bioport_id()) for score, p, p2 in ls]
-        #we have n candidates
+        # we have n candidates
         n = len(ls)
         self.assertEqual(len(list(ls)), n)
-        #now we anti-identify one pair
+        # now we anti-identify one pair
         repo.antiidentify(p1, p2)
-        #check if we really anti-identified only one pair
+        # check if we really anti-identified only one pair
         self.assertEqual(self.repo.db.get_session().query(AntiIdentifyRecord).count(), 1)
         self.assertTrue(repo.is_antiidentified(p1, p2))
 
-        #so, now we must have 1 less person left
+        # so, now we must have 1 less person left
         ls = self.repo.get_most_similar_persons()
         self.assertEqual(len(list(ls)), n - 1)
 
         self.assertEqual(len(list(repo.get_antiidentified())), 1)
-
 
     def test_get_bioport_biography(self):
         repo = self.repo
@@ -271,50 +262,50 @@ class RepositoryTestCase(CommonTestCase):
         id1 = p1.bioport_id
         id2 = p2.bioport_id
 
-        #identify two persons
+        # identify two persons
         p = repo.identify(p1, p2)
-        #the new person has one of the original bioport ids
-        id = p.bioport_id
-        self.assertTrue(id in [id1, id2])
+        # the new person has one of the original bioport ids
+        self.assertTrue(p.bioport_id in [id1, id2])
         self.assertEqual(len(repo.get_identified()), 1)
 
-        #add some bioport-edited info to our new person
+        # add some bioport-edited info to our new person
         bioport_bio = repo.get_bioport_biography(p)
         self.assertTrue(bioport_bio in p.get_biographies())
 
-        #now unidentify them again
+        # now unidentify them again
         ls = repo.unidentify(p)
 
-        #we should get two persons back
+        # we should get two persons back
         self.assertEqual(len(ls), 2)
         p3, p4 = ls
         id3 = p3.bioport_id
         id4 = p4.bioport_id
 
-        #each of the new persons is associated with a single biogrpahy
+        # each of the new persons is associated with a single biogrpahy
         self.assertEqual(len(p3.get_biographies()), 1)
         self.assertEqual(len(p4.get_biographies()), 1)
 
-        #these new persons have been saved in the repository
+        # these new persons have been saved in the repository
+        self.assertEqual(len(repo.get_persons(bioport_id=id3)), 1)
+        self.assertEqual(len(repo.get_persons(bioport_id=id4)), 1)
         p3 = repo.get_person(id3)
         p4 = repo.get_person(id4)
 
-        #they use the same old ids
+        # they use the same old ids
         self.assertTrue(id1 in [id3, id4], [id1, id2, id3, id4, id])
         self.assertTrue(id2 in [id3, id4])
         self.assertEqual(len(p3.get_biographies()), 1)
         self.assertEqual(len(p4.get_biographies()), 1)
 
-        #sanity? the biography should refer to the old id
+        # sanity? the biography should refer to the old id
         self.assertEqual(long(p3.get_biographies()[0].get_idno('bioport')), id3)
         self.assertEqual(long(p4.get_biographies()[0].get_idno('bioport')), id4)
 
         self.assertEqual(len(repo.get_identified()), 0)
 
-        #the status of the two people should be back to new
+        # the status of the two people should be back to new
         self.assertEqual(p3.status, STATUS_NEW)
         self.assertEqual(p4.status, STATUS_NEW)
-
 
     def test_detach_biography(self):
         repo = self.repo
@@ -326,30 +317,32 @@ class RepositoryTestCase(CommonTestCase):
         id1 = p1.bioport_id
         id2 = p2.bioport_id
 
-        #identify two persons
+        # identify two persons
         p = repo.identify(p1, p2)
-        #the new person has one of the original bioport ids
-        id = p.bioport_id
-        self.assertTrue(id in [id1, id2])
+        # the new person has one of the original bioport ids
+        self.assertTrue(p.bioport_id in [id1, id2])
         self.assertEqual(len(repo.get_identified()), 1)
 
-        #add some bioport-edited info to our new person
+        # add some bioport-edited info to our new person
         bioport_bio = repo.get_bioport_biography(p)
         self.assertTrue(bioport_bio in p.get_biographies())
 
         self.assertTrue(len(p.get_biographies()), 3)
 
-        #now detach the old biography, and create a new person
+        # now detach the old biography, and create a new person
         new_person = self.repo.detach_biography(bio1)
 
-        #is it really detached?
+        # is it really detached?
         self.assertTrue(len(p.get_biographies()), 2)
         self.assertTrue(len(new_person.get_biographies()), 1)
 
-        #this new persons have been saved in the repository
+        # can we find the id of this new person (there was a bug)?
+        self.assertEqual(len(repo.get_persons(bioport_id=new_person.bioport_id)), 1)
+
+        # this new persons has been saved in the repository
         self.assertTrue(repo.get_person(new_person.bioport_id))
 
-        #the status of the new person should be back to new
+        # the status of the new person should be back to new
         self.assertEqual(new_person.status, STATUS_NEW)
 
     def test_fill_similarity_cache(self):
@@ -360,26 +353,26 @@ class RepositoryTestCase(CommonTestCase):
         self.repo.db.fill_similarity_cache(person=person, refresh=True)
 
     def test_workflow_identification(self):
-        #we have three options in the identifaction process:
+        # we have three options in the identifaction process:
         #    1. identify the two
         #    2. anti-identify the two
         #    3. defer
 
-        #set up an environmenet
+        # set up an environmenet
         repo = self.create_filled_repository()
         self.repo.db.SIMILARITY_TRESHOLD = 0.0
         self.repo.db.fill_similarity_cache(minimal_score=0.0, refresh=True)
 
-        #we now have original_length "most similar persons"
+        # we now have original_length "most similar persons"
         original_length = len(self.repo.get_most_similar_persons())
 
-        #get two similar persons
+        # get two similar persons
         score, p1, p2 = self.repo.get_most_similar_persons()[1]
 
-        #we should also find them if we search for the peopele
+        # we should also find them if we search for the peopele
         ls = self.repo.get_most_similar_persons(bioport_id=p1.bioport_id)
         assert (score, p1, p2) in ls
-        #now we identify two people
+        # now we identify two people
         repo.identify(p1, p2)
         assert len(self.repo.get_most_similar_persons()) <= original_length - 1
         score, p1, p2 = self.repo.get_most_similar_persons()[1]
@@ -401,10 +394,10 @@ class RepositoryTestCase(CommonTestCase):
 #        id2 = max(p1.bioport_id, p2.bioport_id)
 #        qry = repo.db.get_session().query(CacheSimilarityPersons)
 
-        #(p1,p2) were deferred, but now we identify them after all
+        # (p1,p2) were deferred, but now we identify them after all
         repo.identify(p1, p2)
 
-        #the deferred list contains now only 1 pair
+        # the deferred list contains now only 1 pair
         self.assertEqual(len(self.repo.get_deferred()), 1)
 
     def test_get_most_similar_persons(self):
@@ -413,9 +406,9 @@ class RepositoryTestCase(CommonTestCase):
         self.repo.db.fill_similarity_cache(minimal_score=0.0, refresh=True)
         score, p1, p2 = repo.get_most_similar_persons()[0]
         source_id = p1.get_biographies()[0].get_source().id
-        self.assertEqual((score, p1, p2) , repo.get_most_similar_persons(source_id=source_id)[0])
-        self.assertEqual((score, p1, p2) , repo.get_most_similar_persons(source_id2=source_id)[0])
-# 
+        self.assertEqual((score, p1, p2), repo.get_most_similar_persons(source_id=source_id)[0])
+        self.assertEqual((score, p1, p2), repo.get_most_similar_persons(source_id2=source_id)[0])
+#
 #     def xxx_test_merging_in_identification(self):
 #         #XXX this is a test for when merging while identifying has been activated (in Repository.identify)
 #         #when we identify two persons that have bioport biographies defined, they should merge
@@ -427,29 +420,29 @@ class RepositoryTestCase(CommonTestCase):
 #         assert p1.get_biographies(source_id='bioport')
 #         assert p2.get_biographies(source_id='bioport')
 #         new_p = self.repo.identify(p1, p2)
-# 
+#
 #         self.assertEqual(len(new_p.get_biographies()), 3)
 #         p = self.repo.get_person(bioport_id=new_p.get_bioport_id())
 #         self.assertEqual(len(p.get_biographies()), 3)
-#class RepositoryTestCase(CommonTestCase):
+# class RepositoryTestCase(CommonTestCase):
 
     def test_refreshing_of_identification_cache(self):
-        #we have three options in the identifaction process:
+        # we have three options in the identifaction process:
         #    1. identify the two
         #    2. anti-identify the two
         #    3. defer
         repo = self.repo
 
-        #set up the environmenet
+        # set up the environmenet
         self.repo.db.SIMILARITY_TRESHOLD = 0.0
         self.repo.db.fill_similarity_cache(refresh=True)
         similar_persons = self.repo.get_most_similar_persons()
 
-        #We need at least 5  'most similar persons' for the tests below to work
+        # We need at least 5  'most similar persons' for the tests below to work
         original_length = len(similar_persons)
         assert original_length >= 5, 'We need at least 5 "most similar persons" for the tests to work, we have only %s' % original_length
 
-        #now identify two persons 
+        # now identify two persons
         _score, p1, p2 = similar_persons[0]
         new_p = repo.identify(p1, p2)
         old_bioport_id = p1.bioport_id == new_p.bioport_id and p2.bioport_id or p1.bioport_id
@@ -457,15 +450,15 @@ class RepositoryTestCase(CommonTestCase):
 
         new_len = len(self.repo.get_most_similar_persons())
 
-        #all information about similiarty of the old person (that has been identified) should be gone
+        # all information about similiarty of the old person (that has been identified) should be gone
         self.assertEqual(len(self.repo.get_most_similar_persons(bioport_id=old_bioport_id)), 0)
 
         assert new_len <= original_length - 4, '%s - %s' % (len(self.repo.get_most_similar_persons()), original_length)
 
-        #now refresh the cache, and make sure that everything remains as it was
+        # now refresh the cache, and make sure that everything remains as it was
         repo.db.fill_similarity_cache(refresh=True)
 
-        #all information about similiarty of the old person (that has been identified) should be gone
+        # all information about similiarty of the old person (that has been identified) should be gone
         self.assertEqual(len(self.repo.get_most_similar_persons(bioport_id=old_bioport_id)), 0)
         self.assertEqual(len(self.repo.get_antiidentified()), 0)
         self.assertEqual(len(self.repo.get_identified()), 1)
@@ -477,7 +470,7 @@ class RepositoryTestCase(CommonTestCase):
         _score, p1, p2 = self.repo.get_most_similar_persons()[1]
 #        p1, p2 = persons[2], persons[3]
         repo.antiidentify(p1, p2)
-        #self.debug_info()
+        # self.debug_info()
 
         self.assertEqual(len(self.repo.get_antiidentified()), 1)
         self.assertEqual(len(self.repo.get_identified()), 1)
@@ -485,9 +478,9 @@ class RepositoryTestCase(CommonTestCase):
         self.assertEqual(len(self.repo.get_persons()), 9)
         self.assertEqual(len(self.repo.get_most_similar_persons()), new_len - 1)
 
-        #all these identifications should also be persistent after we refull the cache
+        # all these identifications should also be persistent after we refull the cache
         repo.db.fill_similarity_cache(refresh=True)
-        #self.debug_info()
+        # self.debug_info()
         self.assertEqual(len(self.repo.get_most_similar_persons()), new_len - 1)
 
         repo.db.fill_similarity_cache(refresh=True)
@@ -498,34 +491,33 @@ class RepositoryTestCase(CommonTestCase):
         id2 = p2.bioport_id
         repo.defer_identification(p1, p2)
         self.assertTrue(repo.db.is_deferred(id1, id2))
-        #self.debug_info()
+        # self.debug_info()
         self.assertEqual(len(self.repo.get_antiidentified()), 1)
         self.assertEqual(len(self.repo.get_identified()), 1)
         self.assertEqual(len(self.repo.get_deferred()), 1)
         self.assertEqual(len(self.repo.get_most_similar_persons()), new_len - 1)
 
-        #all these identifications should also be persistent after we refull the cache
+        # all these identifications should also be persistent after we refull the cache
         repo.db.fill_similarity_cache(refresh=True)
 
         self.assertEqual(len(self.repo.get_most_similar_persons()), new_len - 1)
 
         for _score, p1, p2 in self.repo.get_most_similar_persons()[3:]:
-            #sanity check if we have not identified one of these people before (if so, it messes up the tests below)
+            # sanity check if we have not identified one of these people before (if so, it messes up the tests below)
             if (p1 not in self.repo.get_identified() and p2 not in self.repo.get_identified()):
                 break
         repo.defer_identification(p1, p2)
-        self.debug_info()
+#         self.debug_info()
         self.assertEqual(len(self.repo.get_deferred()), 2)
         self.assertEqual(len(self.repo.get_identified()), 1)
         self.assertEqual(len(self.repo.get_antiidentified()), 1)
         self.assertEqual(len(self.repo.get_most_similar_persons()), new_len - 2)
 
-        #all these identifications should also be persistent after we refull the cache
+        # all these identifications should also be persistent after we refull the cache
         repo.db.fill_similarity_cache(refresh=True)
         self.assertEqual(len(self.repo.get_most_similar_persons()), new_len - 2)
 
-
-        #(p1,p2) were deferred, but now we identify them after all
+        # (p1,p2) were deferred, but now we identify them after all
         identifieds = self.repo.get_identified()
         self.assertEqual(len(identifieds), 1)
         _person = repo.identify(p1, p2)
@@ -533,37 +525,22 @@ class RepositoryTestCase(CommonTestCase):
         self.assertEqual(len(self.repo.get_identified()), 2)
         self.assertEqual(len(self.repo.get_antiidentified()), 1)
 
-        #XXX if the next @#$%#$% test FAILS, it is because some obscure reaons in the ORDER of the "get_most_similar_persons"
-        #(I THING)- try to run the test again...
-        #XXX FIX the problem described above and resurrect the follwoing test
+        # XXX if the next @#$%#$% test FAILS, it is because some obscure reaons in the ORDER of the "get_most_similar_persons"
+        # (I THING)- try to run the test again...
+        # XXX FIX the problem described above and resurrect the follwoing test
 #        self.assertEqual(len(self.repo.get_most_similar_persons()), original_length-7)
         self.assertEqual(len(self.repo.get_persons()), 8)
-        #the deferred list contains now only 1 pair
+        # the deferred list contains now only 1 pair
 
-        #all these identifications should also be persistent after we refill the cache
+        # all these identifications should also be persistent after we refill the cache
         repo.db.fill_similarity_cache(refresh=True)
-        #XXX THIS SHOULD NOT FAIL!! 
+        # XXX THIS SHOULD NOT FAIL!!
 #        self.assertEqual(len(self.repo.get_most_similar_persons()), original_length-4)
-
-    def debug_info(self):
-        return
-        for r in  self.repo.db.get_session().query(CacheSimilarityPersons).all():
-            i = 0
-            if r.bioport_id1 != r.bioport_id2:
-                i += 1
-        for i in self.repo.get_most_similar_persons():
-            pass
-        for i in self.repo.get_deferred():
-            pass
-        for i in self.repo.get_identified():
-            pass
-        for i in self.repo.get_antiidentified():
-            pass
 
     def test_identify(self):
 
         repo = self.repo
-        #get the information of two persons
+        # get the information of two persons
         persons = repo.get_persons()
         self.assertEqual(len(persons), 10)
         person1 = persons[1]
@@ -575,32 +552,32 @@ class RepositoryTestCase(CommonTestCase):
 
         self.assertNotEqual(id1, id2)
 
-        #identify the two people
+        # identify the two people
         person = repo.identify(person1, person2)
 
-        #id1 is the 'old bioport id', id2 is the new one
+        # id1 is the 'old bioport id', id2 is the new one
         if person.get_bioport_id() == person1.get_bioport_id():
             id1, id2 = id2, id1
 
-        #both identifiers are still in the system
+        # both identifiers are still in the system
         assert id1 in repo.get_bioport_ids(), repo.get_bioport_ids()
         assert id2 in repo.get_bioport_ids(), repo.get_bioport_ids()
 
-        #but id1 now redirects to id2
+        # but id1 now redirects to id2
         self.assertEqual(repo.redirects_to(id1), id2)
 
-        #we now have 9 nstead of 10 persons
+        # we now have 9 nstead of 10 persons
         self.assertEqual(len(repo.get_persons()), 9, [r.id for r in repo.get_persons()])
-        #and the newly identified person has two biographies
+        # and the newly identified person has two biographies
         self.assertEqual(len(person.get_biographies()), 2)
 
         assert person in [person1, person2]
 
-        #and we have a person with these two biographies attached
+        # and we have a person with these two biographies attached
         bios = person.get_biographies()
         self.assertEqual(set([b.id for b in bios]), set([bio1.id, bio2.id]))
 
-        #also, if we try to find the person with id1, we cannot find it anymore
+        # also, if we try to find the person with id1, we cannot find it anymore
         person1 = repo.get_person(bioport_id=id1)
         self.assertEqual(person1.bioport_id, id2)
         person2 = repo.get_person(bioport_id=id2)
@@ -620,14 +597,14 @@ class RepositoryTestCase(CommonTestCase):
         assert id1 != id2
         person1.record.status = STATUS_ONLY_VISIBLE_IF_CONNECTED
         self.repo.save_person(person1)
-        #identify the two people
+        # identify the two people
         person = self.repo.identify(person1, person2)
         self.assertEqual(person.status, person2.status)
         self.assertEqual(self.repo.get_person(person.get_bioport_id()).status, person2.status)
 
     def test_identify_categories(self):
         """see what happens with categories if we identify two persons"""
-        #get two persons
+        # get two persons
         persons = self.repo.get_persons()
         self.assertEqual(len(persons), 10)
         person1 = persons[1]
@@ -640,7 +617,7 @@ class RepositoryTestCase(CommonTestCase):
         assert id1 != id2
 
         def get_category_ids(bio):
-        #now the new person should have the combined categories
+        # now the new person should have the combined categories
             cats = bio.get_states(type='category')
             cats = [x.get('idno') for x in cats]
             return set(cats)
@@ -652,16 +629,16 @@ class RepositoryTestCase(CommonTestCase):
         bio.set_category([2, 3])
         self.repo.save_biography(bio, 'test')
 
-        #just make sure everything is ok in the repo
+        # just make sure everything is ok in the repo
         person1 = self.repo.get_person(person1.get_bioport_id())
         person2 = self.repo.get_person(person2.get_bioport_id())
         self.assertEqual(get_category_ids(person1.get_bioport_biography()), set(['1', '2']))
         self.assertEqual(get_category_ids(person2.get_bioport_biography()), set(['2', '3']))
 
-        #identify the two people
+        # identify the two people
         person = self.repo.identify(person1, person2)
 
-        #the new person should have the combined categories of the original
+        # the new person should have the combined categories of the original
         self.assertEqual(get_category_ids(person.get_bioport_biography()), set(['1', '2', '3']))
 
 

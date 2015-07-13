@@ -121,6 +121,7 @@ class RelBiographyAuthorRecord(Base):
     author_id = Column(Integer, ForeignKey('author.id'), primary_key=True)
     author = relation(AuthorRecord, cascade='all')
 
+
 class SoundexRecord(Base):
     __tablename__ = 'soundex'
     id = Column(Integer, primary_key=True)
@@ -149,13 +150,11 @@ class PersonRecord(Base):
     sterfdatum_min = Column(Date, index=True)
     sterfdatum_max = Column(Date, index=True)
 
-
     geboortedatum = Column(MSString(12), index=True)
     geboorteplaats = Column(MSString(255), index=True)
     sterfdatum = Column(MSString(12), index=True)
     sterfplaats = Column(MSString(255), index=True)
     naam = Column(MSString(255), index=True)
-    
     
     geslachtsnaam = Column(MSString(255), index=True)
     names = Column(UnicodeText)

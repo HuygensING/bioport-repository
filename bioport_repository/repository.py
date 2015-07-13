@@ -1,20 +1,19 @@
-#!/usr/bin/env python
 
 ##########################################################################
 # Copyright (C) 2009 - 2014 Huygens ING & Gerbrandy S.R.L.
-# 
+#
 # This file is part of bioport.
-# 
+#
 # bioport is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as
 # published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public
 # License along with this program.  If not, see
 # <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -34,7 +33,7 @@ import biodes
 from bioport_repository.db_definitions import STATUS_VALUES, RELIGION_VALUES
 from bioport_repository.biography import Biography
 from bioport_repository.db import DBRepository
-#from bioport_repository.person import Person
+# from bioport_repository.person import Person
 from bioport_repository.repocommon import BioPortException
 from bioport_repository.source import BioPortSource, Source
 from bioport_repository.svn_repository import SVNRepository
@@ -46,7 +45,8 @@ class Repository(object):
     ENABLE_SVN = False
     ENABLE_DB = True
 
-    def __init__(self,
+    def __init__(
+        self,
         svn_repository=None,
         svn_repository_local_copy=None,
         dsn=None,
@@ -102,20 +102,13 @@ class Repository(object):
 
         returns: a PersonList instance - a list of Person instances
         """
-        return self.get_persons_sequence(**args)
+        return self.db.get_persons(**args)
+    
+    def get_persons_sequence(self, *args, **kwargs):
+        return self.db.get_persons_sequence(*args, **kwargs)
 
     def get_bioport_id(self, url_biography):
         return self.db.get_bioport_id(url_biography=url_biography)
-
-    def get_persons_sequence(self, **args):
-        """return a PersonList instance"""
-        if args.get('full_records'):
-            del args['full_records']
-        query = self.db._get_persons_query(**args)
-        ls = query.session.execute(query).fetchall()
-#         ls = [unicode(str(r[0]), encoding='UTF-8') for r in ls]
-        ls = [r[0] for r in ls]
-        return PersonList(self, ls)
 
     def delete_person(self, person):
         if self.ENABLE_DB:
@@ -216,7 +209,8 @@ class Repository(object):
         return biography
 
     def detach_biography(self, biography):
-        return self.db.detach_biography(biography)
+        person = self.db.detach_biography(biography)
+        return person
 
     def delete_biographies(self, source):
         sources_ids = [src.id for src in self.get_sources()]
@@ -243,28 +237,28 @@ class Repository(object):
              a list of biography instances
         """
 
-        #at the URL given we find a list of links to biodes files
-        #print 'Opening', source.url
+        # at the URL given we find a list of links to biodes files
+        # print 'Opening', source.url
         assert source.url, 'No URL was defined with the source "%s"' % source.id
 
         logging.info('downloading data at %s' % source.url)
         logging.info('parsing source url')
 
-        #TODO: perhaps it would be better to check on Source.__init__ if repository argument is given
+        # TODO: perhaps it would be better to check on Source.__init__ if repository argument is given
         if not source.repository:
             source.repository = self
         try:
             ls = biodes.parse_list(source.url)
             if limit:
                 ls = ls[:limit]
-        except etree.XMLSyntaxError, error: #@UndefinedVariable
+        except etree.XMLSyntaxError, error:  # @UndefinedVariable
             raise BioPortException('Error parsing data at %s -- check if this is valid XML\n%s' % (source.url, error))
 
         if not ls:
             raise BioPortException('The file at %s does not contain any links to biographies' % source.url)
 
-        #we have a valid list of biographies to download
-        #first we remove all previously imported biographies at this source
+        # we have a valid list of biographies to download
+        # first we remove all previously imported biographies at this source
         logging.info('deleting existing biographies from %s' % source)
         self.delete_biographies(source=source)
         logging.info('downloading biodes files')
@@ -281,7 +275,7 @@ class Repository(object):
             if limit and iteration > limit:
                 break
             logging.info('progress %s/%s: adding biography at %s' % (iteration, len(ls), biourl))
-            #create a Biography object 
+            # create a Biography object
             bio = Biography(source_id=source.id, repository=source.repository)
             bio.from_url(biourl)
             bio.save(user='', comment=u'downloaded biography from source %s' % source)
@@ -301,7 +295,7 @@ class Repository(object):
         return total, skipped
 
     def delete_orphaned_persons(self, **args):
-        #remove all elements from the person table that do not have any biographies associated with them anymore
+        # remove all elements from the person table that do not have any biographies associated with them anymore
         for p in self.get_persons(**args):
 #             logging.info('%s'% p)
             if not p.get_biographies():
@@ -361,7 +355,7 @@ class Repository(object):
         returns:
             a new Person instance representing the identified person
         """
-        #the oldest identifier will be the canonical one
+        # the oldest identifier will be the canonical one
         return self.db.identify(person1, person2)
 
     def identify_persons(self, source_id, min_score):
@@ -406,7 +400,7 @@ class Repository(object):
         if self.ENABLE_DB:
             self.db.redirect_identifier(bioport_id, redirect_to)
         if self.ENABLE_SVN:
-            raise NotImplementedError#        id = self.get_identifier(bioport_id)
+            raise NotImplementedError  #        id = self.get_identifier(bioport_id)
 
     def get_bioport_biography(self, person, create_if_not_exists=True):
         """get, or if it does not yet exist, create, a biodes document that represents the interventions
@@ -425,20 +419,20 @@ class Repository(object):
             src.set_quality(10000)
 
         ls = self.get_biographies(source=source, bioport_id=person.get_bioport_id())
-        ls = list(ls) #turn generator into list
+        ls = list(ls)  # turn generator into list
         if not ls:
             if create_if_not_exists:
-                #create a new biography
+                # create a new biography
                 return self._create_bioport_biography(person)
             else:
                 return
         else:
-            #disabled warning - this is not so bad after all
-#            if len(ls) != 1: 
+            # disabled warning - this is not so bad after all
+#            if len(ls) != 1:
 #                logging.warning( 'There was more than one Bioport Biography found for the person with bioport_id %s' %
 #                          person.get_bioport_id())
-            #if we have more than one biography, we take the one that has the same bioport_id as the person
-            #(if such exists) - otherwise, arbitrarily, the one with the highest id
+            # if we have more than one biography, we take the one that has the same bioport_id as the person
+            # (if such exists) - otherwise, arbitrarily, the one with the highest id
             return ls[0]
             if len(ls) == 1:
                 return ls[0]
@@ -472,14 +466,14 @@ class Repository(object):
     def get_occupations(self):
         return self.db.get_occupations()
 
-    def get_occupation(self, id):
-        return self.db.get_occupation(id)
+    def get_occupation(self, bioport_id):
+        return self.db.get_occupation(bioport_id)
 
-    def get_category(self, id):
-        return self.db.get_category(id)
+    def get_category(self, bioport_id):
+        return self.db.get_category(bioport_id)
 
     def get_categories(self):
-        #we wrap the category objects, so that when the session closes, sqlalchemy does not complain about the memoized objects
+        # we wrap the category objects, so that when the session closes, sqlalchemy does not complain about the memoized objects
         return self.db.get_categories()
 
     def get_places(self, *args, **kwargs):
@@ -502,100 +496,6 @@ class Repository(object):
         return self.db.undo_version(document_id, version)
 
 
-class PersonList(object):
-    """This object tries to behave like a list of Person objects as efficiently as possible
-
-    A personlist is initiated with:
-        a repository instance
-        a list of bioport_ids
-    """
-    def __init__(self, repository, bioport_ids):
-        """
-        arguments:
-            query : either a list of a sqlalchemy query object
-
-        """
-        #this query will return bioport ids
-
-        self.repository = repository
-        self._bioport_ids = bioport_ids
-
-    def __len__(self):
-        return len(self._bioport_ids)
-
-    def __getitem__(self, key):
-        if isinstance(key, slice):
-            new_list = PersonList(self.repository, self._bioport_ids[key])
-            return new_list
-
-        i = int(key)
-        return self.repository.db.all_persons().get(self._bioport_ids[i])
-
-"""OLD PERSONLIST IMPLEMENTATION
-(kept here for documentation, feel free to delete if needed)
-
-class PersonList(object):
-    "This object provides a (possibly long) list of lazy-loaded Person objects"
-
-    _records = []
-
-    def __init__(self, query, repository):
-        ""
-        arguments:
-            query : either a list of a sqlalchemy query object
-
-        ""
-        self.query = query
-        self.repository = repository
-        self._persons = {}
-
-        if not isinstance(query, list):
-            # We bypass SQLAlchemy ORM because it' expensive
-            # and we don't need it for all results of the query
-            # expecially when they are 24.000, like a serch for van der Aa
-            try:
-                self._records = query.session.execute(query._compile_context().statement,
-                                  query._params).fetchall()
-            except InvalidRequestError:
-                query.transaction.abort()
-                self._records = query.session.execute(query._compile_context().statement,
-                                  query._params).fetchall()
-
-            self.column_names = [a.column.name for a in self.query._entities]
-        else:
-            self._records = query
-
-    def __len__(self):
-        if type(self.query) is list:
-            return len(self.query)
-        return self.query.count()
-
-    def get_record(self, i):
-        if self._records:
-            # If we already have the record we mimic SqlAlchemy result object
-            # (accessible by column name as an attribute)
-            return AttributeDict(dict(zip(self.column_names, self._records[i])))
-        else:
-            raise
-
-    def __getitem__(self, key):
-        if isinstance(key, slice):
-            new_list = PersonList(self._records[key], self.repository)
-            new_list.column_names = self.column_names
-            return new_list
-
-        i = int(key)
-        if i<0:
-            i = len(self) + i
-        if i in self._persons:
-            return self._persons[i]
-        r = self.get_record(i)
-        person = Person(bioport_id=r.bioport_id,
-                      repository=self.repository, record=r)
-        self._persons[i] = person
-        return person
-
-"""
 class AttributeDict(dict):
 
     def __init__(self, *args, **kwargs):

@@ -381,10 +381,10 @@ class Biography(object, BioDesDoc):
         if type(category_ids) != types.ListType:
             category_ids = [category_ids]
 
-        category_ids = set([str(id) for id in category_ids]) #filter out any duplicates
+        category_ids = set([str(id) for id in category_ids]) # filter out any duplicates
 
         for category_id in category_ids:
-            assert  category_id.isdigit(), 'category_id should be a digit (not %s)' % category_id
+            assert category_id.isdigit(), 'category_id should be a digit (not %s)' % category_id
             #look for the category
             category = self.repository.get_category(category_id)
             if category is None:

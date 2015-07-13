@@ -1,18 +1,18 @@
 ##########################################################################
 # Copyright (C) 2009 - 2014 Huygens ING & Gerbrandy S.R.L.
-# 
+#
 # This file is part of bioport.
-# 
+#
 # bioport is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as
 # published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public
 # License along with this program.  If not, see
 # <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -567,7 +567,7 @@ class DBRepository:
         """Update the information of all the persons in the database.
         Return the number of processed persons.
         """
-        persons = self.repository.get_persons(start=start, size=size)
+        persons = self.get_persons(start=start, size=size)
         total = len(persons)
         for index, person in enumerate(persons):
             index += 1
@@ -862,7 +862,23 @@ class DBRepository:
         return qry.count()
 
     def get_persons(self, **args):
-        return self.repository.get_persons(**args)
+        """Get persons satisfying the given arguments
+
+        arguments:
+            order_by - a string - default is 'sort_key'
+
+        returns: a PersonList instance - a list of Person instances
+        """
+        return self.get_persons_sequence(**args)
+
+    def get_persons_sequence(self, **args):
+        """return a PersonList instance"""
+        if args.get('full_records'):
+            del args['full_records']
+        query = self._get_persons_query(**args)
+        ls = query.session.execute(query).fetchall()
+        ls = [r[0] for r in ls]
+        return PersonList(self.repository, ls)
 
     def all_persons(self):
         """return a dictionary with *all* bioport_ids as keys and Person instances as values
@@ -884,7 +900,7 @@ class DBRepository:
 #         self._all_persons = {}
         logging.info('done (filling all_persons cache): %s seconds' % (time.time() - time0))
         return self._all_persons
-    
+
     def _log_query(self, label, qry):
         if self.LOG_QUERY:
             print '>> %s: qry = %s\n' % (label, qry)
@@ -949,7 +965,7 @@ class DBRepository:
             search_family_name_only (Boolean): if True, consider only the geslachtsnaam (family name) when searching
         """
         make_distinct = False
-        
+
         session = self.get_session()
         if full_records:
             qry = session.query(
@@ -958,10 +974,6 @@ class DBRepository:
                 PersonRecord.remarks,
                 PersonRecord.has_illustrations,
                 PersonRecord.geboortedatum,
-#                PersonRecord.geboortedatum_min,
-#                PersonRecord.geboortedatum_max,
-#                PersonRecord.sterfdatum_min,
-#                PersonRecord.sterfdatum_max,
                 PersonRecord.sterfdatum,
                 PersonRecord.naam,
                 PersonRecord.names,
@@ -970,15 +982,13 @@ class DBRepository:
                 PersonRecord.snippet,
                 PersonRecord.timestamp,
                 PersonRecord.has_contradictions,
-
                 )
         else:
             qry = session.query(PersonRecord.bioport_id)
         self._log_query('full_records', qry)
 
-#         qry = qry.filter(PersonSource.source_id != u'bioport')
         # BB replaced with orphan field on person
-        qry = qry.filter(PersonRecord.orphan == False)
+        qry = qry.filter(PersonRecord.orphan == False)  # @IgnorePep8
         self._log_query('not_orphan', qry)
 
         if is_identified:
@@ -1089,7 +1099,7 @@ class DBRepository:
             self._log_query('has_illustrations', qry)
 
         if match_term:
-            qry = qry.filter(PersonRecord.naam.match(match_term)) 
+            qry = qry.filter(PersonRecord.naam.match(match_term))
             self._log_query('match_term', qry)
 
         if search_term:
@@ -1109,7 +1119,7 @@ class DBRepository:
 
         if any_soundex:
             qry = qry.join(PersonSoundex)
-            qry = qry.filter(PersonSoundex.soundex.in_(any_soundex)) 
+            qry = qry.filter(PersonSoundex.soundex.in_(any_soundex))
             make_distinct = True
             self._log_query('soundex', qry)
 
@@ -1161,7 +1171,7 @@ class DBRepository:
             if int(size) > -1:
                 qry = qry.limit(size)
             self._log_query('size', qry)
-        
+
         if start:
             qry = qry.offset(start)
             self._log_query('start', qry)
@@ -1172,7 +1182,6 @@ class DBRepository:
             self._log_query('make_distinct', qry)
 
         return qry
-
 
     def get_bioport_id(self, url_biography=None, biography_id=None):
         assert url_biography or biography_id
@@ -1352,7 +1361,7 @@ class DBRepository:
                 qry = qry.distinct()
                 if search_family_name_only:
                     qry = qry.filter(PersonSoundex.is_from_family_name == True)
-                qry = qry.filter(PersonSoundex.soundex.like(s)) 
+                qry = qry.filter(PersonSoundex.soundex.like(s))
             else:
                 for s in soundexes:
                     alias = aliased(PersonSoundex)
@@ -1730,10 +1739,8 @@ class DBRepository:
         self.delete_person(old_person)
 
         new_person.save()
-#        self.update_person(new_person.get_bioport_id() )
 
         return new_person
-
 
     @instance.clearafter
     def find_biography_contradictions(self):
@@ -1807,7 +1814,6 @@ class DBRepository:
                      )
                 qry.delete()
 
-
     def get_antiidentified(self):
         query = self.get_session().query(AntiIdentifyRecord)
         return query.all()
@@ -1815,7 +1821,7 @@ class DBRepository:
     def is_antiidentified(self, person1, person2):
         """return True if these two persons are on the 'anti-identified' list"""
         qry = self.get_session().query(AntiIdentifyRecord)
-        if  isinstance(person1, Person):
+        if isinstance(person1, Person):
             id1 = person1.get_bioport_id()
         else:
             id1 = person1
@@ -1888,7 +1894,6 @@ class DBRepository:
         source_fn = os.path.join(this_dir, 'geografische_namen', 'nl.txt')
         refill_geolocations_table(source_fn=source_fn, session=self.get_session(), limit=limit)
 
-
     def get_locations(self, name=None, startswith=None, order_by='sort_name'):
         qry = self.get_session().query(Location)
         if order_by:
@@ -1929,7 +1934,6 @@ class DBRepository:
             def __init__(self, r):
                 for k in ['id', 'name']:
                     setattr(self, k, getattr(r, k))
-
 
         qry = self.get_session().query(Category)
         ls = qry.all()
@@ -1984,7 +1988,6 @@ class DBRepository:
         ls = qry.all()
 
         return ls
-
 
     def log(self, msg, record, user=None):
         """write information abut the changed record to the log
@@ -2158,7 +2161,8 @@ and b2.redirect_to is null
 
                 # save the changes to the biography
                 bio.set_value('bioport_id', original_bioport_id)
-                self.save_biography(bio,
+                self.save_biography(
+                    bio,
                     user=self.user,
                     comment='unidentified %s' % person,
                     )
@@ -2177,14 +2181,44 @@ and b2.redirect_to is null
 
     @instance.clearafter
     def detach_biography(self, biography):
-        """detach the biography from the person -- i.e. create a new person for this biography"""
-        # detaching a biography from a person only makes sense if this person has more than one biography
+        """detach the biography from the person -- i.e. create a new person for the given biography"""
 
+        # detaching a biography from a person only makes sense if this person has more than one biography
         if not len(self.get_biographies(bioport_id=biography.get_person().bioport_id)) > 1:
             raise Exception('Cannot detach biography %s form person %s, because this person only has one attached biography' % (biography, biography.get_person()))
         new_person = Person(bioport_id=self.fresh_identifier(), repository=self.repository)
-        biography.get_person()
+#         biography.get_person()
         comment = 'Detached biography %s from person %s and create new person %s' % (biography, biography.get_person(), new_person)
         new_person.add_biography(biography, comment=comment)
         new_person.save()
         return new_person
+
+
+class PersonList(object):
+    """This object tries to behave like a list of Person objects as efficiently as possible
+
+    A personlist is initiated with:
+        a repository instance
+        a list of bioport_ids
+    """
+    def __init__(self, repository, bioport_ids):
+        """
+        arguments:
+            query : either a list of a sqlalchemy query object
+
+        """
+        # this query will return bioport ids
+
+        self.repository = repository
+        self._bioport_ids = bioport_ids
+
+    def __len__(self):
+        return len(self._bioport_ids)
+
+    def __getitem__(self, key):
+        if isinstance(key, slice):
+            new_list = PersonList(self.repository, self._bioport_ids[key])
+            return new_list
+
+        i = int(key)
+        return self.repository.db.all_persons().get(self._bioport_ids[i])
