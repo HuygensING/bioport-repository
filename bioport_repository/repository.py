@@ -147,7 +147,7 @@ class Repository(object):
         if self.ENABLE_SVN:
             self.svn_repository.delete_source(source)
 
-    def get_source(self, id):
+    def get_source(self, id):  # @ReservedAssignment
         ls = [src for src in self.get_sources() if src.id == id]
         if not ls:
             raise ValueError('No source found with id %s\nAvailabe sources are %s' % (id, [s.id for s in self.get_sources()]))
@@ -319,7 +319,7 @@ class Repository(object):
         total = 0
         skipped = 0
         for i, bio in enumerate(bios):
-            logging.info('[%s/%s] downloading illustrations' % (i, len(bios)))
+            logging.info('[%s/%s] downloading illustrations' % (i+1, len(bios)))
             total += 1
             if limit and total > limit:
                 break

@@ -696,7 +696,6 @@ class DBRepository:
             bios = list(bios)
         return bios
 
-
     def _get_biography_query(self,
         source_id=None,
         bioport_id=None,
