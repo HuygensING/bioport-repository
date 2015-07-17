@@ -63,7 +63,6 @@ class Person(object):
         biographies=None,  # XXX - this is not used!
         repository=None,
         record=None,
-#        status=None,
         remarks=None,
         score=None,
         ):
@@ -74,7 +73,6 @@ class Person(object):
             biographies - a list of Biography instances
             repository - a Repository instance
             record - an instance of PersonRecord
-            status - an integer
             remarks - a string
         """
 
@@ -105,7 +103,8 @@ class Person(object):
 
     @property
     def status(self):
-        return self.record.status or STATUS_NEW
+        status = self.record.status or STATUS_NEW
+        return status
 
     @property
     def record(self):

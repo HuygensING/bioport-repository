@@ -103,7 +103,7 @@ class Repository(object):
         returns: a PersonList instance - a list of Person instances
         """
         return self.db.get_persons(**args)
-    
+
     def get_persons_sequence(self, *args, **kwargs):
         return self.db.get_persons_sequence(*args, **kwargs)
 
@@ -151,7 +151,8 @@ class Repository(object):
         ls = [src for src in self.get_sources() if src.id == id]
         if not ls:
             raise ValueError('No source found with id %s\nAvailabe sources are %s' % (id, [s.id for s in self.get_sources()]))
-        return ls[0]
+        source = ls[0]
+        return source
 
     def get_sources(self, order_by='quality', desc=True):
         """
@@ -290,7 +291,7 @@ class Repository(object):
         source.last_bios_update = time.time()
         self.save_source(source)
 
-        logging.info('deleting orphaned persons')
+#         logging.info('deleting orphaned persons')
 #         self.delete_orphaned_persons(source_id=source.id)
         return total, skipped
 

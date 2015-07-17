@@ -1,26 +1,23 @@
 ##########################################################################
 # Copyright (C) 2009 - 2014 Huygens ING & Gerbrandy S.R.L.
-# 
+#
 # This file is part of bioport.
-# 
+#
 # bioport is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as
 # published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public
 # License along with this program.  If not, see
 # <http://www.gnu.org/licenses/gpl-3.0.html>.
 ##########################################################################
 
-# 
-# TODO: drop table person_view; in production db.
-#
 
 # BB When making changes to theses classes which would result in a new database scheme,
 # be sure to remove data/bioport_mysqldump.sql so it will be regenerated in the tests
@@ -37,8 +34,8 @@ from sqlalchemy.types import TIMESTAMP
 metadata = MetaData()
 Base = declarative_base()
 
-# XXX : need next to have metadata.create_all() to work. Cf. also http://stackoverflow.com/questions/20148/myisam-versus-innodb
-Base.__table_args__ = {'mysql_engine':'MyIsam'}
+# XXX : need next to get metadata.create_all() to work. Cf. also http://stackoverflow.com/questions/20148/myisam-versus-innodb
+Base.__table_args__ = {'mysql_engine': 'MyIsam'}
 
 
 class BiographyRecord(Base):
@@ -107,6 +104,7 @@ class RelBioPortIdBiographyRecord(Base):
     biography = relation(BiographyRecord)
     bioportid = relation(BioPortIdRecord)
 
+
 class AuthorRecord(Base):
     """XXX the author table serves as a cache and since we mostly look for persons,
     it makes sense to make the relation with the person table directly"""
@@ -115,12 +113,12 @@ class AuthorRecord(Base):
     name = Column(MSString(255), nullable=False, unique=True)
     biographies = relation('RelBiographyAuthorRecord', cascade="all, delete-orphan")
 
+
 class RelBiographyAuthorRecord(Base):
     __tablename__ = 'relbiographyauthor'
     biography_id = Column(MSString(50, collation='utf8_bin'), ForeignKey('biography.id'), primary_key=True)
     author_id = Column(Integer, ForeignKey('author.id'), primary_key=True)
     author = relation(AuthorRecord, cascade='all')
-
 
 class SoundexRecord(Base):
     __tablename__ = 'soundex'
@@ -155,7 +153,7 @@ class PersonRecord(Base):
     sterfdatum = Column(MSString(12), index=True)
     sterfplaats = Column(MSString(255), index=True)
     naam = Column(MSString(255), index=True)
-    
+
     geslachtsnaam = Column(MSString(255), index=True)
     names = Column(UnicodeText)
     sort_key = Column(MSString(50), index=True)
@@ -179,7 +177,7 @@ class PersonRecord(Base):
     deathday = Column(MSString(4), index=True)
     initial = Column(MSString(1), index=True)  # eerste letter van naam
     invisible = Column(Boolean, index=True)  # person.status IN (11, 5, 9, 9999, 14, 15)
-    orphan = Column(Boolean, index=True)  # person is orphan when the only source linking to it is 'bioport' 
+    orphan = Column(Boolean, index=True)  # person is orphan when the only source linking to it is 'bioport'
     # /BB
 
 
@@ -203,11 +201,10 @@ class PersonSource(Base):
     __tablename__ = 'person_source'
     bioport_id = Column(Integer, ForeignKey('person.bioport_id'), primary_key=True)
     source_id = Column(Unicode(20), primary_key=True)
-#    bioport_id = Column(MSString(50), ForeignKey('person.bioport_id'), index=True, primary_key=True)
-#    source_id = Column(Unicode(20), index=True, primary_key=True)
+
 
 class NaamRecord(Base):
-    __tablename__ = 'naam'  
+    __tablename__ = 'naam'
     id = Column(Integer, primary_key=True)
 
     soundex = relation(SoundexRecord)  # , backref="naam.id")
@@ -223,14 +220,13 @@ class NaamRecord(Base):
     territoriale_titel = Column(Unicode(255))
     variant_of = Column(Integer, ForeignKey('naam.id'))
     varianten = relation("NaamRecord")
-    variant_of_record = relation("NaamRecord",
-             remote_side="NaamRecord.id",
-             )
+    variant_of_record = relation(
+        "NaamRecord",
+        remote_side="NaamRecord.id",
+        )
     bioport_id = Column(Integer, ForeignKey('person.bioport_id'), index=True)
-    person = relation(PersonRecord,
-                         lazy=False,  # load eagerly
-                         )
-#    sqlalchemy.schema.ForeignKeyConstraint(['id'], ['soundex.naam_id'], ondelete="CASCADE")
+    person = relation(PersonRecord, lazy=False,)  # load eagerly
+
 
 class SimilarityCache(Base):
     __tablename__ = 'cache_similarity'
@@ -298,18 +294,18 @@ NL.16    Flevoland
 """
     provinces = {
         '00':'Netherlands (general)',
-		'01':'Drenthe',
-		'02':'Friesland',
-		'03':'Gelderland',
-		'04':'Groningen',
-		'05':'Limburg',
-		'06':'Noord Brabant',
-		'07':'Noord Holland',
-		'09':'Utrecht',
-		'10':'Zeeland',
-		'11':'Zuid Holland',
-		'15':'Overijssel',
-		'16':'Flevoland',
+        '01':'Drenthe',
+        '02':'Friesland',
+        '03':'Gelderland',
+        '04':'Groningen',
+        '05':'Limburg',
+        '06':'Noord Brabant',
+        '07':'Noord Holland',
+        '09':'Utrecht',
+        '10':'Zeeland',
+        '11':'Zuid Holland',
+        '15':'Overijssel',
+        '16':'Flevoland',
         }
     def province(self):
         return self.provinces[self.adm1]
@@ -317,12 +313,12 @@ NL.16    Flevoland
 class Occupation(Base):
     __tablename__ = 'occupation'
     id = Column(Integer, primary_key=True)
-    name = Column(MSString(100), index=True)  # *   
+    name = Column(MSString(100), index=True)  # *
 
 class Category(Base):
     __tablename__ = 'category'
     id = Column(Integer, primary_key=True)
-    name = Column(MSString(100), index=True)  # *      
+    name = Column(MSString(100), index=True)  # *
 
 class ChangeLog(Base):
     __tablename__ = 'changelog'
@@ -355,7 +351,7 @@ class RelPersonReligion(Base):
     __tablename__ = 'relpersonreligion'
 #     id = Column(Integer, primary_key=True, autoincrement=True)
     bioport_id = Column(Integer, ForeignKey('person.bioport_id'), primary_key=True)
-    religion_id = Column(Integer, primary_key=True)  # , ForeignKey('category.id'), index=True)   
+    religion_id = Column(Integer, primary_key=True)  # , ForeignKey('category.id'), index=True)
     persons = relation(PersonRecord, backref='religions')
 
 class Comment(Base):
@@ -387,14 +383,11 @@ STATUS_ONLY_VISIBLE_IF_CONNECTED = 15
 STATUS_VALUES = [
     (0, '(geen status toegekend)'),
     (STATUS_NEW, 'nieuw'),  #
-#    (2, 'bewerkt'), #XXX TO DELETE
     (STATUS_DIFFICULT, 'moeilijk geval'),
-#    (STATUS_MESSY, 'moeilijk geval (troep)'), #XXX TO DELETE
     (STATUS_DONE, 'klaar'),
     (7, 'te weinig informatie'),
     (8, 'familielemma'),
     (STATUS_REFERENCE, 'verwijslemma'),
-#    (STATUS_NADER_ONDERZOEK, 'nader onderzoek nodig'),  #XXX TO DELETE --> moeilijk geval
     (STATUS_FOREIGNER, 'buitenlands'),
     (12, 'nog niet bewerkt'),
     (13, 'portrait'),
@@ -406,60 +399,59 @@ STATUS_VALUES = [
 
 RELIGION_VALUES = [
 # 'Christelijke hoofdstromingen in Ndl.:
-	(1, 'Anglicaans',),
-	(2, 'Doopsgezind',),
-	(3, 'Gereformeerd',),
-	(4, 'Luthers',),
-	(5, 'Nederlands hervormd',),
-	(6, 'Oud-katholiek',),
-	(7, 'Remonstrants',),
-	(8, 'Rooms katholiek',),
-	(9, 'Vrijzinnig hervormd',),
-	(10, 'Waals',),
-# 	'Anders, nl.:',
+    (1, 'Anglicaans',),
+    (2, 'Doopsgezind',),
+    (3, 'Gereformeerd',),
+    (4, 'Luthers',),
+    (5, 'Nederlands hervormd',),
+    (6, 'Oud-katholiek',),
+    (7, 'Remonstrants',),
+    (8, 'Rooms katholiek',),
+    (9, 'Vrijzinnig hervormd',),
+    (10, 'Waals',),
     (None, '-----------'),
 
 #   'Heterodoxe stromingen:
-	(11, 'Baptist',),
-	(12, 'Collegianten',),
-	(13, 'Herrnhutter',),
-	(14, 'Jehova\'s getuige',),
-	(15, 'Joods',),
-	(16, 'Labadist',),
-	(17, 'Leger des heils',),
-	(18, 'Mormoon',),
-	(19, 'Pietistisch',),
-	(20, 'Pinksterbeweging',),
-	(21, 'Rozenkruiser',),
+    (11, 'Baptist',),
+    (12, 'Collegianten',),
+    (13, 'Herrnhutter',),
+    (14, 'Jehova\'s getuige',),
+    (15, 'Joods',),
+    (16, 'Labadist',),
+    (17, 'Leger des heils',),
+    (18, 'Mormoon',),
+    (19, 'Pietistisch',),
+    (20, 'Pinksterbeweging',),
+    (21, 'Rozenkruiser',),
 
-# 	'Niet-westerse stromingen:
+#     'Niet-westerse stromingen:
     (None, '-----------'),
 
-	(22, 'Boeddhist',),
-	(23, 'Confuciaans',),
-	(24, 'Hindoestaans',),
-	(25, 'Islamitisch',),
-	(26, 'Theosofisch',),
-	(27, 'Winti',),
+    (22, 'Boeddhist',),
+    (23, 'Confuciaans',),
+    (24, 'Hindoestaans',),
+    (25, 'Islamitisch',),
+    (26, 'Theosofisch',),
+    (27, 'Winti',),
 
     (None, '-----------'),
 
-# 	Niet-religieuze overtuigingen:
+#     Niet-religieuze overtuigingen:
 
-	(28, 'Agnost',),
-	(29, 'Antroposoof',),
-	(30, 'Holistisch',),
-	(31, 'Vrijmetselaar',),
+    (28, 'Agnost',),
+    (29, 'Antroposoof',),
+    (30, 'Holistisch',),
+    (31, 'Vrijmetselaar',),
 
     (None, '-----------'),
-	(99, 'Anders...',),
+    (99, 'Anders...',),
 ]
 
 CATEGORY_LETTERKUNDE = 7
+
 
 def strstatus(code):
     """Return the status string corresponding to the status code in
     STATUS_VALUES.
     """
     return dict(STATUS_VALUES)[code]
-

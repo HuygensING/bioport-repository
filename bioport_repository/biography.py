@@ -2,19 +2,19 @@
 
 ##########################################################################
 # Copyright (C) 2009 - 2014 Huygens ING & Gerbrandy S.R.L.
-# 
+#
 # This file is part of bioport.
-# 
+#
 # bioport is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as
 # published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public
 # License along with this program.  If not, see
 # <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -26,7 +26,6 @@ import types
 import logging
 import string
 from datetime import datetime
-import transaction
 
 from lxml import etree
 
@@ -114,7 +113,7 @@ class Biography(object, BioDesDoc):
         except AttributeError:
             self._source = self.repository.get_source(self.source_id)
             return self._source
-        
+
     @property
     def record(self):
         try:
@@ -122,7 +121,7 @@ class Biography(object, BioDesDoc):
         except AttributeError:
             raise
         except DetachedInstanceError:
-            with self.repository.db.get_session_context() as session: 
+            with self.repository.db.get_session_context() as session:
                 session.merge(self._record)
 
         return self._record
@@ -140,7 +139,7 @@ class Biography(object, BioDesDoc):
                 start, end = "<%s>" % tagname, "</%s>" % tagname
                 expr = u"%(start)s.*?%(end)s" % locals()
                 text = re.compile(expr, re.IGNORECASE | re.DOTALL).sub('', text)
-            text = re.compile('<.*?>', re.DOTALL).sub('', text) #need to compile for DOTALL to work
+            text = re.compile('<.*?>', re.DOTALL).sub('', text)  # need to compile for DOTALL to work
             text = html2unicode(text)
             text = text.strip()
             return text
@@ -184,7 +183,7 @@ class Biography(object, BioDesDoc):
 
         if len(text) < size:
             return text
-        else: #we have a text that is longer than size, so we shorten it 
+        else:  # we have a text that is longer than size, so we shorten it
             s = text[:size]
             s = string.rsplit(s, maxsplit=1)[0]
             if len(s) < len(text):
@@ -209,7 +208,7 @@ class Biography(object, BioDesDoc):
         if ls:
             element = ls[0]
         else:
-            element = etree.SubElement(self.get_element_biography(), 'snippet') #@UndefinedVariable
+            element = etree.SubElement(self.get_element_biography(), 'snippet')  # @UndefinedVariable
             element.set('source_id', source_id)
         if snippet:
             snippet = unicode(snippet)
@@ -259,7 +258,7 @@ class Biography(object, BioDesDoc):
         if ls:
             return long(ls[-1])
         else:
-            #try to find the bioport_id in the repository based on the local_id
+            # try to find the bioport_id in the repository based on the local_id
             bioport_id = self.repository.db.get_bioport_id(biography_id=self.create_id())
             return bioport_id
 
@@ -276,7 +275,10 @@ class Biography(object, BioDesDoc):
         self.create_id()
         with db.get_session_context() as session:
             bioport_id = self.get_bioport_id()
+
             default_status = self.get_source().default_status
+
+
             person = self.get_person()
             if not person:
                 bioport_id = self.get_bioport_id()
@@ -290,11 +292,13 @@ class Biography(object, BioDesDoc):
                 self.set_value('bioport_id', long(bioport_id))
                 self._person = person
 
-            #register the biography in the bioportid registry
-            #(note that this changes the XML in the biography object)
+
+
+            # register the biography in the bioportid registry
+            # (note that this changes the XML in the biography object)
             db._register_biography(self)
 
-            #get all biographies with this id, and increment their version number with one
+            # get all biographies with this id, and increment their version number with one
             ls = db._get_biography_query(
                 local_id=self.id,
                 order_by='version',
@@ -325,12 +329,11 @@ class Biography(object, BioDesDoc):
             r_biography.time = datetime.today().isoformat()
             r_biography.source_id
 
-        # update the information of the associated person 
+        # update the information of the associated person
         #  (or add a person if the biography is new)
         person = self.get_person()
 
         person.save()
-
         msg = 'saved biography with id %s' % (self.id)
         if comment:
             msg += '; %s' % comment
@@ -381,14 +384,14 @@ class Biography(object, BioDesDoc):
         if type(category_ids) != types.ListType:
             category_ids = [category_ids]
 
-        category_ids = set([str(id) for id in category_ids]) # filter out any duplicates
+        category_ids = set([str(category_id) for category_id in category_ids])  # filter out any duplicates
 
         for category_id in category_ids:
             assert category_id.isdigit(), 'category_id should be a digit (not %s)' % category_id
-            #look for the category
+            # look for the category
             category = self.repository.get_category(category_id)
             if category is None:
-                pass #it would have been better to raise an error here, but the application expects us to ignore non-valid arguments
+                pass  # it would have been better to raise an error here, but the application expects us to ignore non-valid arguments
 #                raise KeyError('No category found with this ID: %s' % category_id)
             if category:
                 name = category.name
@@ -412,7 +415,7 @@ class Biography(object, BioDesDoc):
             if not caption:
                 caption = 'illustratie uit %s' % self.get_source().description
             if (not url.startswith('http://')) and (not url.startswith('file://')):
-                #this is a relative url
+                # this is a relative url
                 url = '/'.join((os.path.dirname(self.source_url), url))
                 if not url.startswith('file://'):
                     url = 'file://' + url
@@ -436,10 +439,10 @@ class Biography(object, BioDesDoc):
 
     def set_religion(self, idno):
         els = self.get_states(type='religion')
-        #we expect only one 'religion' state
+        # we expect only one 'religion' state
         assert len(els) < 2
         if els and not idno:
-            #remove the state
+            # remove the state
             self.remove_state(0, 'religion')
         else:
             self.add_or_update_state(type='religion', idno=str(idno))

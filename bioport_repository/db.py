@@ -215,7 +215,8 @@ class DBRepository:
                 else:
                     qry = qry.order_by(order_by)
             ls = qry.all()
-            return [Source(r.id, r.url, r.description, quality=r.quality, xml=r.xml, repository=self.repository) for r in ls]
+            sources = [Source(r.id, r.url, r.description, quality=r.quality, xml=r.xml, repository=self.repository) for r in ls]
+            return sources
 
     @instance.clearafter
     def delete_source(self, source):
@@ -440,11 +441,10 @@ class DBRepository:
             person = Person(bioport_id=bioport_id, record=r_person, repository=self.repository)  # , record=r_person)
             return self.update_person(person=person, compute_similarities=compute_similarities)
 
-
     @instance.clearafter
-    def update_person(self,
+    def update_person(
+        self,
         bioport_id=None,
-#        default_status=STATUS_NEW,
         person=None,
         compute_similarities=False,
         ):
@@ -462,105 +462,13 @@ class DBRepository:
         if not person:
             person = self.get_person(bioport_id)
         if not person:
-            # XXX next 2 lines for debugging
-            # BB: geen session_context gebruikt.
-            qry = self.get_session().query(PersonRecord).filter(PersonRecord.bioport_id == bioport_id)
-            assert not qry.all()
             raise BioPortNotFoundError('Could not find a person with bioport_id %s' % bioport_id)
+
         person.save()
-# #        , compute_similaries=compute_similarities)
-#        with self.get_session_context() as session:
-#
-#            #check if a person with this bioportid alreay exists
-#            try:
-#                r_person = session.query(PersonRecord).filter_by(bioport_id=bioport_id).one()
-#            except sqlalchemy.orm.exc.NoResultFound:
-#                #if not, we add a new one
-#                raise BioPortException('There is no person with bioport_id %s' % bioport_id)
-#
-#            person = Person(bioport_id=bioport_id, record=r_person, repository=self)
-# #        with self.get_session_context() as session:
-#            merged_biography = person.get_merged_biography()
-#            computed_values = person.computed_values
-#            r_person.naam = computed_values.naam
-#            r_person.sort_key = computed_values.sort_key
-#            r_person.has_illustrations = computed_values.has_illustrations
-#            r_person.search_source = computed_values.search_source
-#            r_person.sex = computed_values.sex
-#            r_person.geboortedatum_min = computed_values.geboortedatum_min
-#            r_person.geboortedatum_max = computed_values.geboortedatum_max
-#            r_person.sterfdatum_min = computed_values.sterfdatum_min
-#            r_person.sterfdatum_max = computed_values.sterfdatum_max
-#            r_person.geboortedatum = computed_values.geboortedatum
-#            r_person.sterfdatum = computed_values.sterfdatum
-#            r_person.geboorteplaats = computed_values.geboorteplaats
-#            r_person.sterfplaats = computed_values.sterfplaats
-#            r_person.names  = computed_values.names
-#            r_person.snippet = computed_values.snippet
-#            r_person.has_contradictions = computed_values.has_contradictions
-#            r_person.thumbnail = computed_values.thumbnail
-#
-#            #update categories
-#            session.query(RelPersonCategory).filter(RelPersonCategory.bioport_id==bioport_id).delete()
-#
-#            for category in merged_biography.get_states(type='category'):
-#                category_id = category.get('idno')
-#                assert type(category_id) in [type(u''), type('')], category_id
-#                try:
-#                    category_id = int(category_id)
-#                except ValueError:
-#                    msg = '%s- %s: %s' % (category_id, etree.tostring(category), person.bioport_id) #@UndefinedVariable
-#                    raise Exception(msg)
-#                r = RelPersonCategory(bioport_id=bioport_id, category_id=category_id)
-#                session.add(r)
-#                session.flush()
-#
-#
-#            #update the religion table
-#            religion= merged_biography.get_religion()
-#            religion_qry = session.query(RelPersonReligion).filter(RelPersonReligion.bioport_id==bioport_id)
-#            if religion is not None:
-#                religion_id =  religion.get('idno')
-#                if religion_id:
-#                    try:
-#                        r = religion_qry.one()
-#                        r.religion_id = religion_id
-#                    except  NoResultFound:
-#                        r = RelPersonReligion(bioport_id=bioport_id, religion_id=religion_id)
-#                        session.add(r)
-#                    session.flush()
-#            else:
-#                religion_qry.delete()
-#                session.flush()
-#
-#
-#            #'the' source -- we take the first non-bioport source as 'the' source
-#            #and we use it only for filterling later
-#            #XXX what is this used for???
-#            src = [s for s in merged_biography.get_biographies() if s.source_id != 'bioport']
-#            if src:
-#                src = src[0].source_id
-#            else:
-#                src = None
-#
-#            #refresh the names
-#            self.delete_names(bioport_id=bioport_id)
-#            self.update_name(bioport_id=bioport_id, names=computed_values._names)
-#
-#            self.update_source(bioport_id, source_ids = [b.source_id for b in person.get_biographies()])
-#
-#            if person.get_biography_contradictions():
-#                r_person.has_contradictions = True
-#            else:
-#                r_person.has_contradictions = False
-
-#            self._all_persons[r_person.bioport_id] = person
-
         # update the different caches to reflect any changes
         if compute_similarities:
             self.fill_similarity_cache(person=person, refresh=True)
         return person
-
 
     @instance.clearafter
     def update_persons(self, start=None, size=None):
@@ -575,15 +483,16 @@ class DBRepository:
             self.update_person(person.get_bioport_id())
         return total
 
-
     def _soundex_for_search(self, s):
-        return soundexes_nl(s,
+        # create long phonetic soundexes
+        return soundexes_nl(
+            s,
             group=2,
             length=20,
             filter_initials=True,
             filter_stop_words=False,
             wildcards=True,
-            )  # create long phonetic soundexes
+            )
 
     @instance.clearafter
     def update_name(self, bioport_id, names):
@@ -897,7 +806,6 @@ class DBRepository:
         # executing the qry.statement directly is MUCH faster than qry.all()
         ls = self.get_session().execute(qry.statement)
         self._all_persons = dict((r.bioport_id, Person(bioport_id=r.bioport_id, repository=self.repository)) for r in ls)
-#         self._all_persons = {}
         logging.info('done (filling all_persons cache): %s seconds' % (time.time() - time0))
         return self._all_persons
 
@@ -1373,17 +1281,15 @@ class DBRepository:
         return qry
 
     def get_person(self, bioport_id, repository=None):
-#         print "type(%s)=%s" % (bioport_id, type(bioport_id))
         person = self.all_persons().get(bioport_id)
         if not person:
-            id = self.redirects_to(bioport_id)
-            if id != bioport_id:
-                return self.get_person(id)
+            original_bioport_id = self.redirects_to(bioport_id)
+            if original_bioport_id != bioport_id:
+                person = self.get_person(original_bioport_id)
             else:
-                return None
-#                return DummyPerson(bioport_id)
-        else:
-            return person
+                person = None
+
+        return person
 
     @instance.clearafter
     def delete_person(self, person):
