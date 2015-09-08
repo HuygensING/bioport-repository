@@ -20,7 +20,7 @@
 # <http://www.gnu.org/licenses/gpl-3.0.html>.
 ##########################################################################
 
-# import os
+import os
 
 from sqlalchemy.orm.exc import NoResultFound, DetachedInstanceError
 from lxml import etree
@@ -408,12 +408,6 @@ class Person(object):
         else:
             return self.computed_values.sterfdatum
 
-#        event = self.get_merged_biography().get_event('death')
-#        if event is not None:
-#            return event.get('when')
-#        if self.record.sterfdatum_min == self.record.sterfdatum_max:
-#            return self.record.sterfdatum_max
-
     def get_dates_for_overview(self):
         """return a tuple of ISO-dates to show in the overview
 
@@ -424,7 +418,6 @@ class Person(object):
         """
         date1 = self.geboortedatum()
 #        if not date1:
-#            event = self.get_merged_biography().get_event('baptism')
 #            if event is not None:
 #                date1 = event.get('when')
 #
@@ -445,8 +438,12 @@ class Person(object):
         elif url.startswith('http:'):
             return url
         else:
-            images_cache_url = self.repository.images_cache_url
-            return '%s/%s' % (images_cache_url, self.record.thumbnail)
+            # we assume it is a filename
+            if os.path.isfile(os.path.join(self.repository.images_cache_local, self.record.thumbnail)):
+                images_cache_url = self.repository.images_cache_url
+                return '%s/%s' % (images_cache_url, self.record.thumbnail)
+            else:
+                return None
 
     def geslachtsnaam(self):
         return self.record.geslachtsnaam
