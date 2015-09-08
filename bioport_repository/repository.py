@@ -75,15 +75,6 @@ class Repository(object):
         self.images_cache_url = images_cache_url
         self.user = user
 
-    def commit(self, svn_entry=None):
-        """commmit the local changes to the repository"""
-        if self.ENABLE_SVN:
-            msg = 'put some useful message here'
-            if svn_entry:
-                self.svn_repository.commit(msg, svn_entry.path())
-            else:
-                self.svn_repository.commit(msg)
-
     def get_bioport_ids(self):
         """return _all_ bioport_ids in the system"""
         return self.db.get_bioport_ids()
@@ -135,17 +126,11 @@ class Repository(object):
         """add a source of data to the db"""
         if source.id in [src.id for src in self.get_sources()]:
             raise ValueError('A source with id %s already exists' % source.id)
-        if self.ENABLE_DB:
-            self.db.add_source(source)
-        if self.ENABLE_SVN:
-            self.svn_repository.add_source(source)
+        self.db.add_source(source)
         return source
 
     def delete_source(self, source):
-        if self.ENABLE_DB:
-            self.db.delete_source(source)
-        if self.ENABLE_SVN:
-            self.svn_repository.delete_source(source)
+        return self.db.delete_source(source)
 
     def get_source(self, id):  # @ReservedAssignment
         ls = [src for src in self.get_sources() if src.id == id]
@@ -158,10 +143,7 @@ class Repository(object):
         """
         return: a list of Source instances
         """
-        if self.ENABLE_DB:
-            return self.db.get_sources(order_by=order_by, desc=desc)
-        elif self.ENABLE_SVN:
-            return self.svn_repository.get_sources(order_by=order_by, desc=desc)
+        return self.db.get_sources(order_by=order_by, desc=desc)
 
     def get_status_value(self, k, default=None):
         items = STATUS_VALUES

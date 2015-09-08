@@ -59,8 +59,7 @@ def export_data(dsn):
 
 
 def create_tar_file():
-    #create a zip file  
-
+    # create a archive file  
     print 'creating tar.gz'
     tar = tarfile.open(TARFILE_NAME, "w:gz")
     for name in os.listdir(DIR_NAME):

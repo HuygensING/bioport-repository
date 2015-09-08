@@ -27,7 +27,8 @@ from db_definitions import STATUS_NEW
 
 class Source(object):
     """A source of biographical data"""
-    def __init__(self,
+    def __init__(
+        self,
         id,
         url=None,
         description=None,

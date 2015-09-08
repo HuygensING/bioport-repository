@@ -2,19 +2,19 @@
 
 ##########################################################################
 # Copyright (C) 2009 - 2014 Huygens ING & Gerbrandy S.R.L.
-# 
+#
 # This file is part of bioport.
-# 
+#
 # bioport is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as
 # published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public
 # License along with this program.  If not, see
 # <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -151,7 +151,7 @@ class MergedBiography:
 
         using as much information as is possibly available"""
 
-        def extract_min_max_from_event(type):
+        def extract_min_max_from_event(type):  # @ReservedAssignment
             """given an event, return a miminal and maximal date
 
             returns a tuple of two date instances
@@ -235,12 +235,12 @@ class MergedBiography:
     def get_sterfdatum_max(self):
         return self.sterfdatum()
 
-    def get_event(self, type):
+    def get_event(self, type):  # @ReservedAssignment
         for bio in self.get_biographies():
             if bio.get_event(type) is not None:
                 return bio.get_event(type)
 
-    def get_states(self, type):
+    def get_states(self, type):  # @ReservedAssignment
         for bio in self.get_biographies():
             if bio.get_states(type):
                 return bio.get_states(type)
@@ -256,9 +256,9 @@ class MergedBiography:
         while for others (dates) we have special cases
         """
         cumulative_keys = [
-               'illustraties',
-               'beroep',
-               ]
+            'illustraties',
+            'beroep',
+            ]
 
         if k in cumulative_keys:
             result = []
@@ -310,6 +310,7 @@ class MergedBiography:
             if s:
                 return s
 
+
 class BiographyMerger(object):
     """methods for merging biographies into a single new one"""
     @staticmethod
@@ -345,18 +346,18 @@ class BiographyMerger(object):
             _changed = True
 
         for x in [
-              'birth_date',
-             'birth_place',
-             'death_date',
-             'death_place',
-             ]:
+            'birth_date',
+            'birth_place',
+            'death_date',
+            'death_place',
+            ]:
             if not bio1.get_value(x) and bio2.get_value(x):
                 bio1.set_value(x, bio2.get_value(x))
                 _changed = True
         for x in [
-             'birth_date',
-             'death_date',
-             ]:
+            'birth_date',
+            'death_date',
+            ]:
             v1 = bio1.get_value(x)
             v2 = bio2.get_value(x)
             if v1 and v2 and len(v1) < len(v2) and v2[:len(v1)] == v1:
@@ -366,12 +367,6 @@ class BiographyMerger(object):
         if _changed:
             return bio1
 
-
-#        for bio in bios[1:]:
-#            merged_bio = BiographyMerger._merge_biographies(merged_bio, bio)
-#            if not merged_bio:
-#                return bios
-#        return merged_bio
     @staticmethod
     def _merge_biographies(bio1, bio2):
         """try to merge bio1 and bio2 - if we cannot (because they are not consistent), return None"""
@@ -388,7 +383,8 @@ class BiographyMerger(object):
                 dct[k] = v1 or v2
 
         names = bio1.get_names()
-        for n2 in  bio2.get_names():
+
+        for n2 in bio2.get_names():
             if n2 not in names:
                 names.append(n2)
 
@@ -397,13 +393,9 @@ class BiographyMerger(object):
         merged_bio = Biography(source_id=bio1.source_id, biodes_document=bio1.to_string())
         merged_bio.from_args(**dct)
 
-        # unique states
-#        unique_states = []
         # non-unique states
         states1 = bio1.get_states()
-#        states1 = [state for state in states1 if state.get('type') not in unique_states]
         states2 = bio2.get_states()
-#        states2 = [state for state in states2 if state.get('type') not in unique_states]
         for state in states2:
             if etree.tostring(state).strip() not in [etree.tostring(s).strip() for s in states1]:  # @UndefinedVariable
                 # copy the state (instead of moving it, which will change bio2 as well)
@@ -436,5 +428,4 @@ class BiographyMerger(object):
                         merged_bio._add_event_element(copy.deepcopy(bio2_event))
                 else:
                     merged_bio._add_event_element(copy.deepcopy(bio2_event))
-        return  merged_bio
-
+        return merged_bio

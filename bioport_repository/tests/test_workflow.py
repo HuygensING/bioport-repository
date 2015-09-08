@@ -1,18 +1,18 @@
 ##########################################################################
 # Copyright (C) 2009 - 2014 Huygens ING & Gerbrandy S.R.L.
-# 
+#
 # This file is part of bioport.
-# 
+#
 # bioport is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as
 # published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public
 # License along with this program.  If not, see
 # <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -32,16 +32,16 @@ class WorkflowTestCase(CommonTestCase):
     _fill_repository = False
 
     def test_workflow(self):
-        # a test where we run through the whole work flow 
+        # a test where we run through the whole work flow
         # of downloading, identifying, adding and editing descriptions, combining information
 
         repository = self.repo
 
         self.repo.db._update_category_table()
 
-        #------------------------ 
+        #------------------------
         # download data from a source
-        #------------------------ 
+        #------------------------
         url = 'file://%s' % os.path.join(THIS_DIR, 'data/knaw/list.xml')
         source = Source(id=u'test', url=url , description=u'test', repository=repository)
         repository.add_source(source)
@@ -60,9 +60,9 @@ class WorkflowTestCase(CommonTestCase):
 
         source = BioPortSource()
         repository.add_source(source)
-        #------------------------ 
+        #------------------------
         # identify two biographies
-        #------------------------ 
+        #------------------------
 
         # get two biographies
 
@@ -124,7 +124,7 @@ class WorkflowTestCase(CommonTestCase):
 
         #------------------------
         # add a new biodes document for a person
-        #------------------------ 
+        #------------------------
         person = repository.get_persons()[3]
         bio = repository.get_bioport_biography(person)
         # this bio is a biography of our person
@@ -149,9 +149,9 @@ class WorkflowTestCase(CommonTestCase):
         # do some queries
         repository.get_persons(beginletter='a')
         repository.get_persons(search_term='A*')
-        #------------------------ 
+        #------------------------
         # combine the biographies
-        #------------------------ 
+        #------------------------
         bio = person.get_merged_biography()
 
 

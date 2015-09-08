@@ -118,7 +118,6 @@ class SimilarityTestCase(CommonTestCase):
         try:
             self.repo.save_biography(bio, comment='test')
         except Exception, error:
-            import ipdb;ipdb.set_trace()
             self.repo.save_biography(bio, comment='test')
         self.assertTrue(Similarity.are_surely_equal(p0, p1)) 
         self.assertFalse(Similarity.are_surely_equal(p0, p2)) 

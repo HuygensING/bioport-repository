@@ -583,7 +583,6 @@ class Person(object):
 
                 self.has_contradictions = bool(person.get_biography_contradictions())
                 illustrations = self.merged_biography.get_illustrations()
-#                self.thumbnail = illustrations and illustrations[0].has_image() and illustrations[0].image_small_url or u''
                 illustration = illustrations and illustrations[0]
                 if illustration:
                     url = illustration.image_small_url
