@@ -192,15 +192,15 @@ class Illustration:
                     os.remove(self.cached_local)
                 raise CantDownloadImage(str(err))
 
-        # write main image file on disk
-        try:
-            with open(self.cached_local, 'w') as f:
-                f.write(http.read())
-            http.close()
-        except:
-            if os.path.isfile(self.cached_local):
-                os.remove(self.cached_local)
-            raise
+            # write main image file on disk
+            try:
+                with open(self.cached_local, 'w') as f:
+                    f.write(http.read())
+                http.close()
+            except:
+                if os.path.isfile(self.cached_local):
+                    os.remove(self.cached_local)
+                raise
 
         # write two smaller thumbs on disk
         try:
