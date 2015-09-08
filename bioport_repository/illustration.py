@@ -65,8 +65,7 @@ class Illustration:
         """
         arguments:
          - url  : the original url of the image
-         - images_cache_local : path to a place on the filesystem where the
-           image will be downloaded to.
+         - images_cache_local : path to a place on the filesystem where the image will be downloaded to.
          - images_cache_url : URL at which the image will be accessabiel once
            downloaded
          - link_url: an optional url to link to
@@ -83,7 +82,7 @@ class Illustration:
                     msg = 'The path at {self._images_cache_local} does not exist.'.format(self=self)
                     msg += 'Check the setting for IMAGES_CACHE_LOCAL on the page /admin/edit '
                     raise OSError(msg)
-                else: 
+                else:
                     raise
         self._images_cache_url = images_cache_url or u''
         self._prefix = prefix
@@ -173,7 +172,6 @@ class Illustration:
         """return True if we a local copy of this image exists"""
         return os.path.isfile(self.cached_local)
 
-
     # --- actions
     def download(self, overwrite=True):
         """Download the original image with original dimensions and saves it on
@@ -184,7 +182,6 @@ class Illustration:
         """
         if not overwrite and os.path.exists(self.cached_local):
             logging.info('image already exists at %s - no image downloaded' % self.cached_local)
-            return
         else:
             url = normalize_url(self.source_url)
             logging.info('Downloading image from %s to %s' % (repr(url), repr(self.cached_local)))
@@ -197,8 +194,8 @@ class Illustration:
 
         # write main image file on disk
         try:
-            with open(self.cached_local, 'w') as file:
-                file.write(http.read())
+            with open(self.cached_local, 'w') as f:
+                f.write(http.read())
             http.close()
         except:
             if os.path.isfile(self.cached_local):
@@ -228,23 +225,28 @@ class Illustration:
         assert isinstance(width, int)
         assert isinstance(height, int)
         if not os.path.isfile(self.cached_local):
-            raise ValueError("the original image does not exists (it was supposed to be found here: %s)"
+            raise ValueError("the original image does not exist (it was supposed to be found here: %s)"
                              % self.cached_local)
+
+        basename = os.path.basename(self.cached_local)
+        basename = "%sx%s_%s" % (width, height, basename)
+        filename = os.path.join(self.thumbnails_directory, basename)
+        if os.path.exists(filename):
+            logging.info('thumbnail already exists at %s - none created' % filename)
+            return
 
         # PIL stuff
         pilfilter = 0  # NEAREST
         if Image.VERSION >= "1.1.3":  # @UndefinedVariable
             pilfilter = 1  # ANTIALIAS
+
         image = Image.open(self.cached_local)  # @UndefinedVariable
         image = image.convert('RGB')
         image.thumbnail((width, height), pilfilter)
 
         # write on disk
-        basename = os.path.basename(self.cached_local)
-        basename = "%sx%s_%s" % (width, height, basename)
-        file = os.path.join(self.thumbnails_directory, basename)
-        image.save(file, "JPEG", quality=88)
-        return file
+        image.save(filename, "JPEG", quality=88)
+        return filename
 
     def _create_id(self):
         # XXX - IMPORTANT
@@ -277,7 +279,6 @@ class Illustration:
         return filename
 
     # --- deprecated attrs
-
 
     def create_id(self):
         raise ValueError("deprecated; use _create_id instead")
