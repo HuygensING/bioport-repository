@@ -69,13 +69,15 @@ class SourceRecord(Base):
     quality = Column(Integer)
     xml = Column(Text(64000))
     timestamp = Column(TIMESTAMP)
+    source_type = Column(Integer)
 
-    def __init__(self, id, url, description, quality=None, xml=None):
+    def __init__(self, id, url, description, quality=None, xml=None, source_type=False):  # @ReservedAssignment
         self.id = id
         self.url = url
         self.description = description
         self.quality = quality
         self.xml = xml
+        self.source_type = source_type
 
 #
 # NOTA BENE:
@@ -455,3 +457,9 @@ def strstatus(code):
     STATUS_VALUES.
     """
     return dict(STATUS_VALUES)[code]
+
+SOURCE_TYPE_PORTRAITS = 1
+SOURCE_TYPES = [
+    (None, ''),
+    (SOURCE_TYPE_PORTRAITS, 'portraits'),
+]

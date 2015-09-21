@@ -90,6 +90,9 @@ ALTER TABLE `person` MODIFY COLUMN `search_source` TEXT  CHARACTER SET utf8 COLL
 
 """
 
+"""
+ALTER TABLE source ADD COLUMN source_type INT 
+"""
 #
 from bioport_repository.repository import *
 #from bioport_repository.db_definitions import PersonView

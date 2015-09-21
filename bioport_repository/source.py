@@ -29,13 +29,14 @@ class Source(object):
     """A source of biographical data"""
     def __init__(
         self,
-        id,
+        id,  # @ReservedAssignment
         url=None,
         description=None,
         quality=0,
         default_status=STATUS_NEW,
         xml=None,
         repository=None,
+        source_type=None,
         ):
         """
         arguments:
@@ -51,6 +52,7 @@ class Source(object):
         self.quality = quality
         self.repository = repository
         self.default_status = default_status
+        self.source_type = source_type
 
         # last times "download biographies" button has been pressed and
         # action completed

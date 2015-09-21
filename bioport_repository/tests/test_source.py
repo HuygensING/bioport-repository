@@ -21,18 +21,20 @@
 from bioport_repository.tests.common_testcase import CommonTestCase
 
 from bioport_repository.source import Source
+from bioport_repository.db_definitions import SOURCE_TYPE_PORTRAITS
 
 
 class SourceTestCase(CommonTestCase):
 
     def test_save_get_source(self):
         repo = self.repo
-        src = Source(id='foo', url='http://ladida.com', description='description', default_status=2)
+        src = Source(id='foo', url='http://ladida.com', description='description', default_status=2, source_type=SOURCE_TYPE_PORTRAITS)
         self.assertEqual(src.id, 'foo')
         repo.save_source(src)
         src = repo.get_source(src.id)
         self.assertEqual(src.id, 'foo')
         self.assertEqual(src.default_status, 2)
+        self.assertEqual(src.source_type, SOURCE_TYPE_PORTRAITS)
 
     def test_set_quality(self):
         i = self.repo

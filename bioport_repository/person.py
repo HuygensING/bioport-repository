@@ -27,7 +27,7 @@ from lxml import etree
 
 from names.common import coerce_to_ascii
 from bioport_repository.merged_biography import MergedBiography, BiographyMerger
-from bioport_repository.db_definitions import STATUS_NEW
+from bioport_repository.db_definitions import STATUS_NEW, SOURCE_TYPE_PORTRAITS
 from bioport_repository.common import format_date, to_date
 from bioport_repository.db_definitions import (
     RelPersonCategory,
@@ -186,14 +186,23 @@ class Person(object):
                 except:
                     tmpinit = coerce_to_ascii(lower.replace(u'\u0133', 'ij').replace(u'ã¼', u'ü').replace(u'\xf8', 'o'))[0]
                 r_person.initial = tmpinit
-            #     invisible = Column(Boolean) # person.status IN (11, 5, 9, 9999, 14, 15)
-            r_person.invisible = r_person.status in TO_HIDE
+
+            sources = self.get_sources()
+
+            #     invisible = Column(Boolean) #
+            non_portrait_sources = [source for source in sources if source.id != 'bioport' and source.source_type != SOURCE_TYPE_PORTRAITS]
+            r_person.invisible = (
+                # person.status IN (11, 5, 9, 9999, 14, 15)
+                r_person.status in TO_HIDE or
+                # we also hide persons that are only have only portraits as biographies
+                not non_portrait_sources
+                )
+
 #             #     foreigner = Column(Boolean) # person.status IN (11)
 #             r_person.foreigner = r_person.status == STATUS_FOREIGNER
             #     orphan = Column(Boolean) # person is orphan when the only sources linking to it is 'bioport'
             """ TODO: test this"""
-            sources = self.get_sources()
-            r_person.orphan = len(sources) == 1 and sources[0].id == 'bioport'
+            r_person.orphan = len(sources) == 0 or (len(sources) == 1 and sources[0].id == 'bioport')
 
             # # /BB
             # update categories
@@ -353,6 +362,7 @@ class Person(object):
         if self.record:
             return self.record.orphan
         else:
+            # XXX: this function is not defined
             return self.get_merged_biography().is_orphan()
 
     def birthday(self):

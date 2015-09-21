@@ -23,7 +23,7 @@ from bioport_repository.tests.common_testcase import CommonTestCase, unittest
 from bioport_repository.person import Person
 # from bioport_repository.source import Source
 from bioport_repository.biography import Biography
-from bioport_repository.db_definitions import STATUS_DONE, STATUS_FOREIGNER
+from bioport_repository.db_definitions import STATUS_DONE, STATUS_FOREIGNER, SOURCE_TYPE_PORTRAITS
 
 
 class PersonTestCase(CommonTestCase):
@@ -114,6 +114,25 @@ class PersonTestCase(CommonTestCase):
 
         self.repo.delete_biography(default_bio)
         self.assertEqual(person.is_orphan(), True)
+
+    def test_person_with_only_portaits_is_invisible(self):
+        person = self._add_person(name='Remi')
+        self.assertEqual(person.is_invisible(), False)
+        for bio in person.get_biographies():
+            if bio.source_id != 'bioport':
+                self.repo.delete_biography(bio)
+
+        self.assertEqual(person.is_invisible(), True)
+
+        # now add a biography from a source that is of type 'portraits'
+        portraits_source = self._add_source(u'rijksmuseum')
+        portraits_source.source_type = SOURCE_TYPE_PORTRAITS
+        self.repo.save_source(portraits_source)
+        bio = Biography(id='1', source_id=u'rijksmuseum', repository=self.repo)
+        person.add_biography(bio)
+
+        self.assertEqual(person.is_invisible(), True)
+
 
     def test_get_dates_for_overview(self):
         person = self._add_person(name='Estragon')

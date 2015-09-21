@@ -160,11 +160,10 @@ class DBRepository:
         if hasattr(self.db, '_all_persons'):
             del self.db._all_persons
 
-
     @instance.clearafter
     def add_source(self, src):
         assert src.id
-        r = SourceRecord(id=src.id, url=src.url, description=src.description, xml=src._to_xml())
+        r = SourceRecord(id=src.id, url=src.url, description=src.description, xml=src._to_xml(), source_type=src.source_type)
         with self.get_session_context() as session:
             session.add(r)
             msg = 'Added source'
@@ -181,6 +180,7 @@ class DBRepository:
             r.description = src.description
             r.quality = src.quality
             r.xml = src._to_xml()
+            r.source_type = src.source_type
             msg = 'saved source'
             self.log(msg, r)
 
@@ -202,7 +202,7 @@ class DBRepository:
                 source_id = source_id.encode('ascii')
             qry = qry.filter(SourceRecord.id == source_id)
             r = qry.one()
-            source = Source(id=r.id, url=r.url, description=r.description, quality=r.quality, xml=r.xml)
+            source = Source(id=r.id, url=r.url, description=r.description, quality=r.quality, xml=r.xml, source_type=r.source_type)
             return source
 
     @instance.memoize
@@ -215,7 +215,7 @@ class DBRepository:
                 else:
                     qry = qry.order_by(order_by)
             ls = qry.all()
-            sources = [Source(r.id, r.url, r.description, quality=r.quality, xml=r.xml, repository=self.repository) for r in ls]
+            sources = [Source(r.id, r.url, r.description, quality=r.quality, xml=r.xml, repository=self.repository, source_type=r.source_type) for r in ls]
             return sources
 
     @instance.clearafter

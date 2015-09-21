@@ -31,6 +31,7 @@ from lxml import etree
 import biodes
 
 from bioport_repository.db_definitions import STATUS_VALUES, RELIGION_VALUES
+from bioport_repository.db_definitions import SOURCE_TYPES
 from bioport_repository.biography import Biography
 from bioport_repository.db import DBRepository
 # from bioport_repository.person import Person
@@ -151,6 +152,9 @@ class Repository(object):
 
     def get_status_values(self):
         return STATUS_VALUES
+
+    def get_source_types(self):
+        return SOURCE_TYPES
 
     def get_religion_values(self):
         return RELIGION_VALUES
