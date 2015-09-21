@@ -305,7 +305,7 @@ class Repository(object):
         total = 0
         skipped = 0
         for i, bio in enumerate(bios):
-            logging.info('[%s/%s] downloading illustrations' % (i+1, len(bios)))
+            logging.info('[%s/%s] downloading illustrations' % (i + 1, len(bios)))
             total += 1
             if limit and total > limit:
                 break
@@ -387,7 +387,7 @@ class Repository(object):
         if self.ENABLE_DB:
             self.db.redirect_identifier(bioport_id, redirect_to)
         if self.ENABLE_SVN:
-            raise NotImplementedError  #        id = self.get_identifier(bioport_id)
+            raise NotImplementedError
 
     def get_bioport_biography(self, person, create_if_not_exists=True):
         """get, or if it does not yet exist, create, a biodes document that represents the interventions
@@ -400,7 +400,7 @@ class Repository(object):
         """
         source = BioPortSource()
 
-        if not source.id in [s.id for s in self.get_sources()]:
+        if source.id not in [s.id for s in self.get_sources()]:
             src = Source('bioport', repository=self)
             self.add_source(src)
             src.set_quality(10000)

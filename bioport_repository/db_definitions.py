@@ -356,17 +356,18 @@ class RelPersonReligion(Base):
     religion_id = Column(Integer, primary_key=True)  # , ForeignKey('category.id'), index=True)
     persons = relation(PersonRecord, backref='religions')
 
+
 class Comment(Base):
     """This table holds comments submitted by portal users
     """
     __tablename__ = 'comment'
     id = Column(Integer, primary_key=True, autoincrement=True)
     bioport_id = Column(
-                        Integer,
-                        ForeignKey('bioportid.bioport_id'),
-                        index=True,
-                        unique=True,
-                        )
+        Integer,
+        ForeignKey('bioportid.bioport_id'),
+        index=True,
+        unique=True,
+        )
     text = Column(Text)
     created = Column(DateTime, index=True)
     submitter = Column(MSString(20), default='Anonymous')

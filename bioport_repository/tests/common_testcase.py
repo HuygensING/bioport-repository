@@ -1,30 +1,26 @@
 ##########################################################################
 # Copyright (C) 2009 - 2014 Huygens ING & Gerbrandy S.R.L.
-# 
+#
 # This file is part of bioport.
-# 
+#
 # bioport is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as
 # published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public
 # License along with this program.  If not, see
 # <http://www.gnu.org/licenses/gpl-3.0.html>.
 ##########################################################################
 
 import os
-#import sys
 import unittest
 import shutil
-#import transaction
-#import atexit
-#import subprocess
 import sqlalchemy
 
 from bioport_repository.repository import Repository
@@ -36,10 +32,10 @@ from gerbrandyutils import sh
 from names.name import Name
 # CREATE_NEW_DUMPFILE = True # very expensive if True
 repository = Repository(
-  svn_repository_local_copy=SVN_REPOSITORY_LOCAL_COPY,
-  svn_repository='file://%s' % SVN_REPOSITORY,
-  dsn=DSN,
-  images_cache_local=IMAGES_CACHE_LOCAL,
+    svn_repository_local_copy=SVN_REPOSITORY_LOCAL_COPY,
+    svn_repository='file://%s' % SVN_REPOSITORY,
+    dsn=DSN,
+    images_cache_local=IMAGES_CACHE_LOCAL,
 )
 
 
@@ -85,9 +81,9 @@ class CommonTestCase(unittest.TestCase):
         dsn = parse_dsn(DSN)
         username = dsn.username or ""
         passwd = dsn.password or ""
-        
-        self.repo.db.Session.remove() # we sometimes get table locks if we don't do this before calling metadata.drop_all()
-        
+
+        self.repo.db.Session.remove()  # we sometimes get table locks if we don't do this before calling metadata.drop_all()
+
         if not passwd:
             sh('mysql -u %s bioport_test -e "source %s"' % (username, SQLDUMP_FILENAME))
         else:
@@ -96,7 +92,7 @@ class CommonTestCase(unittest.TestCase):
         return self.repo
 
     def create_filled_repository_from_scratch(self, sources=2):
-        #create a repo filled with some data
+        # create a repo filled with some data
         self.repo.db.metadata.create_all()
         url = 'file://%s' % os.path.abspath(os.path.join(THIS_DIR, 'data/knaw/list.xml'))
         source = Source(id=u'knaw', url=url, description='test')
@@ -109,7 +105,7 @@ class CommonTestCase(unittest.TestCase):
             self.repo.download_biographies(source)
         self.repo.db._update_category_table()
 
-        #also add Bioport source
+        # also add Bioport source
         src = Source('bioport', repository=self.repo)
         self.repo.add_source(src)
         src.set_quality(10000)
@@ -148,7 +144,7 @@ class CommonTestCase(unittest.TestCase):
         returns:
             a Person instance
         """
-        #make a new biography
+        # make a new biography
 
         if name:
             name = Name(name)
@@ -165,7 +161,7 @@ class CommonTestCase(unittest.TestCase):
                  sterfdatum=sterfdatum,
                  )
 
-        #save it
+        # save it
         bio = self._save_biography(bio, comment=u'added by test')
         return bio.get_person()
 

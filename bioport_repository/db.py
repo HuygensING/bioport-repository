@@ -278,36 +278,6 @@ class DBRepository:
             # now update the person associated with this biography
             self.update_person(biography.get_bioport_id())
 
-#    def add_naam(self, naam, bioport_id, src):
-#        """add a record to the table 'naam'
-#
-#        arguments:
-#            naam - an instance of Naam
-#            biography - an instance of biography
-#        """
-#        with self.get_session_context() as session:
-#            item = NaamRecord()
-#            session.add(item)
-#
-#            item.bioport_id = bioport_id
-#            item.volledige_naam = naam.guess_normal_form()
-#            item.xml = naam.to_string()
-#            item.sort_key = naam.sort_key()
-#            item.src = src
-#            #item.src = src and unicode(src) or unicode(self.id)
-#
-#            assert type(item.xml) == type(u'')
-#            assert type(item.sort_key) == type(u'')
-#
-#            item.soundex = []
-#            #item.variant_of = variant_of
-#
-#            for s in naam.soundex_nl():
-#                soundex = SoundexRecord()
-#                soundex.soundex = s
-#                item.soundex.append(soundex)
-#            return item.id
-
     @instance.clearafter
     def delete_names(self, bioport_id):
         with self.get_session_context() as session:
@@ -926,10 +896,8 @@ class DBRepository:
             self._log_query('hide_invisible', qry)
 
         if hide_foreigners:
-            # qry = qry.filter(not_(sqlalchemy.func.ifnull(PersonRecord.status.in_([STATUS_FOREIGNER]), False)))  # @UndefinedVariable
             # BB
             qry = qry.filter(PersonRecord.status != STATUS_FOREIGNER)  # @UndefinedVariable
-#             qry = qry.filter(PersonRecord.foreigner == False)  # @UndefinedVariable
             self._log_query('hide_foreigners', qry)
 
         if beginletter:

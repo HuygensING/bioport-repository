@@ -1,18 +1,18 @@
 ##########################################################################
 # Copyright (C) 2009 - 2014 Huygens ING & Gerbrandy S.R.L.
-# 
+#
 # This file is part of bioport.
-# 
+#
 # bioport is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as
 # published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public
 # License along with this program.  If not, see
 # <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -22,6 +22,7 @@ from bioport_repository.tests.common_testcase import CommonTestCase
 from bioport_repository.db import Source, BiographyRecord, SourceRecord, Biography
 from bioport_repository.db_definitions import RelPersonCategory, PersonSoundex, RELIGION_VALUES, STATUS_NOBIOS
 from bioport_repository.common import BioPortException
+
 
 class DBRepositoryTestCase(CommonTestCase):
 
@@ -33,7 +34,7 @@ class DBRepositoryTestCase(CommonTestCase):
         assert 'soundex' in db.engine.table_names(), db.engine.table_names()
 
     def test_manipulate_source(self):
-        #nbase is the amount of sources in the database
+        # nbase is the amount of sources in the database
         nbase = self.db.get_session().query(SourceRecord).count()
         src = Source(id='123')
         self.db.add_source(src)
@@ -41,7 +42,7 @@ class DBRepositoryTestCase(CommonTestCase):
         self.assertEqual(len(self.db.get_sources()), nbase + 1)
         self.db.delete_source(src)
         self.assertEqual(len(self.db.get_sources()), nbase)
-        #now add the source again, to check if the previous result did not reamin cached
+        # now add the source again, to check if the previous result did not reamin cached
         self.db.add_source(src)
         self.assertEqual(len(self.db.get_sources()), nbase + 1)
 
@@ -49,8 +50,6 @@ class DBRepositoryTestCase(CommonTestCase):
         """tests for adding and deleting biographies"""
         n_bios = n_base = self.db.count_biographies()
 
-#        n_base_naam = self.db.get_session().query(NaamRecord).count()
-#        n_base_soundex = self.db.get_session().query(SoundexRecord).count()
         n_base_soundex = self.db.get_session().query(PersonSoundex).count()
         self.assertEqual(len(self.db.get_session().query(BiographyRecord).all()), n_base)
         src = Source(id='123')
@@ -61,18 +60,18 @@ class DBRepositoryTestCase(CommonTestCase):
 
         self.db.save_biography(bio1, user=self.db.user, comment='test')
 
-        #we have added one new biography, with one name that corresponds to one single soundex
+        # we have added one new biography, with one name that corresponds to one single soundex
         n_bios += 1
         self.assertEqual(self.db.count_biographies(), n_bios)
         self.assertEqual(len(self.db.get_session().query(BiographyRecord).all()), n_bios)
         self.assertEqual(len(self.db.get_session().query(PersonSoundex).all()), n_base_soundex + 1)
 
-        #this biography has one oauthor
+        # this biography has one oauthor
         bio1.set_value('auteur', ['Johan'])
         self.db.save_biography(bio1, user=self.db.user, comment='test')
-        #now we have a new version of this biography
+        # now we have a new version of this biography
         self.assertEqual(len(self.db.get_session().query(BiographyRecord).all()), n_bios + 1)
-        #but the number of biographies (with version 0) is still the ssame
+        # but the number of biographies (with version 0) is still the ssame
         self.assertEqual(len(list(self.db.get_biographies())), n_bios)
 
         self.assertEqual(len(bio1.get_value('auteur', [])), 1, bio1.to_string())
@@ -80,12 +79,12 @@ class DBRepositoryTestCase(CommonTestCase):
         bio2 = Biography(id='ladida2', source_id=src.id, repository=self.repo)
         bio2.from_args(naam_publisher="1", url_biografie="http://www.url.com/1", url_publisher="http:///url2.com", naam="jantje")
         self.db.save_biography(bio2, user=self.db.user, comment='test')
-        #we added one more biography
+        # we added one more biography
         n_bios += 1
         self.assertEqual(len(list(self.db.get_biographies())), n_bios)
 
     def test_save_biography(self):
-        #set up a source
+        # set up a source
         src = Source(id='123')
         self.repo.save_source(src)
         bio1 = Biography(id='id1', source_id=src.id, repository=self.repo)
@@ -96,7 +95,7 @@ class DBRepositoryTestCase(CommonTestCase):
 
         bio = self.db.get_biography(local_id=bio1.id)
 
-        #basic sanity check
+        # basic sanity check
         self.assertEqual(bio.snippet(), 'text2')
 
         person = self.db.get_person(bio1.get_bioport_id())
@@ -119,15 +118,15 @@ class DBRepositoryTestCase(CommonTestCase):
 
     def test_add_person(self):
 
-        #this is what we want to do
+        # this is what we want to do
 
-        #add a source
+        # add a source
         source_id = u'bioport_test'
 #        bioport_id = self.db.fresh_identifier()
         name = u'name, test'
         source = Source(source_id, repository=self.repo)
         source.save()
-        #add a biography
+        # add a biography
         args = {
             'naam_publisher': u'x',
             'url_biografie': u'http://placeholder.com',
@@ -138,19 +137,19 @@ class DBRepositoryTestCase(CommonTestCase):
 
         biography = Biography(repository=self.repo, source_id=source_id)
         biography.from_args(**args)
-        #now at this point, the biography does not have a bioport_id yet
+        # now at this point, the biography does not have a bioport_id yet
         self.assertEqual(biography.get_bioport_id(), None)
         biography.save(user=u'test')
-        #this biography should be connected with the source
+        # this biography should be connected with the source
         self.assertEqual(biography.get_source(), source)
 
-        #the biography has a local_id defined
+        # the biography has a local_id defined
         self.assertEqual(biography.create_id(), u'bioport_test/1')
-        #the biography should be in the repository
+        # the biography should be in the repository
         bioport_id = biography.get_bioport_id()
         assert bioport_id
 
-        #is our biography available in the repository?
+        # is our biography available in the repository?
         self.assertEqual(self.repo.get_biography(biography.create_id()), biography)
         self.assertEqual(self.repo.get_biographies(bioport_id=bioport_id), [biography])
 
@@ -162,7 +161,7 @@ class DBRepositoryTestCase(CommonTestCase):
 #        self.assertEqual(qry.one().naam, name)
 #        qry = self.repo.db.get_session().query(PersonSource).filter(PersonSource.bioport_id==bioport_id)
 #        assert qry.all(), qry.statement
-##        qry = self.repo.db._get_persons_query(full_records=True, hide_invisible=False)
+# #        qry = self.repo.db._get_persons_query(full_records=True, hide_invisible=False)
 
         person = biography.get_person()
         self.assertTrue(person.bioport_id, bioport_id)
@@ -173,10 +172,10 @@ class DBRepositoryTestCase(CommonTestCase):
 
 #        bioport_id = self.db.fresh_identifier()
         bioport_id = self.db.fresh_identifier()
-        #we cannot add a person without a biography
+        # we cannot add a person without a biography
         self.assertRaises(BioPortException, self.db.add_person, bioport_id)
 
-        #so we first create a biography
+        # so we first create a biography
         defaults = {
             'naam_publisher': u'x',
             'url_biografie': u'http://placeholder.com',
@@ -188,7 +187,7 @@ class DBRepositoryTestCase(CommonTestCase):
         other_source_id = u'this does not exist'
         biography = Biography(repository=self.repo, source_id=other_source_id)
         biography.from_args(**defaults)
-        #now, saving this biography should raise an exception, because no source was found
+        # now, saving this biography should raise an exception, because no source was found
         self.assertRaises(Exception, biography.save, u'test')
 
     def test_update_soundexes(self):
@@ -196,26 +195,26 @@ class DBRepositoryTestCase(CommonTestCase):
 
     def test_saving_of_categories(self):
         repo = self.repo
-        #get some person from the database
+        # get some person from the database
 
         p = repo.get_persons()[1]
-        #set some properties here and there
+        # set some properties here and there
         categories = [1, 2, 3]
         bio = p.get_bioport_biography()
         bio.set_category(categories)
 
-        #save the changes in the repository
+        # save the changes in the repository
         self._save_biography(bio)
 
-        #sanity checks: see if the person knows about this
+        # sanity checks: see if the person knows about this
         self.assertEqual(len(bio.get_states(type='category')), len(categories))
         self.assertEqual(len(p.get_bioport_biography().get_states(type='category')), len(categories))
         self.assertEqual(len(p.get_merged_biography().get_states(type='category')), len(categories))
 
 
-        #do we have these categories in the database
+        # do we have these categories in the database
         self.assertEqual(repo.db.get_session().query(RelPersonCategory).filter(RelPersonCategory.bioport_id == p.get_bioport_id()).count(), len(categories))
-        #now try to find the person again, and see if the changes hold (and are in the db)
+        # now try to find the person again, and see if the changes hold (and are in the db)
 
         new_p = repo.get_person(p.get_bioport_id())
         self.assertEqual(len(new_p.get_merged_biography().get_states(type='category')), len(categories))
@@ -223,11 +222,11 @@ class DBRepositoryTestCase(CommonTestCase):
 
     def test_religion(self):
         repo = self.repo
-        #get some person from the database
+        # get some person from the database
 
         bio1 = repo.get_persons()[1].get_bioport_biography()
         bio2 = repo.get_persons()[2].get_bioport_biography()
-        #set some properties here and there
+        # set some properties here and there
         rel_id = unicode(RELIGION_VALUES[2][0])
 
         bio1.set_religion(rel_id)
@@ -246,10 +245,10 @@ class DBRepositoryTestCase(CommonTestCase):
 
     def test_get_persons(self):
         repo = self.repo
-        #check sanity
+        # check sanity
         self.assertEqual(len(repo.get_persons()), 10)
 
-        #identify  two persons so we have more interesting queries
+        # identify  two persons so we have more interesting queries
         repo.identify(repo.get_persons(source_id=u'knaw')[0], repo.get_persons(source_id=u'knaw2')[-1])
 
         self.assertEqual(len(repo.get_persons()), 9)
@@ -290,7 +289,7 @@ class DBRepositoryTestCase(CommonTestCase):
 
         self.assertEqual(len(repo.get_persons(search_name=u'boschma')), 9, self.repo.get_persons())
         self.assertEqual(len(repo.get_persons(search_name=u'molloyx')), 1)
-        self.assertEqual(len(repo.get_persons(search_name=u'bosma')), 9) #, self.repo.get_persons())
+        self.assertEqual(len(repo.get_persons(search_name=u'bosma')), 9)  # , self.repo.get_persons())
         self.assertEqual(len(repo.get_persons(search_name='bo?ma')), 9)
         self.assertEqual(len(repo.get_persons(search_name=u'"mollo??"')), 1)
         self.assertEqual(len(repo.get_persons(search_name=u'"mollo*"')), 1)
@@ -300,7 +299,7 @@ class DBRepositoryTestCase(CommonTestCase):
         self.assertEqual(len(repo.get_persons(search_family_name_only=True, search_name=u'bosma')), 9)
 
     def test_search_intrapositions(self):
-        #if we search for family name only, also words like 'van' and 'van der' and such should be included
+        # if we search for family name only, also words like 'van' and 'van der' and such should be included
         repo = self.repo
         self.assertEqual(len(repo.get_persons(search_name=u'van')), 1)
         self.assertEqual(len(repo.get_persons(search_family_name_only=True, search_name=u'van')), 1)
@@ -336,7 +335,7 @@ class DBRepositoryTestCase(CommonTestCase):
         qry.update(dict(levendjaar_max=1800, levendmaand_max=2, levenddag_max=21))
         self.assertEqual(len(repo.get_persons(**qry)), 4)
 
-        #februari!
+        # februari!
         qry = dict(levendjaar_max=1800, levendmaand_max=2)
         self.assertEqual(len(repo.get_persons(**qry)), 4)
 
@@ -379,7 +378,7 @@ class DBRepositoryTestCase(CommonTestCase):
         self.assertEqual(len(repo.get_persons(**qry)), 2)
         qry['sterfdag_max'] = '31'
         self.assertEqual(len(repo.get_persons(**qry)), 3)
-        #Let's check that a date with the year only is not returned
+        # Let's check that a date with the year only is not returned
         self.db.get_session().execute(
             "UPDATE person set sterfdatum_min ='1882-01-01', sterfdatum_max='1882-12-31'"
             " WHERE sterfdatum_min ='1882-01-15'")
@@ -412,8 +411,8 @@ class DBRepositoryTestCase(CommonTestCase):
         """check if we clean up after ourselves when deleting biographies"""
         session = self.repo.db.get_session()
 
-        #just check some general sanity
-        #we have 10 biographies in two sources, 5 bios each
+        # just check some general sanity
+        # we have 10 biographies in two sources, 5 bios each
         self.assertEqual(session.query(BiographyRecord).count(), 10)
         self.assertEqual(len(self.repo.get_sources()), 3)
         _bioportsource, source1, source2 = self.repo.get_sources()
@@ -421,32 +420,32 @@ class DBRepositoryTestCase(CommonTestCase):
         self.assertEqual(len(self.repo.get_persons(source_id=source1.id)), 5)
         self.assertEqual(len(self.repo.get_persons(source_id=source2.id)), 5)
 
-        #we identify two persons from source1 and source2
+        # we identify two persons from source1 and source2
         self.repo.identify(
            self.repo.get_persons(source_id=source1.id)[0],
            self.repo.get_persons(source_id=source2.id)[0],
            )
-        #and we now have 9 persons, but still 5 from each
+        # and we now have 9 persons, but still 5 from each
         self.assertEqual(len(self.repo.get_persons()), 9)
         self.assertEqual(len(self.repo.get_persons(source_id=source1.id)), 5)
         self.assertEqual(len(self.repo.get_persons(source_id=source2.id)), 5)
 
-        #we delete the biographies for one source
+        # we delete the biographies for one source
         self.repo.delete_biographies(source1)
 
-        #the sources are still there
+        # the sources are still there
         self.assertEqual(len(self.repo.get_sources()), 3)
-        #and also the bioport_ids we used
+        # and also the bioport_ids we used
         self.assertEqual(len(self.repo.get_bioport_ids()), 10)
 
-        #there are now only 5 persons left
+        # there are now only 5 persons left
 #         self.assertEqual(session.query(PersonRecord).count(), 5)
         self.assertEqual(len(self.repo.get_persons()), 5)
 
-        #and we should have no persons associated with source1 anymore
+        # and we should have no persons associated with source1 anymore
         self.assertEqual(list(self.repo.get_persons(source_id=source1.id)), [])
 
-        #however, we still should remember with which bioport_ids our biogrpahies were associated
+        # however, we still should remember with which bioport_ids our biogrpahies were associated
 #         self.assertEqual(session.query(RelBioPortIdBiographyRecord).count(), 10)
 
 #
