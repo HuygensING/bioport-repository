@@ -106,6 +106,7 @@ class DBRepository:
             convert_unicode=True,
             encoding='utf8',
             echo=echo,
+            pool_size=-1,
             max_overflow=20,
             pool_recycle=3600  # set pool_recycle to one hour to avoid 'sql server has gone away' errors
             )

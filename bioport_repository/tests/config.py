@@ -19,33 +19,34 @@
 ##########################################################################
 
 import os
-from sqlalchemy.exc import OperationalError
+
 from sqlalchemy import create_engine
+from sqlalchemy.exc import OperationalError
 
 DB_NAME = 'bioport_test'
 POSSIBLE_DSN = [
     'mysql://root@localhost/%s' % DB_NAME,
     'mysql://histest:test@localhost/%s' % DB_NAME,
     'mysql://localhost/%s' % DB_NAME,
-    ]
+]
 
 
 def _find_valid_dsn():
     for s in POSSIBLE_DSN:
         try:
-            create_engine(s).connect()
+            create_engine(s, pool_size=-1).connect()
         except OperationalError:
             pass
         else:
             return s
     raise ValueError("no valid DSN found")
 
+
 try:
     DB_CONNECTION = DSN = _find_valid_dsn()
 except ValueError:
-    print 'NO VALID DSN FOUND IN TEST CONFIG'
+    print('NO VALID DSN FOUND IN TEST CONFIG')
     DSN = None
-
 
 THIS_DIR = os.path.split(os.path.abspath(__file__))[0]
 SVN_REPOSITORY = os.path.abspath(os.path.join(THIS_DIR, 'data/bioport_repository'))
